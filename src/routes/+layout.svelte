@@ -12,20 +12,30 @@
 		const {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange((event, session) => {
-			const currentPath = $page.url.pathname as string;
+			const currentPath = $page.url.pathname;
 			const isPublicRoute =
+				currentPath === "/" ||
 				currentPath === "/login" ||
 				currentPath === "/signup" ||
 				currentPath.startsWith("/form/");
 
+			// Protected route logic
 			if (!session && !isPublicRoute) {
 				goto("/login");
-			} else if (
+				return;
+			}
+
+			// Redirect logged-in users away from auth pages to dashboard
+			if (
 				session &&
 				(currentPath === "/login" || currentPath === "/signup")
 			) {
-				goto("/");
+				goto("/dashboard");
+				return;
 			}
+
+			// If we are logged in and at root, we STAY at root (user wants this)
+			// No logic needed here, just letting the component render.
 		});
 
 		return () => subscription.unsubscribe();

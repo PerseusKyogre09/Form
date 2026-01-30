@@ -16,7 +16,7 @@
                 password,
             });
             if (error) throw error;
-            goto("/");
+            goto("/dashboard");
         } catch (error: any) {
             errorMsg = error.message;
         } finally {
@@ -30,7 +30,7 @@
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "github",
                 options: {
-                    redirectTo: `${window.location.protocol}//${window.location.host}/`,
+                    redirectTo: `${window.location.protocol}//${window.location.host}/dashboard`,
                 },
             });
             if (error) throw error;
