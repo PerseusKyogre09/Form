@@ -9,7 +9,7 @@ node_modules
 /build
 
 # User Data (responses and forms stored locally)
-responses/
+
 data/
 
 # OS
