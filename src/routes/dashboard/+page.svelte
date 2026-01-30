@@ -50,6 +50,12 @@
         >
           Logout
         </button>
+        <a
+          href="/profile"
+          class="px-4 py-2 text-gray-600 hover:text-black font-medium transition-colors"
+        >
+          Profile
+        </a>
         <button
           on:click={() => navigateToBuilder()}
           class="px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors"
