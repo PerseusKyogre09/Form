@@ -1,23 +1,26 @@
 <!-- src/routes/form-builder/+page.svelte -->
 <script lang="ts">
-  import { currentForm, forms } from '../../lib/stores';
-  import FormBuilder from '../../lib/components/FormBuilder.svelte';
-  import FormPreview from '../../lib/components/FormPreview.svelte';
-  import ResponseViewer from '../../lib/components/ResponseViewer.svelte';
-  import type { Form } from '../../lib/types';
+  import { currentForm, forms } from "../../lib/stores";
+  import FormBuilder from "../../lib/components/FormBuilder.svelte";
+  import FormPreview from "../../lib/components/FormPreview.svelte";
+  import ResponseViewer from "../../lib/components/ResponseViewer.svelte";
+  import type { Form } from "../../lib/types";
+  import { supabase } from "$lib/supabaseClient";
 
-  let view: 'edit' | 'preview' | 'responses' = 'edit';
+  let view: "edit" | "preview" | "responses" = "edit";
   let currentFormData: Form;
-  let shareLink: string = '';
+  let shareLink: string = "";
   let copied = false;
 
-  currentForm.subscribe(value => {
+  currentForm.subscribe((value) => {
     currentFormData = value;
   });
 
-  function saveForm() {
-    forms.update(f => {
-      const existingIndex = f.findIndex(form => form.id === currentFormData.id);
+  async function saveForm() {
+    forms.update((f) => {
+      const existingIndex = f.findIndex(
+        (form) => form.id === currentFormData.id,
+      );
       if (existingIndex >= 0) {
         f[existingIndex] = { ...currentFormData };
       } else {
@@ -25,32 +28,58 @@
       }
       return f;
     });
-    
-    // Also save to server
-    fetch('/api/forms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentFormData)
-    }).catch(err => console.error('Error saving to server:', err));
-    
-    alert('Form saved!');
+
+    // Save to Supabase
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        alert("You must be logged in to save forms.");
+        return;
+      }
+
+      // Prepare payload - ensure user_id is set
+      // We no longer remove slug as it is now supported in the DB
+      const payload = {
+        ...currentFormData,
+        user_id: user.id,
+      };
+
+      // Ensure ID is valid UUID if it comes from legacy local storage
+      // If it's not a UUID (contains 'form_'), generate a new one
+      if (payload.id.startsWith("form_")) {
+        // This is a legacy ID, we should generate a new UUID for Supabase
+        // Note: we can't easily change the ID of the current form without updating the store
+        // For now, let's just let Supabase generate one if we remove the ID, or regenerate it here.
+        // Better to warn user or just generate a new one.
+        // Let's generate a new UUID
+        payload.id = crypto.randomUUID();
+      }
+
+      const { error } = await supabase.from("forms").upsert(payload);
+
+      if (error) throw error;
+      alert("Form saved!");
+    } catch (err) {
+      console.error("Error saving to server:", err);
+      alert("Failed to save form.");
+    }
   }
 
   function onSubmit(answers: Record<string, any>) {
     window.location.href = `/form/${currentFormData.id}/success`;
   }
 
-  function generateShareLink() {
-    const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
-    const host = typeof window !== 'undefined' ? window.location.host : 'localhost:5173';
+  async function generateShareLink() {
+    const protocol =
+      typeof window !== "undefined" ? window.location.protocol : "http:";
+    const host =
+      typeof window !== "undefined" ? window.location.host : "localhost:5173";
     shareLink = `${protocol}//${host}/form/${currentFormData.id}`;
-    
-    // Save form to server before generating link
-    fetch('/api/forms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentFormData)
-    }).catch(err => console.error('Error saving to server:', err));
+
+    // Save form to Supabase before generating link
+    await saveForm();
   }
 
   function copyToClipboard() {
@@ -65,36 +94,49 @@
   }
 
   function goBack() {
-    window.location.href = '/';
+    window.location.href = "/";
   }
 </script>
 
 <div class="min-h-screen bg-white">
   <header class="border-b border-gray-200 sticky top-0 bg-white z-50">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between mb-6">
-      <button on:click={goBack} class="text-gray-600 hover:text-black font-medium flex items-center gap-2">
+    <div
+      class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between mb-6"
+    >
+      <button
+        on:click={goBack}
+        class="text-gray-600 hover:text-black font-medium flex items-center gap-2"
+      >
         ← Back to Forms
       </button>
-      <h1 class="text-2xl font-bold text-black">{currentFormData?.title || 'Form Builder'}</h1>
+      <h1 class="text-2xl font-bold text-black">
+        {currentFormData?.title || "Form Builder"}
+      </h1>
       <div class="w-24"></div>
     </div>
     <div class="max-w-6xl mx-auto px-6">
       <div class="flex gap-6 border-b border-gray-200">
-        <button 
-          on:click={() => view = 'edit'} 
-          class="px-4 py-3 font-medium transition-colors {view === 'edit' ? 'text-black border-b-2 border-black' : 'text-gray-500 hover:text-gray-700'}"
+        <button
+          on:click={() => (view = "edit")}
+          class="px-4 py-3 font-medium transition-colors {view === 'edit'
+            ? 'text-black border-b-2 border-black'
+            : 'text-gray-500 hover:text-gray-700'}"
         >
           Edit
         </button>
-        <button 
-          on:click={() => view = 'preview'} 
-          class="px-4 py-3 font-medium transition-colors {view === 'preview' ? 'text-black border-b-2 border-black' : 'text-gray-500 hover:text-gray-700'}"
+        <button
+          on:click={() => (view = "preview")}
+          class="px-4 py-3 font-medium transition-colors {view === 'preview'
+            ? 'text-black border-b-2 border-black'
+            : 'text-gray-500 hover:text-gray-700'}"
         >
           Preview
         </button>
-        <button 
-          on:click={() => view = 'responses'} 
-          class="px-4 py-3 font-medium transition-colors {view === 'responses' ? 'text-black border-b-2 border-black' : 'text-gray-500 hover:text-gray-700'}"
+        <button
+          on:click={() => (view = "responses")}
+          class="px-4 py-3 font-medium transition-colors {view === 'responses'
+            ? 'text-black border-b-2 border-black'
+            : 'text-gray-500 hover:text-gray-700'}"
         >
           Responses
         </button>
@@ -103,16 +145,23 @@
   </header>
 
   <div class="max-w-6xl mx-auto px-6 py-8">
-    {#if view === 'preview'}
+    {#if view === "preview"}
       <!-- Full preview screen -->
       <div class="min-h-screen flex items-center justify-center bg-gray-50">
         <div class="w-full max-w-2xl">
-          <FormPreview questions={currentFormData.questions} formId={currentFormData.id} {onSubmit} />
+          <FormPreview
+            questions={currentFormData.questions}
+            formId={currentFormData.id}
+            {onSubmit}
+          />
         </div>
       </div>
-    {:else if view === 'responses'}
+    {:else if view === "responses"}
       <!-- Responses viewer -->
-      <ResponseViewer formId={currentFormData.id} questions={currentFormData.questions} />
+      <ResponseViewer
+        formId={currentFormData.id}
+        questions={currentFormData.questions}
+      />
     {:else}
       <!-- Form builder layout -->
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -122,31 +171,54 @@
 
         <aside class="lg:col-span-1">
           <div class="sticky top-24 space-y-4">
-            <button on:click={saveForm} class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors">
+            <button
+              on:click={saveForm}
+              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors"
+            >
               Save Form
             </button>
-            
-            <button on:click={generateShareLink} class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors">
+
+            <button
+              on:click={generateShareLink}
+              class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
+            >
               Publish Form
             </button>
 
             {#if shareLink}
               <div class="border border-green-200 bg-green-50 rounded-lg p-4">
-                <p class="text-xs text-green-700 font-semibold mb-2">Share Link</p>
+                <p class="text-xs text-green-700 font-semibold mb-2">
+                  Share Link
+                </p>
                 <div class="flex gap-2">
-                  <input type="text" value={shareLink} readonly class="flex-1 text-xs px-2 py-2 border border-green-200 rounded bg-white text-gray-700" />
-                  <button on:click={copyToClipboard} class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors">
-                    {copied ? '✓' : 'Copy'}
+                  <input
+                    type="text"
+                    value={shareLink}
+                    readonly
+                    class="flex-1 text-xs px-2 py-2 border border-green-200 rounded bg-white text-gray-700"
+                  />
+                  <button
+                    on:click={copyToClipboard}
+                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors"
+                  >
+                    {copied ? "✓" : "Copy"}
                   </button>
                 </div>
-                <p class="text-xs text-green-600 mt-2">Share this link to let others fill out your form</p>
+                <p class="text-xs text-green-600 mt-2">
+                  Share this link to let others fill out your form
+                </p>
               </div>
             {/if}
 
             <div class="border-t pt-4">
               <h3 class="font-semibold text-gray-900 mb-3">Quick Links</h3>
               {#if shareLink}
-                <a href={shareLink} target="_blank" rel="noreferrer" class="block text-xs px-3 py-2 text-center bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
+                <a
+                  href={shareLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  class="block text-xs px-3 py-2 text-center bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                >
                   Preview Public Form
                 </a>
               {/if}
