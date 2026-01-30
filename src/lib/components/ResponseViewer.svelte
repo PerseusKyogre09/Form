@@ -1,0 +1,105 @@
+<!-- src/lib/components/ResponseViewer.svelte -->
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import type { FormResponse, Question } from '../types';
+
+  export let formId: string;
+  export let questions: Question[];
+
+  let responses: FormResponse[] = [];
+  let loading = true;
+  let selectedResponseId: string | null = null;
+
+  onMount(async () => {
+    await loadResponses();
+  });
+
+  async function loadResponses() {
+    try {
+      const response = await fetch(`/api/responses?formId=${formId}`);
+      if (response.ok) {
+        responses = await response.json();
+      }
+    } catch (error) {
+      console.error('Error loading responses:', error);
+    } finally {
+      loading = false;
+    }
+  }
+
+  function getQuestionTitle(questionId: string): string {
+    return questions.find(q => q.id === questionId)?.title || 'Unknown Question';
+  }
+
+  function formatDate(timestamp: number): string {
+    return new Date(timestamp).toLocaleString();
+  }
+
+  function toggleResponse(responseId: string) {
+    selectedResponseId = selectedResponseId === responseId ? null : responseId;
+  }
+
+  function getSelectedResponse(): FormResponse | undefined {
+    return responses.find(r => r.id === selectedResponseId);
+  }
+</script>
+
+<div class="max-w-4xl mx-auto">
+  <div class="mb-8">
+    <h2 class="text-4xl font-bold text-black mb-2">Responses</h2>
+    <p class="text-gray-600">{responses.length} response{responses.length !== 1 ? 's' : ''}</p>
+  </div>
+
+  {#if loading}
+    <div class="text-center py-12">
+      <p class="text-gray-500">Loading responses...</p>
+    </div>
+  {:else if responses.length === 0}
+    <div class="text-center py-12">
+      <p class="text-gray-500">No responses yet. Share your form to collect responses.</p>
+    </div>
+  {:else}
+    <div class="space-y-3">
+      {#each responses as response}
+        <button
+          on:click={() => toggleResponse(response.id)}
+          class="w-full text-left px-6 py-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors {selectedResponseId === response.id ? 'bg-gray-50 border-black' : ''}"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-semibold text-gray-900">{formatDate(response.timestamp)}</p>
+              <p class="text-xs text-gray-500">ID: {response.id}</p>
+            </div>
+            <div class="text-gray-400">{selectedResponseId === response.id ? '▼' : '▶'}</div>
+          </div>
+        </button>
+
+        {#if selectedResponseId === response.id}
+          <div class="border border-gray-200 rounded-lg p-6 bg-white space-y-4 mb-3">
+            {#each questions as question}
+              {@const answer = response.answers[question.id]}
+              <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                <p class="font-semibold text-gray-900 mb-2">{question.title}</p>
+                <p class="text-gray-700">
+                  {#if answer === undefined || answer === null || answer === ''}
+                    <span class="text-gray-400">__________</span>
+                  {:else if typeof answer === 'string'}
+                    {answer}
+                  {:else if typeof answer === 'number'}
+                    {#if question.type === 'rating'}
+                      {'★'.repeat(answer)} ({answer}/5)
+                    {:else}
+                      {answer}
+                    {/if}
+                  {:else}
+                    {String(answer)}
+                  {/if}
+                </p>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      {/each}
+    </div>
+  {/if}
+</div>
