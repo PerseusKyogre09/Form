@@ -6,9 +6,9 @@
   import ResponseViewer from "../../lib/components/ResponseViewer.svelte";
   import type { Form } from "../../lib/types";
   import { supabase } from "$lib/supabaseClient";
-  import { Button } from "bits-ui";
+  import { Button, Tabs } from "bits-ui";
 
-  let view: "edit" | "preview" | "responses" = "edit";
+  let view: string = "edit";
   let currentFormData: Form;
   let shareLink: string = "";
   let copied = false;
@@ -174,7 +174,7 @@
     >
       <Button.Root
         on:click={goBack}
-        class="text-gray-600 hover:text-black font-medium flex items-center gap-2 rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+        class="text-gray-600 hover:text-black font-medium flex items-center gap-2 rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
       >
@@ -186,38 +186,30 @@
       <div class="w-24"></div>
     </div>
     <div class="max-w-6xl mx-auto px-6">
-      <div class="flex gap-6 border-b border-gray-200">
-        <Button.Root
-          on:click={() => (view = "edit")}
-          class="px-4 py-3 font-medium transition-colors {view === 'edit'
-            ? 'text-black border-b-2 border-black'
-            : 'text-gray-500 hover:text-gray-700'} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+      <Tabs.Root bind:value={view}>
+        <Tabs.List
+          class="bg-transparent border-b border-gray-200 gap-0 grid w-auto grid-cols-3 p-0"
         >
-          Edit
-        </Button.Root>
-        <Button.Root
-          on:click={() => (view = "preview")}
-          class="px-4 py-3 font-medium transition-colors {view === 'preview'
-            ? 'text-black border-b-2 border-black'
-            : 'text-gray-500 hover:text-gray-700'} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
-        >
-          Preview
-        </Button.Root>
-        <Button.Root
-          on:click={() => (view = "responses")}
-          class="px-4 py-3 font-medium transition-colors {view === 'responses'
-            ? 'text-black border-b-2 border-black'
-            : 'text-gray-500 hover:text-gray-700'} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
-        >
-          Responses
-        </Button.Root>
-      </div>
+          <Tabs.Trigger
+            value="edit"
+            class="px-4 py-3 font-semibold text-[15px] data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 bg-transparent border-0 rounded-none h-auto"
+          >
+            Edit
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="preview"
+            class="px-4 py-3 font-semibold text-[15px] data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 bg-transparent border-0 rounded-none h-auto"
+          >
+            Preview
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="responses"
+            class="px-4 py-3 font-semibold text-[15px] data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 bg-transparent border-0 rounded-none h-auto"
+          >
+            Responses
+          </Tabs.Trigger>
+        </Tabs.List>
+      </Tabs.Root>
     </div>
   </header>
 
@@ -250,7 +242,7 @@
           <div class="sticky top-24 space-y-4">
             <Button.Root
               on:click={saveForm}
-              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
             >
@@ -260,7 +252,7 @@
             {#if currentFormData.published}
               <Button.Root
                 on:click={unpublishForm}
-                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
               >
@@ -269,7 +261,7 @@
             {:else}
               <Button.Root
                 on:click={generateShareLink}
-                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
               >
@@ -291,7 +283,7 @@
                   />
                   <Button.Root
                     on:click={copyToClipboard}
-                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
                   >

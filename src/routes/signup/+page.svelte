@@ -96,7 +96,7 @@
                 <Button.Root
                     type="submit"
                     disabled={loading}
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
                 >
@@ -124,7 +124,7 @@
                     type="button"
                     on:click={handleGitHubLogin}
                     disabled={loading}
-                    class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                    class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
                 >

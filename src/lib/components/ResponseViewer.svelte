@@ -118,7 +118,7 @@
           class="w-full text-left px-6 py-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors {selectedResponseId ===
           response.id
             ? 'bg-gray-50 border-black'
-            : ''} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+            : ''} rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
         >
@@ -171,7 +171,7 @@
         <Button.Root
           on:click={loadMoreResponses}
           disabled={loadingMore}
-          class="rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >

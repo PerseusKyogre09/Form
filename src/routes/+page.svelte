@@ -48,7 +48,7 @@
         {#if user}
           <Button.Root
             href="/dashboard"
-            class="rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+            class="rounded-xl bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
           >
@@ -62,7 +62,7 @@
           >
           <Button.Root
             href="/signup"
-            class="rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+            class="rounded-xl bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
           >
@@ -117,7 +117,7 @@
       >
         <Button.Root
           href={user ? "/dashboard" : "/signup"}
-          class="w-full sm:w-auto rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+          class="w-full sm:w-auto rounded-xl bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
         >
@@ -125,7 +125,7 @@
         </Button.Root>
         <Button.Root
           href="/login"
-          class="w-full sm:w-auto rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+          class="w-full sm:w-auto rounded-xl bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
         >

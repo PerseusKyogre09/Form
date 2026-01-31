@@ -4,14 +4,18 @@
   import { supabase } from "$lib/supabaseClient";
   import { goto } from "$app/navigation";
   import type { Form } from "../../lib/types";
+  import { Avatar, Button } from "bits-ui";
 
   let allForms: Form[] = [];
   let loading = true;
   let loadingMore = false;
   let hasMore = true;
   const PAGE_SIZE = 20;
+  let user: any = null;
 
   onMount(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    user = session?.user;
     await loadForms();
   });
 
@@ -75,26 +79,41 @@
 <div class="min-h-screen bg-white">
   <header class="border-b border-gray-200 sticky top-0 bg-white z-50">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-black">Quill</h1>
+      <div class="flex items-center gap-4">
+        <h1 class="text-2xl font-bold text-black">Quill</h1>
+        {#if user}
+          <a href="/profile">
+            <Avatar.Root
+              delayMs={200}
+              class="data-[status=loaded]:border-gray-900 bg-gray-100 text-gray-600 h-12 w-12 rounded-full border text-[17px] font-medium uppercase data-[status=loading]:border-transparent"
+            >
+              <div
+                class="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-transparent"
+              >
+                <Avatar.Image src={user.user_metadata?.avatar_url || ""} alt={user.email || "User"} />
+                <Avatar.Fallback class="border-gray-200 border">{user.email?.charAt(0).toUpperCase() || "U"}</Avatar.Fallback>
+              </div>
+            </Avatar.Root>
+          </a>
+        {/if}
+      </div>
       <div class="flex gap-4">
-        <button
+        <Button.Root
           on:click={handleLogout}
-          class="px-4 py-2 text-gray-600 hover:text-black font-medium transition-colors"
+          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           Logout
-        </button>
-        <a
-          href="/profile"
-          class="px-4 py-2 text-gray-600 hover:text-black font-medium transition-colors"
-        >
-          Profile
-        </a>
-        <button
+        </Button.Root>
+        <Button.Root
           on:click={() => navigateToBuilder()}
-          class="px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors"
+          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           + New Form
-        </button>
+        </Button.Root>
       </div>
     </div>
   </header>
@@ -116,12 +135,14 @@
         class="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg"
       >
         <p class="text-gray-500 mb-4">No forms yet. Create your first form!</p>
-        <button
+        <Button.Root
           on:click={() => navigateToBuilder()}
-          class="px-6 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors"
+          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           Create Form
-        </button>
+        </Button.Root>
       </div>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -139,24 +160,28 @@
                 ? "s"
                 : ""}
             </p>
-            <button
-              on:click|stopPropagation={() => navigateToBuilder(form)}
-              class="text-sm px-4 py-2 bg-black text-white rounded font-medium hover:bg-gray-900 transition-colors"
+            <Button.Root
+              on:click={(e) => { e.stopPropagation(); navigateToBuilder(form); }}
+              class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
             >
               Edit Form
-            </button>
+            </Button.Root>
           </div>
         {/each}
       </div>
       {#if hasMore}
         <div class="text-center mt-8">
-          <button
+          <Button.Root
             on:click={loadMoreForms}
             disabled={loadingMore}
-            class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loadingMore ? "Loading..." : "Load More Forms"}
-          </button>
+          </Button.Root>
         </div>
       {/if}
     {/if}
