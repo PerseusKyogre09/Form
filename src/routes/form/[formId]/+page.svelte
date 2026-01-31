@@ -47,8 +47,7 @@
   loadForm();
 
   function onSubmit(answers: Record<string, any>) {
-    alert("Thank you for submitting the form!");
-    window.location.href = `/form/${$page.params.formId}?submitted=true`;
+    window.location.href = `/form/${$page.params.formId}/success`;
   }
 </script>
 

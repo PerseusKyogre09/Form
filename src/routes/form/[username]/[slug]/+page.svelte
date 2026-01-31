@@ -38,10 +38,9 @@
   loadForm();
 
   function onSubmit(answers: Record<string, any>) {
-    alert("Thank you for submitting the form!");
     const username = $page.params.username;
     const slug = $page.params.slug;
-    window.location.href = `/form/${username}/${slug}?submitted=true`;
+    window.location.href = `/form/${username}/${slug}/success`;
   }
 </script>
 
