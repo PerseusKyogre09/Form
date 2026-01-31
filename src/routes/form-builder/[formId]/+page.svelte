@@ -7,12 +7,14 @@
   import ResponseViewer from "../../../lib/components/ResponseViewer.svelte";
   import type { Form } from "../../../lib/types";
   import { onMount } from "svelte";
+  import { supabase } from "$lib/supabaseClient";
 
   let view: "edit" | "preview" | "responses" = "edit";
   let currentFormData: Form | undefined;
   let shareLink: string = "";
   let copied = false;
   let loading = true;
+  let username: string = "";
 
   currentForm.subscribe((value) => {
     currentFormData = value;
@@ -30,6 +32,24 @@
       console.error("Error loading form:", error);
     } finally {
       loading = false;
+    }
+
+    // Load user's username from profile
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", session.user.id)
+          .single();
+
+        if (data) {
+          username = data.username || "";
+        }
+      }
+    } catch (error) {
+      console.error("Error loading username:", error);
     }
   });
 
@@ -50,15 +70,15 @@
   }
 
   function generateShareLink() {
-    if (!currentFormData) return;
+    if (!currentFormData || !username) return;
     const protocol =
       typeof window !== "undefined" ? window.location.protocol : "http:";
     const host =
       typeof window !== "undefined" ? window.location.host : "localhost:5173";
 
-    // Use slug if available, otherwise use form ID
-    const linkId = currentFormData.slug || currentFormData.id;
-    shareLink = `${protocol}//${host}/form/${linkId}`;
+    // Use username and slug for the new share link format
+    const slug = currentFormData.slug || currentFormData.id;
+    shareLink = `${protocol}//${host}/form/${username}/${slug}`;
 
     // Save form to server before generating link
     fetch("/api/forms", {
