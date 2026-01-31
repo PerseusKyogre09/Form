@@ -9,6 +9,9 @@
 
   let responses: FormResponse[] = [];
   let loading = true;
+  let loadingMore = false;
+  let hasMore = true;
+  const PAGE_SIZE = 50;
   let selectedResponseId: string | null = null;
 
   onMount(async () => {
@@ -21,7 +24,8 @@
         .from("form_responses")
         .select("*")
         .eq("form_id", formId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(0, PAGE_SIZE - 1);
 
       if (error) throw error;
 
@@ -30,10 +34,41 @@
         ...r,
         timestamp: new Date(r.created_at).getTime(),
       })) as FormResponse[];
+      hasMore = data && data.length === PAGE_SIZE;
     } catch (error) {
       console.error("Error loading responses:", error);
     } finally {
       loading = false;
+    }
+  }
+
+  async function loadMoreResponses() {
+    if (loadingMore || !hasMore) return;
+
+    loadingMore = true;
+    try {
+      const { data, error } = await supabase
+        .from("form_responses")
+        .select("*")
+        .eq("form_id", formId)
+        .order("created_at", { ascending: false })
+        .range(responses.length, responses.length + PAGE_SIZE - 1);
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const newResponses = (data || []).map((r) => ({
+          ...r,
+          timestamp: new Date(r.created_at).getTime(),
+        })) as FormResponse[];
+        responses = [...responses, ...newResponses];
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    } catch (error) {
+      console.error("Error loading more responses:", error);
+    } finally {
+      loadingMore = false;
     }
   }
 
@@ -128,5 +163,16 @@
         {/if}
       {/each}
     </div>
+    {#if hasMore}
+      <div class="text-center mt-8">
+        <button
+          on:click={loadMoreResponses}
+          disabled={loadingMore}
+          class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loadingMore ? "Loading..." : "Load More Responses"}
+        </button>
+      </div>
+    {/if}
   {/if}
 </div>

@@ -7,23 +7,56 @@
 
   let allForms: Form[] = [];
   let loading = true;
+  let loadingMore = false;
+  let hasMore = true;
+  const PAGE_SIZE = 20;
 
   onMount(async () => {
-    // Load forms from Supabase
+    await loadForms();
+  });
+
+  async function loadForms() {
     try {
       const { data, error } = await supabase
         .from("forms")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(0, PAGE_SIZE - 1);
 
       if (error) throw error;
       allForms = (data as Form[]) || [];
+      hasMore = data && data.length === PAGE_SIZE;
     } catch (error) {
       console.error("Error loading forms:", error);
     } finally {
       loading = false;
     }
-  });
+  }
+
+  async function loadMoreForms() {
+    if (loadingMore || !hasMore) return;
+
+    loadingMore = true;
+    try {
+      const { data, error } = await supabase
+        .from("forms")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(allForms.length, allForms.length + PAGE_SIZE - 1);
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        allForms = [...allForms, ...(data as Form[])];
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    } catch (error) {
+      console.error("Error loading more forms:", error);
+    } finally {
+      loadingMore = false;
+    }
+  }
 
   function navigateToBuilder(form?: Form) {
     if (form) {
@@ -115,6 +148,17 @@
           </div>
         {/each}
       </div>
+      {#if hasMore}
+        <div class="text-center mt-8">
+          <button
+            on:click={loadMoreForms}
+            disabled={loadingMore}
+            class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loadingMore ? "Loading..." : "Load More Forms"}
+          </button>
+        </div>
+      {/if}
     {/if}
   </div>
 </div>
