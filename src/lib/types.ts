@@ -12,6 +12,7 @@ export interface Form {
   slug?: string; // Custom identifier for public link (e.g., "data-class")
   title: string;
   questions: Question[];
+  published?: boolean;
 }
 
 export interface FormResponse {

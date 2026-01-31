@@ -30,7 +30,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         .update({
           title: data.title,
           questions: data.questions,
-          slug: slug
+          slug: slug,
+          published: data.published
         })
         .eq('id', data.id)
         .eq('user_id', session.user.id); // Ensure user owns the form
@@ -49,7 +50,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
           title: data.title,
           questions: data.questions,
           slug: slug,
-          user_id: session.user.id
+          user_id: session.user.id,
+          published: data.published
         })
         .select()
         .single();

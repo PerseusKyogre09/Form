@@ -14,6 +14,13 @@
 
   currentForm.subscribe((value) => {
     currentFormData = value;
+
+    // If the form is published, regen the share link so it appears when you reopen
+    if (currentFormData && currentFormData.published) {
+      const protocol = typeof window !== "undefined" ? window.location.protocol : "http:";
+      const host = typeof window !== "undefined" ? window.location.host : "localhost:5173";
+      shareLink = `${protocol}//${host}/form/${currentFormData.id}`;
+    }
   });
 
   async function saveForm() {
@@ -78,8 +85,69 @@
       typeof window !== "undefined" ? window.location.host : "localhost:5173";
     shareLink = `${protocol}//${host}/form/${currentFormData.id}`;
 
-    // Save form to Supabase before generating link
-    await saveForm();
+    // Publish the form
+    await publishForm();
+  }
+
+  async function publishForm() {
+    // Update local form data
+    currentForm.update(form => ({ ...form, published: true }));
+
+    // Save to Supabase
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        alert("You must be logged in to publish forms.");
+        return;
+      }
+
+      const payload = {
+        ...currentFormData,
+        user_id: user.id,
+        published: true,
+      };
+
+      const { error } = await supabase.from("forms").upsert(payload);
+
+      if (error) throw error;
+      alert("Form published!");
+    } catch (err) {
+      console.error("Error publishing form:", err);
+      alert("Failed to publish form.");
+    }
+  }
+
+  async function unpublishForm() {
+    // Update local form data
+    currentForm.update(form => ({ ...form, published: false }));
+
+    // Save to Supabase
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        alert("You must be logged in to unpublish forms.");
+        return;
+      }
+
+      const payload = {
+        ...currentFormData,
+        user_id: user.id,
+        published: false,
+      };
+
+      const { error } = await supabase.from("forms").upsert(payload);
+
+      if (error) throw error;
+      alert("Form unpublished!");
+      shareLink = ""; // Clear share link when unpublished
+    } catch (err) {
+      console.error("Error unpublishing form:", err);
+      alert("Failed to unpublish form.");
+    }
   }
 
   function copyToClipboard() {
@@ -178,14 +246,23 @@
               Save Form
             </button>
 
-            <button
-              on:click={generateShareLink}
-              class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
-            >
-              Publish Form
-            </button>
+            {#if currentFormData.published}
+              <button
+                on:click={unpublishForm}
+                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors"
+              >
+                Unpublish Form
+              </button>
+            {:else}
+              <button
+                on:click={generateShareLink}
+                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
+              >
+                Publish Form
+              </button>
+            {/if}
 
-            {#if shareLink}
+            {#if shareLink && currentFormData.published}
               <div class="border border-green-200 bg-green-50 rounded-lg p-4">
                 <p class="text-xs text-green-700 font-semibold mb-2">
                   Share Link
@@ -212,7 +289,7 @@
 
             <div class="border-t pt-4">
               <h3 class="font-semibold text-gray-900 mb-3">Quick Links</h3>
-              {#if shareLink}
+              {#if shareLink && currentFormData.published}
                 <a
                   href={shareLink}
                   target="_blank"
