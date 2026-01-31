@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
   import type { FormResponse, Question } from "../types";
+  import { Button } from "bits-ui";
 
   export let formId: string;
   export let questions: Question[];
@@ -112,12 +113,14 @@
   {:else}
     <div class="space-y-3">
       {#each responses as response}
-        <button
+        <Button.Root
           on:click={() => toggleResponse(response.id)}
           class="w-full text-left px-6 py-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors {selectedResponseId ===
           response.id
             ? 'bg-gray-50 border-black'
-            : ''}"
+            : ''} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           <div class="flex items-center justify-between">
             <div>
@@ -130,7 +133,7 @@
               {selectedResponseId === response.id ? "▼" : "▶"}
             </div>
           </div>
-        </button>
+        </Button.Root>
 
         {#if selectedResponseId === response.id}
           <div
@@ -165,13 +168,15 @@
     </div>
     {#if hasMore}
       <div class="text-center mt-8">
-        <button
+        <Button.Root
           on:click={loadMoreResponses}
           disabled={loadingMore}
-          class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loadingMore ? "Loading..." : "Load More Responses"}
-        </button>
+        </Button.Root>
       </div>
     {/if}
   {/if}

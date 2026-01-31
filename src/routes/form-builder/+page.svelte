@@ -6,6 +6,7 @@
   import ResponseViewer from "../../lib/components/ResponseViewer.svelte";
   import type { Form } from "../../lib/types";
   import { supabase } from "$lib/supabaseClient";
+  import { Button } from "bits-ui";
 
   let view: "edit" | "preview" | "responses" = "edit";
   let currentFormData: Form;
@@ -171,12 +172,14 @@
     <div
       class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between mb-6"
     >
-      <button
+      <Button.Root
         on:click={goBack}
-        class="text-gray-600 hover:text-black font-medium flex items-center gap-2"
+        class="text-gray-600 hover:text-black font-medium flex items-center gap-2 rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
       >
         ← Back to Forms
-      </button>
+      </Button.Root>
       <h1 class="text-2xl font-bold text-black">
         {currentFormData?.title || "Form Builder"}
       </h1>
@@ -184,30 +187,36 @@
     </div>
     <div class="max-w-6xl mx-auto px-6">
       <div class="flex gap-6 border-b border-gray-200">
-        <button
+        <Button.Root
           on:click={() => (view = "edit")}
           class="px-4 py-3 font-medium transition-colors {view === 'edit'
             ? 'text-black border-b-2 border-black'
-            : 'text-gray-500 hover:text-gray-700'}"
+            : 'text-gray-500 hover:text-gray-700'} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           Edit
-        </button>
-        <button
+        </Button.Root>
+        <Button.Root
           on:click={() => (view = "preview")}
           class="px-4 py-3 font-medium transition-colors {view === 'preview'
             ? 'text-black border-b-2 border-black'
-            : 'text-gray-500 hover:text-gray-700'}"
+            : 'text-gray-500 hover:text-gray-700'} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           Preview
-        </button>
-        <button
+        </Button.Root>
+        <Button.Root
           on:click={() => (view = "responses")}
           class="px-4 py-3 font-medium transition-colors {view === 'responses'
             ? 'text-black border-b-2 border-black'
-            : 'text-gray-500 hover:text-gray-700'}"
+            : 'text-gray-500 hover:text-gray-700'} rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           Responses
-        </button>
+        </Button.Root>
       </div>
     </div>
   </header>
@@ -239,27 +248,33 @@
 
         <aside class="lg:col-span-1">
           <div class="sticky top-24 space-y-4">
-            <button
+            <Button.Root
               on:click={saveForm}
-              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors"
+              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
             >
               Save Form
-            </button>
+            </Button.Root>
 
             {#if currentFormData.published}
-              <button
+              <Button.Root
                 on:click={unpublishForm}
-                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors"
+                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
               >
                 Unpublish Form
-              </button>
+              </Button.Root>
             {:else}
-              <button
+              <Button.Root
                 on:click={generateShareLink}
-                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
+                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
               >
                 Publish Form
-              </button>
+              </Button.Root>
             {/if}
 
             {#if shareLink && currentFormData.published}
@@ -274,12 +289,14 @@
                     readonly
                     class="flex-1 text-xs px-2 py-2 border border-green-200 rounded bg-white text-gray-700"
                   />
-                  <button
+                  <Button.Root
                     on:click={copyToClipboard}
-                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors"
+                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
                   >
                     {copied ? "✓" : "Copy"}
-                  </button>
+                  </Button.Root>
                 </div>
                 <p class="text-xs text-green-600 mt-2">
                   Share this link to let others fill out your form

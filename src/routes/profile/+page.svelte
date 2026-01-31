@@ -3,6 +3,7 @@
     import { supabase } from "$lib/supabaseClient";
     import { goto } from "$app/navigation";
     import { fade } from "svelte/transition";
+    import { Button } from "bits-ui";
 
     let loading = true;
     let saving = false;
@@ -161,13 +162,15 @@
                     </div>
 
                     <div class="pt-4">
-                        <button
+                        <Button.Root
                             on:click={updateProfile}
                             disabled={saving}
-                            class="w-full sm:w-auto px-6 py-2.5 bg-black text-white rounded-lg font-semibold hover:bg-gray-900 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                            class="w-full sm:w-auto px-6 py-2.5 bg-black text-white rounded-lg font-semibold hover:bg-gray-900 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed rounded-input bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
                         >
                             {saving ? "Saving..." : "Save Changes"}
-                        </button>
+                        </Button.Root>
                     </div>
 
                     {#if message}

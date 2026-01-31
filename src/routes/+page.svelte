@@ -3,6 +3,7 @@
   import { supabase } from "$lib/supabaseClient";
   import { fade, fly } from "svelte/transition";
   import favicon from "$lib/assets/favicon.svg";
+  import { Button } from "bits-ui";
 
   let user: any = null;
 
@@ -45,24 +46,28 @@
 
       <div class="flex items-center gap-4">
         {#if user}
-          <a
+          <Button.Root
             href="/dashboard"
-            class="px-5 py-2.5 bg-black text-white rounded-full text-sm font-semibold hover:bg-gray-900 transition-all active:scale-95 shadow-lg shadow-black/10"
+            class="rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
           >
             Go to Dashboard
-          </a>
+          </Button.Root>
         {:else}
           <a
             href="/login"
             class="text-sm font-semibold text-gray-900 hover:text-black transition-colors px-4"
             >Log in</a
           >
-          <a
+          <Button.Root
             href="/signup"
-            class="px-5 py-2.5 bg-black text-white rounded-full text-sm font-semibold hover:bg-gray-900 transition-all active:scale-95 shadow-lg shadow-black/10"
+            class="rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
           >
             Get Started
-          </a>
+          </Button.Root>
         {/if}
       </div>
     </div>
@@ -110,18 +115,22 @@
         in:fly={{ y: 20, duration: 1000, delay: 600 }}
         class="flex flex-col sm:flex-row items-center justify-center gap-4"
       >
-        <a
+        <Button.Root
           href={user ? "/dashboard" : "/signup"}
-          class="w-full sm:w-auto px-8 py-4 bg-black text-white rounded-full text-lg font-bold hover:bg-gray-900 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-black/10"
+          class="w-full sm:w-auto rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           Start building for free
-        </a>
-        <a
+        </Button.Root>
+        <Button.Root
           href="/login"
-          class="w-full sm:w-auto px-8 py-4 bg-white text-black border border-gray-200 rounded-full text-lg font-bold hover:bg-gray-50 transition-all active:scale-95"
+          class="w-full sm:w-auto rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
         >
           View examples
-        </a>
+        </Button.Root>
       </div>
 
       <!-- Mockup/Showcase -->
