@@ -152,7 +152,7 @@
                         {#if username}
                             <p class="mt-1 text-xs text-gray-500">
                                 Your forms will be available at:
-                                perseus.com/form/<span
+                                quill.com/form/<span
                                     class="font-bold text-gray-700"
                                     >{username}</span
                                 >/[slug]

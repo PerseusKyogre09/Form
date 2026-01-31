@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
   import { fade, fly } from "svelte/transition";
+  import favicon from "$lib/assets/favicon.svg";
 
   let user: any = null;
 
@@ -20,12 +21,8 @@
   >
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <div
-          class="w-8 h-8 bg-black rounded-lg flex items-center justify-center"
-        >
-          <div class="w-3 h-3 border-2 border-white transform rotate-45"></div>
-        </div>
-        <span class="text-xl font-bold tracking-tight">Perseus</span>
+        <img src={favicon} alt="Quill" class="w-8 h-8" />
+        <span class="text-xl font-bold tracking-tight">Quill</span>
       </div>
 
       <div class="hidden md:flex items-center gap-8">
@@ -152,7 +149,7 @@
                 <div
                   class="flex-1 bg-gray-100 h-6 rounded-md flex items-center px-3 text-[10px] text-gray-500 font-medium"
                 >
-                  perseus.com/form/username/product-feedback
+                  quill.com/form/username/product-feedback
                 </div>
               </div>
               <div class="flex-1 p-12 text-left">
@@ -252,14 +249,8 @@
       >
         <div class="max-w-xs">
           <div class="flex items-center gap-2 mb-6">
-            <div
-              class="w-6 h-6 bg-white rounded flex items-center justify-center"
-            >
-              <div
-                class="w-2 h-2 border-2 border-black transform rotate-45"
-              ></div>
-            </div>
-            <span class="text-xl font-bold tracking-tight">Perseus</span>
+            <img src={favicon} alt="Quill" class="w-6 h-6" />
+            <span class="text-xl font-bold tracking-tight">Quill</span>
           </div>
           <p class="text-gray-400 text-sm leading-relaxed">
             The next generation of data collection. Simple for users, powerful
@@ -323,7 +314,7 @@
       <div
         class="pt-12 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-8 text-[13px] text-gray-500"
       >
-        <p>© 2026 Perseus Labs Inc. All rights reserved.</p>
+        <p>© 2026 Quill Labs Inc. All rights reserved.</p>
         <div class="flex gap-8">
           <a href="/" class="hover:text-white transition-colors">Twitter</a>
           <a href="/" class="hover:text-white transition-colors">LinkedIn</a>

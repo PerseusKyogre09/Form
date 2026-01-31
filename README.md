@@ -1,4 +1,4 @@
-# Form Builder App
+# Quill
 
 A Typeform-like form creation app built with SvelteKit, featuring smooth animations powered by GSAP.
 

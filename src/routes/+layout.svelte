@@ -43,6 +43,7 @@
 </script>
 
 <svelte:head>
+	<title>Quill</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 

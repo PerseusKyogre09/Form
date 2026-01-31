@@ -1,4 +1,4 @@
-# Form Builder - Publishable Version
+# Quill - Publishable Version
 
 A minimalist, high-performance form builder built with SvelteKit that lets you create beautiful forms and collect responses locally.
 

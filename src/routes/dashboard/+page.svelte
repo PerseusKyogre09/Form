@@ -75,7 +75,7 @@
 <div class="min-h-screen bg-white">
   <header class="border-b border-gray-200 sticky top-0 bg-white z-50">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-black">Form Builder</h1>
+      <h1 class="text-2xl font-bold text-black">Quill</h1>
       <div class="flex gap-4">
         <button
           on:click={handleLogout}
