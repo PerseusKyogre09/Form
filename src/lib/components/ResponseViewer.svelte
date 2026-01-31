@@ -10,66 +10,47 @@
 
   let responses: FormResponse[] = [];
   let loading = true;
-  let loadingMore = false;
-  let hasMore = true;
+  let allResponses: FormResponse[] = [];
   const PAGE_SIZE = 50;
-  let selectedResponseId: string | null = null;
 
   onMount(async () => {
-    await loadResponses();
+    await loadAllResponses();
   });
 
-  async function loadResponses() {
+  async function loadAllResponses() {
     try {
-      const { data, error } = await supabase
-        .from("form_responses")
-        .select("*")
-        .eq("form_id", formId)
-        .order("created_at", { ascending: false })
-        .range(0, PAGE_SIZE - 1);
+      let allData: any[] = [];
+      let offset = 0;
+      let hasMore = true;
 
-      if (error) throw error;
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from("form_responses")
+          .select("*")
+          .eq("form_id", formId)
+          .order("created_at", { ascending: false })
+          .range(offset, offset + PAGE_SIZE - 1);
 
-      // Map Supabase fields to the component's expected format
-      responses = (data || []).map((r) => ({
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allData = [...allData, ...data];
+          offset += PAGE_SIZE;
+          hasMore = data.length === PAGE_SIZE;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      allResponses = allData.map((r) => ({
         ...r,
         timestamp: new Date(r.created_at).getTime(),
       })) as FormResponse[];
-      hasMore = data && data.length === PAGE_SIZE;
+      responses = allResponses;
     } catch (error) {
       console.error("Error loading responses:", error);
     } finally {
       loading = false;
-    }
-  }
-
-  async function loadMoreResponses() {
-    if (loadingMore || !hasMore) return;
-
-    loadingMore = true;
-    try {
-      const { data, error } = await supabase
-        .from("form_responses")
-        .select("*")
-        .eq("form_id", formId)
-        .order("created_at", { ascending: false })
-        .range(responses.length, responses.length + PAGE_SIZE - 1);
-
-      if (error) throw error;
-      if (data && data.length > 0) {
-        const newResponses = (data || []).map((r) => ({
-          ...r,
-          timestamp: new Date(r.created_at).getTime(),
-        })) as FormResponse[];
-        responses = [...responses, ...newResponses];
-        hasMore = data.length === PAGE_SIZE;
-      } else {
-        hasMore = false;
-      }
-    } catch (error) {
-      console.error("Error loading more responses:", error);
-    } finally {
-      loadingMore = false;
     }
   }
 
@@ -83,21 +64,90 @@
     return new Date(timestamp).toLocaleString();
   }
 
-  function toggleResponse(responseId: string) {
-    selectedResponseId = selectedResponseId === responseId ? null : responseId;
-  }
+  function downloadCSV() {
+    if (responses.length === 0) {
+      alert("No responses to download");
+      return;
+    }
 
-  function getSelectedResponse(): FormResponse | undefined {
-    return responses.find((r) => r.id === selectedResponseId);
+    try {
+      // Create CSV header
+      const headers = ["Timestamp", "Response ID", ...questions.map((q) => q.title)];
+      const rows = [
+        headers.map((h) => `"${h}"`).join(","),
+      ];
+
+      // Add data rows
+      responses.forEach((response) => {
+        const cells = [
+          `"${formatDate(response.timestamp)}"`,
+          `"${response.id}"`,
+        ];
+
+        questions.forEach((q) => {
+          const answer = response.answers[q.id];
+          let value = "";
+          
+          if (answer === undefined || answer === null || answer === "") {
+            value = "";
+          } else if (typeof answer === "string") {
+            value = answer;
+          } else if (typeof answer === "number") {
+            if (q.type === "rating") {
+              value = `${answer}/5`;
+            } else {
+              value = String(answer);
+            }
+          } else if (Array.isArray(answer)) {
+            value = answer.join("; ");
+          } else {
+            value = String(answer);
+          }
+          
+          // Escape quotes in CSV values
+          cells.push(`"${value.replace(/"/g, '""')}"`);
+        });
+
+        rows.push(cells.join(","));
+      });
+
+      const csvContent = rows.join("\n");
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `form-responses-${formId}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading CSV:", error);
+      alert("Failed to download CSV file");
+    }
   }
 </script>
 
-<div class="max-w-4xl mx-auto">
-  <div class="mb-8">
-    <h2 class="text-4xl font-bold text-black mb-2">Responses</h2>
-    <p class="text-gray-600">
-      {responses.length} response{responses.length !== 1 ? "s" : ""}
-    </p>
+<div class="max-w-6xl mx-auto">
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h2 class="text-4xl font-bold text-black mb-2">Responses</h2>
+      <p class="text-gray-600">
+        {responses.length} response{responses.length !== 1 ? "s" : ""}
+      </p>
+    </div>
+    {#if responses.length > 0}
+      <Button.Root
+        on:click={downloadCSV}
+        class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all"
+      >
+        Download CSV
+      </Button.Root>
+    {/if}
   </div>
 
   {#if loading}
@@ -111,73 +161,56 @@
       </p>
     </div>
   {:else}
-    <div class="space-y-3">
-      {#each responses as response}
-        <Button.Root
-          on:click={() => toggleResponse(response.id)}
-          class="w-full text-left px-6 py-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors {selectedResponseId ===
-          response.id
-            ? 'bg-gray-50 border-black'
-            : ''} rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="font-semibold text-gray-900">
-                {formatDate(response.timestamp)}
-              </p>
-              <p class="text-xs text-gray-500">ID: {response.id}</p>
-            </div>
-            <div class="text-gray-400">
-              {selectedResponseId === response.id ? "▼" : "▶"}
-            </div>
-          </div>
-        </Button.Root>
-
-        {#if selectedResponseId === response.id}
-          <div
-            class="border border-gray-200 rounded-lg p-6 bg-white space-y-4 mb-3"
-          >
+    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-200">
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-200">
+              Timestamp
+            </th>
             {#each questions as question}
-              {@const answer = response.answers[question.id]}
-              <div
-                class="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+              <th
+                class="px-6 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-200 min-w-48"
               >
-                <p class="font-semibold text-gray-900 mb-2">{question.title}</p>
-                <p class="text-gray-700">
-                  {#if answer === undefined || answer === null || answer === ""}
-                    <span class="text-gray-400">__________</span>
-                  {:else if typeof answer === "string"}
-                    {answer}
-                  {:else if typeof answer === "number"}
-                    {#if question.type === "rating"}
-                      {"★".repeat(answer)} ({answer}/5)
-                    {:else}
-                      {answer}
-                    {/if}
-                  {:else}
-                    {String(answer)}
-                  {/if}
-                </p>
-              </div>
+                {question.title}
+              </th>
             {/each}
-          </div>
-        {/if}
-      {/each}
+          </tr>
+        </thead>
+        <tbody>
+          {#each responses as response, idx}
+            <tr
+              class={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
+                idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+              }`}
+            >
+              <td class="px-6 py-4 text-sm text-gray-700 border-r border-gray-200 whitespace-nowrap">
+                <div class="font-medium">{formatDate(response.timestamp)}</div>
+                <div class="text-xs text-gray-500">{response.id}</div>
+              </td>
+              {#each questions as question}
+                <td class="px-6 py-4 text-sm text-gray-700 border-r border-gray-200">
+                  {#if response.answers[question.id] === undefined || response.answers[question.id] === null || response.answers[question.id] === ""}
+                    <span class="text-gray-400 italic">—</span>
+                  {:else if typeof response.answers[question.id] === "string"}
+                    {response.answers[question.id]}
+                  {:else if typeof response.answers[question.id] === "number"}
+                    {#if question.type === "rating"}
+                      {"★".repeat(response.answers[question.id])} ({response.answers[question.id]}/5)
+                    {:else}
+                      {response.answers[question.id]}
+                    {/if}
+                  {:else if Array.isArray(response.answers[question.id])}
+                    {response.answers[question.id].join(", ")}
+                  {:else}
+                    {String(response.answers[question.id])}
+                  {/if}
+                </td>
+              {/each}
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     </div>
-    {#if hasMore}
-      <div class="text-center mt-8">
-        <Button.Root
-          on:click={loadMoreResponses}
-          disabled={loadingMore}
-          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loadingMore ? "Loading..." : "Load More Responses"}
-        </Button.Root>
-      </div>
-    {/if}
   {/if}
 </div>
