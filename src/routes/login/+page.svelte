@@ -1,28 +1,8 @@
 <script lang="ts">
     import { supabase } from "$lib/supabaseClient";
-    import { goto } from "$app/navigation";
 
-    let email = "";
-    let password = "";
     let loading = false;
     let errorMsg = "";
-
-    async function handleLogin() {
-        try {
-            loading = true;
-            errorMsg = "";
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-            if (error) throw error;
-            goto("/dashboard");
-        } catch (error: any) {
-            errorMsg = error.message;
-        } finally {
-            loading = false;
-        }
-    }
 
     async function handleGitHubLogin() {
         try {
@@ -50,68 +30,10 @@
                 Sign into your account
             </h2>
         </div>
-        <form class="mt-8 space-y-6" on:submit|preventDefault={handleLogin}>
-            <div class="rounded-md shadow-sm -space-y-px">
-                <div>
-                    <label for="email-address" class="sr-only"
-                        >Email address</label
-                    >
-                    <input
-                        id="email-address"
-                        name="email"
-                        type="email"
-                        autocomplete="email"
-                        required
-                        bind:value={email}
-                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
-                        placeholder="Email address"
-                    />
-                </div>
-                <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        autocomplete="current-password"
-                        required
-                        bind:value={password}
-                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
-                        placeholder="Password"
-                    />
-                </div>
-            </div>
-
+        <div class="mt-8 space-y-6">
             {#if errorMsg}
-                <div class="text-red-500 text-sm">{errorMsg}</div>
+                <div class="text-red-500 text-sm text-center">{errorMsg}</div>
             {/if}
-
-            <div>
-                <button
-                    type="submit"
-                    disabled={loading}
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
-                >
-                    {#if loading}
-                        Signing in...
-                    {:else}
-                        Sign in
-                    {/if}
-                </button>
-            </div>
-
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-300"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-gray-50 text-gray-500"
-                        >Or continue with</span
-                    >
-                </div>
-            </div>
 
             <div>
                 <button
@@ -136,15 +58,6 @@
                     Sign in with GitHub
                 </button>
             </div>
-            <div>
-                <p class="text-center text-sm text-gray-600">
-                    Don't have an account? <a
-                        href="/signup"
-                        class="font-medium text-black hover:text-gray-800"
-                        >Sign up</a
-                    >
-                </p>
-            </div>
-        </form>
+        </div>
     </div>
 </div>

@@ -9,21 +9,37 @@
 
 	let { children } = $props();
 
+	// Whitelist of allowed GitHub usernames
+	const ALLOWED_GITHUB_USERS = ["PerseusKyogre09", "Googoochadwick"];
+
 	onMount(() => {
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange((event, session) => {
+		} = supabase.auth.onAuthStateChange(async (event, session) => {
 			const currentPath = $page.url.pathname;
 			const isPublicRoute =
 				currentPath === "/" ||
 				currentPath === "/login" ||
 				currentPath === "/signup" ||
+				currentPath === "/unauthorized" ||
 				currentPath.startsWith("/form/");
 
 			// Protected route logic
 			if (!session && !isPublicRoute) {
 				goto("/login");
 				return;
+			}
+
+			// If user is logged in, verify they're in the whitelist
+			if (session) {
+				const userMetadata = session.user?.user_metadata;
+				const githubUsername = userMetadata?.user_name;
+
+				if (!githubUsername || !ALLOWED_GITHUB_USERS.includes(githubUsername)) {
+					// User is not authorized, redirect to unauthorized page
+					goto("/unauthorized");
+					return;
+				}
 			}
 
 			// Redirect logged-in users away from auth pages to dashboard
