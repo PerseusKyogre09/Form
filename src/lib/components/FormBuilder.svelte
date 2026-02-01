@@ -3,6 +3,7 @@
   import { currentForm } from '../stores';
   import type { Question } from '../types';
   import QuestionEditor from './QuestionEditor.svelte';
+  import { DropdownMenu } from 'bits-ui';
 
   export let saveForm: () => void;
 
@@ -19,7 +20,7 @@
       type,
       title: '',
       required: false,
-      options: type === 'multiple-choice' ? ['Option 1', 'Option 2'] : undefined
+      options: (type === 'multiple-choice' || type === 'dropdown' || type === 'checkboxes') ? ['Option 1', 'Option 2'] : undefined
     };
     form.questions = [...form.questions, newQuestion];
     currentForm.set(form);
@@ -111,18 +112,77 @@
     </div>
   {/if}
 
-  <div class="mt-8 flex flex-wrap gap-2 pt-6 border-t border-gray-200">
-    <button on:click={() => addQuestion('text')} class="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
-      + Short Text
-    </button>
-    <button on:click={() => addQuestion('multiple-choice')} class="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
-      + Multiple Choice
-    </button>
-    <button on:click={() => addQuestion('yes-no')} class="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
-      + Yes/No
-    </button>
-    <button on:click={() => addQuestion('rating')} class="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
-      + Rating
-    </button>
+  <div class="mt-8 flex gap-2 pt-6 border-t border-gray-200">
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-900 transition-colors text-sm font-medium">
+        + Add question
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content class="bg-white border border-gray-300 rounded-md shadow-lg w-56 py-1" sideOffset={8}>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('text')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Short Text
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('long-text')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Long Text
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('number')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Number
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('email')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Email
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('date')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Date
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator class="my-1 h-px bg-gray-200" />
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('multiple-choice')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Multiple Choice
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('dropdown')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Dropdown
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('checkboxes')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Checkboxes
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator class="my-1 h-px bg-gray-200" />
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('yes-no')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Yes/No
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => addQuestion('rating')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Rating
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   </div>
 </div>

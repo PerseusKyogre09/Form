@@ -1,12 +1,13 @@
 <!-- src/lib/components/QuestionEditor.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { Question } from '../types';
+  import type { Question, Constraint } from '../types';
 
   export let question: Question;
   export let questionNumber: number;
 
   const dispatch = createEventDispatcher();
+  let showConstraintDropdown = false;
 
   function updateQuestion() {
     dispatch('update');
@@ -27,12 +28,66 @@
     }
   }
 
+  function addConstraint(type: string) {
+    if (!question.constraints) {
+      question.constraints = [];
+    }
+    
+    let newConstraint: Constraint = {
+      id: Date.now().toString(),
+      type: type as any,
+      value: type === 'email-type' ? 'edu' : []
+    };
+    
+    question.constraints = [...question.constraints, newConstraint];
+    showConstraintDropdown = false;
+    updateQuestion();
+  }
+
+  function removeConstraint(id: string) {
+    if (question.constraints) {
+      question.constraints = question.constraints.filter(c => c.id !== id);
+      updateQuestion();
+    }
+  }
+
+  function updateConstraintValue(constraint: Constraint, newValue: any) {
+    constraint.value = newValue;
+    updateQuestion();
+  }
+
   const typeLabels = {
     text: 'Short Text',
+    'long-text': 'Long Text',
+    number: 'Number',
+    email: 'Email',
+    date: 'Date',
     'multiple-choice': 'Multiple Choice',
+    dropdown: 'Dropdown',
+    checkboxes: 'Checkboxes',
     'yes-no': 'Yes/No',
     rating: 'Rating'
   };
+
+  const constraintLabels = {
+    'email-type': 'Email Type (edu/work)',
+    'email-domain': 'Email Domain Whitelist',
+    'number-format': 'Number Format (Phone, PIN, Aadhar, etc.)'
+  };
+
+  function getAvailableConstraints() {
+    if (question.type === 'email') {
+      return [
+        { value: 'email-type', label: 'Email Type (edu/work)' },
+        { value: 'email-domain', label: 'Email Domain Whitelist' }
+      ];
+    } else if (question.type === 'number') {
+      return [
+        { value: 'number-format', label: 'Number Format (Phone, PIN, Aadhar, etc.)' }
+      ];
+    }
+    return [];
+  }
 </script>
 
 <div class="border border-gray-200 rounded-lg p-6 bg-white hover:border-gray-300 transition-colors group">
@@ -45,7 +100,13 @@
         <span class="text-sm text-gray-500">Q{questionNumber}</span>
         <select bind:value={question.type} on:change={updateQuestion} class="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 bg-white">
           <option value="text">Short Text</option>
+          <option value="long-text">Long Text</option>
+          <option value="number">Number</option>
+          <option value="email">Email</option>
+          <option value="date">Date</option>
           <option value="multiple-choice">Multiple Choice</option>
+          <option value="dropdown">Dropdown</option>
+          <option value="checkboxes">Checkboxes</option>
           <option value="yes-no">Yes/No</option>
           <option value="rating">Rating</option>
         </select>
@@ -61,7 +122,7 @@
     </div>
   </div>
 
-  {#if question.type === 'multiple-choice'}
+  {#if question.type === 'multiple-choice' || question.type === 'dropdown' || question.type === 'checkboxes'}
     <div class="ml-10 space-y-2">
       <p class="text-sm text-gray-500 font-medium mb-3">Options</p>
       {#each question.options || [] as option, i}
@@ -73,6 +134,137 @@
         </div>
       {/each}
       <button on:click={addOption} class="text-sm text-gray-600 hover:text-gray-900 mt-2 font-medium">+ Add option</button>
+    </div>
+  {:else if question.type === 'number'}
+    <div class="ml-10 space-y-2">
+      <p class="text-sm text-gray-500 font-medium mb-3">Range Settings</p>
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label class="block text-xs text-gray-500 mb-1">Minimum</label>
+          <input type="number" bind:value={question.min} on:input={updateQuestion} placeholder="0" class="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 text-sm" />
+        </div>
+        <div class="flex-1">
+          <label class="block text-xs text-gray-500 mb-1">Maximum</label>
+          <input type="number" bind:value={question.max} on:input={updateQuestion} placeholder="100" class="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 text-sm" />
+        </div>
+      </div>
+    </div>
+  {:else if question.type === 'text' || question.type === 'long-text' || question.type === 'email'}
+    <div class="ml-10 space-y-2">
+      <p class="text-sm text-gray-500 font-medium mb-3">Placeholder Text</p>
+      <input bind:value={question.placeholder} on:input={updateQuestion} placeholder="Enter placeholder text..." class="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 text-sm" />
+    </div>
+  {/if}
+
+  {#if getAvailableConstraints().length > 0}
+    <div class="ml-10 mt-4 space-y-2">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm text-gray-500 font-medium">Constraints (Optional)</p>
+        <div class="relative">
+          <button 
+            on:click={() => showConstraintDropdown = !showConstraintDropdown}
+            class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            + Add constraint
+          </button>
+          {#if showConstraintDropdown}
+            <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+              {#each getAvailableConstraints() as constraint}
+                <button
+                  on:click={() => addConstraint(constraint.value)}
+                  class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                >
+                  {constraint.label}
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      {#each question.constraints || [] as constraint (constraint.id)}
+        <div class="bg-gray-50 p-3 rounded border border-gray-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-gray-700">
+              {constraintLabels[constraint.type as keyof typeof constraintLabels] || constraint.type}
+            </span>
+            <button on:click={() => removeConstraint(constraint.id)} class="text-red-500 hover:text-red-700 text-sm">
+              Remove
+            </button>
+          </div>
+
+          {#if constraint.type === 'email-type'}
+            <select 
+              value={constraint.value}
+              on:change={(e) => updateConstraintValue(constraint, e.target.value)}
+              class="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-white"
+            >
+              <option value="edu">Educational (.edu, .edu.in, .ac.in, etc.)</option>
+              <option value="work">Work Email</option>
+            </select>
+            {#if constraint.value === 'work'}
+              <input 
+                type="text"
+                placeholder="Comma-separated domains (e.g., company.com, company.co.uk)"
+                on:blur={(e) => {
+                  const domains = (e.target as HTMLInputElement).value.split(',').map(d => d.trim());
+                  updateConstraintValue(constraint, { type: 'work', domains });
+                }}
+                class="w-full text-sm border border-gray-300 rounded px-2 py-1"
+              />
+            {/if}
+          {:else if constraint.type === 'email-domain'}
+            <input 
+              type="text"
+              placeholder="Comma-separated domains (e.g., domain1.com, domain2.com)"
+              value={Array.isArray(constraint.value) ? constraint.value.join(', ') : ''}
+              on:blur={(e) => {
+                const domains = (e.target as HTMLInputElement).value.split(',').map(d => d.trim()).filter(d => d);
+                updateConstraintValue(constraint, domains);
+              }}
+              class="w-full text-sm border border-gray-300 rounded px-2 py-1"
+            />
+          {:else if constraint.type === 'number-format'}
+            <div class="space-y-2">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Format Type</label>
+                <select 
+                  value={typeof constraint.value === 'string' ? constraint.value : (constraint.value as any)?.type || 'phone'}
+                  on:change={(e) => {
+                    const type = e.target.value;
+                    let defaultLength = 10;
+                    if (type === 'pin') defaultLength = 4;
+                    else if (type === 'aadhar') defaultLength = 12;
+                    else if (type === 'phone') defaultLength = 10;
+                    updateConstraintValue(constraint, { type, length: defaultLength });
+                  }}
+                  class="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-white"
+                >
+                  <option value="phone">Phone Number (10 digits)</option>
+                  <option value="pin">PIN Code (4 digits)</option>
+                  <option value="aadhar">Aadhar (12 digits)</option>
+                  <option value="custom">Custom Length</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Required Digits</label>
+                <input 
+                  type="number"
+                  min="1"
+                  value={typeof constraint.value === 'object' ? constraint.value.length : 10}
+                  on:blur={(e) => {
+                    const length = parseInt((e.target as HTMLInputElement).value) || 10;
+                    const type = typeof constraint.value === 'object' ? constraint.value.type : 'phone';
+                    updateConstraintValue(constraint, { type, length });
+                  }}
+                  placeholder="Number of digits"
+                  class="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                />
+              </div>
+            </div>
+          {/if}
+        </div>
+      {/each}
     </div>
   {/if}
 </div>

@@ -22,12 +22,19 @@
   });
 
   onMount(async () => {
-    // Load form from server
+    // Load form from Supabase directly
     try {
-      const response = await fetch(`/api/forms?formId=${$page.params.formId}`);
-      if (response.ok) {
-        const form = await response.json();
-        currentForm.set(form);
+      const { data, error } = await supabase
+        .from('forms')
+        .select('*')
+        .eq('id', $page.params.formId)
+        .single();
+
+      if (error) {
+        console.error("Error loading form:", error);
+      } else if (data) {
+        console.log("Form loaded:", data.id);
+        currentForm.set(data);
       }
     } catch (error) {
       console.error("Error loading form:", error);
@@ -64,16 +71,47 @@
     }
   });
 
-  function saveForm() {
+  async function saveForm() {
     if (!currentFormData) return;
 
-    fetch("/api/forms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(currentFormData),
-    }).catch((err) => console.error("Error saving to server:", err));
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        alert("You must be logged in to save forms.");
+        return;
+      }
 
-    alert("Form saved!");
+      console.log('Saving form:', currentFormData.id, 'for user:', user.id);
+
+      // Prepare the form data for saving
+      const formToSave = {
+        ...currentFormData,
+        user_id: user.id,
+      };
+
+      // Use upsert directly with Supabase and select() to confirm save
+      const { data, error } = await supabase
+        .from('forms')
+        .upsert(formToSave)
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('Form saved successfully:', data);
+      
+      if (!data || data.length === 0) {
+        console.warn('Warning: Upsert returned no data. Form may not have been saved due to RLS policy.');
+        alert("Form saved, but please verify the changes persisted.");
+      } else {
+        alert("Form saved!");
+      }
+    } catch (err) {
+      console.error("Error saving form:", err);
+      alert("Failed to save form: " + (err instanceof Error ? err.message : "Unknown error"));
+    }
   }
 
   function onSubmit(answers: Record<string, any>) {
