@@ -48,6 +48,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       ...data,
       user_id: user.id,
       slug: slug,
+      updated_at: new Date().toISOString(),
     };
 
     console.log('POST /api/forms - Upserting form:', { id: formPayload.id, user_id: formPayload.user_id });
@@ -154,7 +155,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
       .from('forms')
       .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .order('updated_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching forms:', error);

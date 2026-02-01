@@ -1,10 +1,11 @@
 <!-- src/routes/dashboard/+page.svelte -->
 <script lang="ts">
   import { onMount } from "svelte";
+  import { gsap } from "gsap";
+  import { Avatar } from "bits-ui";
   import { supabase } from "$lib/supabaseClient";
   import { goto } from "$app/navigation";
   import type { Form } from "../../lib/types";
-  import { Avatar, Button } from "bits-ui";
 
   let allForms: Form[] = [];
   let loading = true;
@@ -21,15 +22,29 @@
 
   async function loadForms() {
     try {
+      if (!user) return;
+      
       const { data, error } = await supabase
         .from("forms")
         .select("*")
-        .order("created_at", { ascending: false })
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
         .range(0, PAGE_SIZE - 1);
 
       if (error) throw error;
       allForms = (data as Form[]) || [];
       hasMore = data && data.length === PAGE_SIZE;
+      
+      // Animate in forms
+      setTimeout(() => {
+        document.querySelectorAll('.form-card').forEach((card, idx) => {
+          gsap.fromTo(
+            card,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.5, ease: 'back.out', delay: idx * 0.05 }
+          );
+        });
+      }, 0);
     } catch (error) {
       console.error("Error loading forms:", error);
     } finally {
@@ -38,14 +53,15 @@
   }
 
   async function loadMoreForms() {
-    if (loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore || !user) return;
 
     loadingMore = true;
     try {
       const { data, error } = await supabase
         .from("forms")
         .select("*")
-        .order("created_at", { ascending: false })
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
         .range(allForms.length, allForms.length + PAGE_SIZE - 1);
 
       if (error) throw error;
@@ -74,114 +90,162 @@
     await supabase.auth.signOut();
     goto("/login");
   }
+
+  function formatDate(dateString: string | undefined): string {
+    if (!dateString) return "Recently edited";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  }
 </script>
 
-<div class="min-h-screen bg-white">
-  <header class="border-b border-gray-200 sticky top-0 bg-white z-50">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <h1 class="text-2xl font-bold text-black">Quill</h1>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+  <!-- Header -->
+  <header class="border-b border-gray-200 sticky top-0 bg-white/80 backdrop-blur-md z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Quill</div>
         {#if user}
-          <a href="/profile">
-            <Avatar.Root
-              delayMs={200}
-              class="data-[status=loaded]:border-gray-900 bg-gray-100 text-gray-600 h-12 w-12 rounded-full border text-[17px] font-medium uppercase data-[status=loading]:border-transparent"
-            >
-              <div
-                class="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-transparent"
-              >
-                <Avatar.Image src={user.user_metadata?.avatar_url || ""} alt={user.email || "User"} />
-                <Avatar.Fallback class="border-gray-200 border">{user.email?.charAt(0).toUpperCase() || "U"}</Avatar.Fallback>
-              </div>
+          <a href="/profile" class="ml-2 transition-transform hover:scale-110">
+            <Avatar.Root class="h-10 w-10">
+              <Avatar.Image 
+                src={user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
+                alt={user.email || "User avatar"}
+              />
+              <Avatar.Fallback class="flex items-center justify-center w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm">
+                {user.email?.charAt(0).toUpperCase() || "U"}
+              </Avatar.Fallback>
             </Avatar.Root>
           </a>
         {/if}
       </div>
-      <div class="flex gap-4">
+      <div class="flex gap-3">
         <button
           on:click={handleLogout}
-          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
+          class="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
         >
-          Logout
+          <i class="fas fa-sign-out-alt"></i> Logout
         </button>
         <a
           href="/form-builder"
-          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+          class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
         >
-          + New Form
+          <i class="fas fa-plus"></i> New Form
         </a>
       </div>
     </div>
   </header>
 
-  <div class="max-w-6xl mx-auto px-6 py-8">
-    <div class="mb-8">
-      <h2 class="text-3xl font-bold text-black mb-2">My Forms</h2>
-      <p class="text-gray-600">
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Hero Section -->
+    <div class="mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-3">My Forms</h1>
+      <p class="text-lg text-gray-600 flex items-center gap-2">
+        <i class="fas fa-file-alt text-blue-600"></i>
         {allForms.length} form{allForms.length !== 1 ? "s" : ""}
+        {#if allForms.length > 0}
+          <span class="text-gray-400">•</span>
+          <span class="text-blue-600 font-medium">Sorted by recently edited</span>
+        {/if}
       </p>
     </div>
 
     {#if loading}
-      <div class="text-center py-12">
-        <p class="text-gray-500">Loading forms...</p>
+      <div class="flex items-center justify-center py-20">
+        <div class="text-center">
+          <div class="inline-block">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+          </div>
+          <p class="text-gray-600 text-lg">Loading your forms...</p>
+        </div>
       </div>
     {:else if allForms.length === 0}
-      <div
-        class="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg"
-      >
-        <p class="text-gray-500 mb-4">No forms yet. Create your first form!</p>
-        <Button.Root
-          on:click={() => navigateToBuilder()}
-          class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+      <div class="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-300 shadow-sm">
+        <div class="mb-4">
+          <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">No forms yet</h3>
+        <p class="text-gray-600 mb-8">Create your first form to get started</p>
+        <a
+          href="/form-builder"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
         >
-          Create Form
-        </Button.Root>
+          <i class="fas fa-plus"></i> Create Your First Form
+        </a>
       </div>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {#each allForms as form}
+        {#each allForms as form (form.id)}
           <div
-            class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
+            class="form-card group bg-white rounded-2xl border border-gray-200 p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden relative"
             role="button"
             tabindex="0"
             on:click={() => navigateToBuilder(form)}
             on:keydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
           >
-            <h3 class="text-lg font-bold text-black mb-2">{form.title}</h3>
-            <p class="text-sm text-gray-600 mb-4">
-              {form.questions.length} question{form.questions.length !== 1
-                ? "s"
-                : ""}
-            </p>
-            <Button.Root
+            <!-- Status badge -->
+            <div class="absolute top-4 right-4 flex gap-2">
+              {#if form.published}
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                  <i class="fas fa-check-circle"></i> Published
+                </span>
+              {/if}
+              {#if form.closed}
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                  <i class="fas fa-lock"></i> Closed
+                </span>
+              {/if}
+            </div>
+
+            <!-- Content -->
+            <div class="mb-6 pr-24">
+              <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">{form.title}</h3>
+              <div class="flex items-center gap-4 text-sm text-gray-600">
+                <span class="flex items-center gap-1">
+                  <i class="fas fa-file-lines text-blue-500"></i>
+                  {form.questions.length} question{form.questions.length !== 1 ? "s" : ""}
+                </span>
+                <span class="flex items-center gap-1">
+                  <i class="fas fa-clock text-gray-400"></i>
+                  {formatDate(form.updated_at)}
+                </span>
+              </div>
+            </div>
+
+            <!-- Action button -->
+            <button
               on:click={(e) => { e.stopPropagation(); navigateToBuilder(form); }}
-              class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+              class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 group-hover:shadow-lg"
             >
-              Edit Form
-            </Button.Root>
+              <i class="fas fa-edit"></i> Edit Form
+            </button>
           </div>
         {/each}
       </div>
+
       {#if hasMore}
-        <div class="text-center mt-8">
-          <Button.Root
+        <div class="text-center mt-12">
+          <button
             on:click={loadMoreForms}
             disabled={loadingMore}
-            class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-8 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 hover:border-blue-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
           >
-            {loadingMore ? "Loading..." : "Load More Forms"}
-          </Button.Root>
+            {#if loadingMore}
+              <i class="fas fa-spinner fa-spin"></i> Loading...
+            {:else}
+              <i class="fas fa-arrow-down"></i> Load More Forms
+            {/if}
+          </button>
         </div>
       {/if}
     {/if}

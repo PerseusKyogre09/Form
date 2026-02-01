@@ -26,6 +26,8 @@ export interface Form {
   questions: Question[];
   published?: boolean;
   closed?: boolean; // Whether the form is closed for submissions
+  created_at?: string; // ISO timestamp
+  updated_at?: string; // ISO timestamp for last edit
 }
 
 export interface FormResponse {
