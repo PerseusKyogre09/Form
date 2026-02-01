@@ -65,66 +65,28 @@
   }
 
   function downloadCSV() {
+    console.log("CSV Download: Starting download for formId:", formId);
+    console.log("CSV Download: Number of responses:", responses.length);
+
     if (responses.length === 0) {
+      console.log("CSV Download: No responses to download");
       alert("No responses to download");
       return;
     }
 
     try {
-      // Create CSV header
-      const headers = ["Timestamp", "Response ID", ...questions.map((q) => q.title)];
-      const rows = [
-        headers.map((h) => `"${h}"`).join(","),
-      ];
-
-      // Add data rows
-      responses.forEach((response) => {
-        const cells = [
-          `"${formatDate(response.timestamp)}"`,
-          `"${response.id}"`,
-        ];
-
-        questions.forEach((q) => {
-          const answer = response.answers[q.id];
-          let value = "";
-          
-          if (answer === undefined || answer === null || answer === "") {
-            value = "";
-          } else if (typeof answer === "string") {
-            value = answer;
-          } else if (typeof answer === "number") {
-            if (q.type === "rating") {
-              value = `${answer}/5`;
-            } else {
-              value = String(answer);
-            }
-          } else if (Array.isArray(answer)) {
-            value = answer.join("; ");
-          } else {
-            value = String(answer);
-          }
-          
-          // Escape quotes in CSV values
-          cells.push(`"${value.replace(/"/g, '""')}"`);
-        });
-
-        rows.push(cells.join(","));
-      });
-
-      const csvContent = rows.join("\n");
-
-      // Create blob and download
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
+      console.log("CSV Download: Creating download link to:", `/api/responses/${formId}/csv`);
+      // Create download link to server endpoint
       const link = document.createElement("a");
-      link.href = url;
+      link.href = `/api/responses/${formId}/csv`;
       link.download = `form-responses-${formId}.csv`;
+      console.log("CSV Download: Link created, clicking...");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      console.log("CSV Download: Link clicked and removed");
     } catch (error) {
-      console.error("Error downloading CSV:", error);
+      console.error("CSV Download: Error in client:", error);
       alert("Failed to download CSV file");
     }
   }
@@ -139,14 +101,14 @@
       </p>
     </div>
     {#if responses.length > 0}
-      <Button.Root
+      <button
         on:click={downloadCSV}
         class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
       >
         Download CSV
-      </Button.Root>
+      </button>
     {/if}
   </div>
 
