@@ -144,6 +144,12 @@
             Email
           </DropdownMenu.Item>
           <DropdownMenu.Item
+            onSelect={() => addQuestion('phone')}
+            class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
+          >
+            Phone Number
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
             onSelect={() => addQuestion('date')}
             class="px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 cursor-pointer data-highlighted:bg-gray-100 transition-colors"
           >

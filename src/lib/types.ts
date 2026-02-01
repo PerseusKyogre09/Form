@@ -9,7 +9,7 @@ export interface Constraint {
 
 export interface Question {
   id: string;
-  type: 'text' | 'long-text' | 'number' | 'email' | 'date' | 'multiple-choice' | 'dropdown' | 'checkboxes' | 'yes-no' | 'rating';
+  type: 'text' | 'long-text' | 'number' | 'email' | 'phone' | 'date' | 'multiple-choice' | 'dropdown' | 'checkboxes' | 'yes-no' | 'rating';
   title: string;
   required: boolean;
   options?: string[]; // for multiple-choice, dropdown, checkboxes

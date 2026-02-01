@@ -30,6 +30,7 @@
 		"bits-ui": "^2.15.5",
 		"csv-stringify": "^6.6.0",
 		"gsap": "^3.14.2",
+		"libphonenumber-js": "^1.12.36",
 		"lightningcss": "^1.31.1"
 	}
 }

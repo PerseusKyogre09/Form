@@ -2,6 +2,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { gsap } from 'gsap';
+  import { isValidPhoneNumber } from 'libphonenumber-js';
   import type { Question, Constraint } from '../types';
 
   export let questions: Question[];
@@ -10,9 +11,99 @@
 
   let currentQuestionIndex = 0;
   let answers: Record<string, any> = {};
+  let phoneCountries: Record<string, string> = {};
   let container: HTMLElement;
   let validationError = '';
   let isSubmitting = false;
+
+  // Country code to country name mapping
+  const countryOptions = [
+    { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
+    { code: 'IN', name: 'India', dialCode: '+91', flag: '🇮🇳' },
+    { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
+    { code: 'CA', name: 'Canada', dialCode: '+1', flag: '🇨🇦' },
+    { code: 'AU', name: 'Australia', dialCode: '+61', flag: '🇦🇺' },
+    { code: 'DE', name: 'Germany', dialCode: '+49', flag: '🇩🇪' },
+    { code: 'FR', name: 'France', dialCode: '+33', flag: '🇫🇷' },
+    { code: 'JP', name: 'Japan', dialCode: '+81', flag: '🇯🇵' },
+    { code: 'BR', name: 'Brazil', dialCode: '+55', flag: '🇧🇷' },
+    { code: 'MX', name: 'Mexico', dialCode: '+52', flag: '🇲🇽' },
+    { code: 'SG', name: 'Singapore', dialCode: '+65', flag: '🇸🇬' },
+    { code: 'HK', name: 'Hong Kong', dialCode: '+852', flag: '🇭🇰' },
+    { code: 'NZ', name: 'New Zealand', dialCode: '+64', flag: '🇳🇿' },
+    { code: 'ZA', name: 'South Africa', dialCode: '+27', flag: '🇿🇦' },
+    { code: 'AE', name: 'United Arab Emirates', dialCode: '+971', flag: '🇦🇪' },
+    { code: 'SA', name: 'Saudi Arabia', dialCode: '+966', flag: '🇸🇦' },
+    { code: 'KR', name: 'South Korea', dialCode: '+82', flag: '🇰🇷' },
+    { code: 'CN', name: 'China', dialCode: '+86', flag: '🇨🇳' },
+    { code: 'MY', name: 'Malaysia', dialCode: '+60', flag: '🇲🇾' },
+    { code: 'TH', name: 'Thailand', dialCode: '+66', flag: '🇹🇭' },
+    { code: 'PH', name: 'Philippines', dialCode: '+63', flag: '🇵🇭' },
+    { code: 'ID', name: 'Indonesia', dialCode: '+62', flag: '🇮🇩' },
+    { code: 'VN', name: 'Vietnam', dialCode: '+84', flag: '🇻🇳' },
+    { code: 'PK', name: 'Pakistan', dialCode: '+92', flag: '🇵🇰' },
+    { code: 'BD', name: 'Bangladesh', dialCode: '+880', flag: '🇧🇩' },
+    { code: 'LK', name: 'Sri Lanka', dialCode: '+94', flag: '🇱🇰' },
+    { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
+    { code: 'KE', name: 'Kenya', dialCode: '+254', flag: '🇰🇪' },
+    { code: 'EG', name: 'Egypt', dialCode: '+20', flag: '🇪🇬' },
+    { code: 'IT', name: 'Italy', dialCode: '+39', flag: '🇮🇹' },
+    { code: 'ES', name: 'Spain', dialCode: '+34', flag: '🇪🇸' },
+    { code: 'NL', name: 'Netherlands', dialCode: '+31', flag: '🇳🇱' },
+    { code: 'BE', name: 'Belgium', dialCode: '+32', flag: '🇧🇪' },
+    { code: 'SE', name: 'Sweden', dialCode: '+46', flag: '🇸🇪' },
+    { code: 'CH', name: 'Switzerland', dialCode: '+41', flag: '🇨🇭' },
+    { code: 'AT', name: 'Austria', dialCode: '+43', flag: '🇦🇹' },
+    { code: 'PL', name: 'Poland', dialCode: '+48', flag: '🇵🇱' },
+    { code: 'CZ', name: 'Czech Republic', dialCode: '+420', flag: '🇨🇿' },
+    { code: 'RU', name: 'Russia', dialCode: '+7', flag: '🇷🇺' },
+  ];
+
+  let openCountryDropdown: string | null = null;
+  let countrySearchQuery = '';
+  let highlightedCountryIndex = 0;
+
+  function getFilteredCountries(query: string) {
+    if (!query) return countryOptions;
+    const lowerQuery = query.toLowerCase();
+    return countryOptions.filter(c => 
+      c.code.toLowerCase().includes(lowerQuery) || 
+      c.name.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  function handleCountrySearch(e: KeyboardEvent, questionId: string) {
+    const filteredCountries = getFilteredCountries(countrySearchQuery);
+    
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filteredCountries.length > 0) {
+        phoneCountries[questionId] = filteredCountries[highlightedCountryIndex].code;
+        openCountryDropdown = null;
+        countrySearchQuery = '';
+        highlightedCountryIndex = 0;
+        validateCurrentQuestion();
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedCountryIndex = (highlightedCountryIndex + 1) % filteredCountries.length;
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedCountryIndex = (highlightedCountryIndex - 1 + filteredCountries.length) % filteredCountries.length;
+    } else if (e.key === 'Escape') {
+      openCountryDropdown = null;
+      countrySearchQuery = '';
+      highlightedCountryIndex = 0;
+    }
+  }
+
+  function selectCountry(questionId: string, countryCode: string) {
+    phoneCountries[questionId] = countryCode;
+    openCountryDropdown = null;
+    countrySearchQuery = '';
+    highlightedCountryIndex = 0;
+    validateCurrentQuestion();
+  }
 
   onMount(() => {
     animateIn();
@@ -58,6 +149,12 @@
       }
     } else if ((currentQuestion.type === 'text' || currentQuestion.type === 'long-text') && answer && answer.trim().length > 0) {
       const constraintError = validateTextConstraints(answer.trim(), currentQuestion.constraints);
+      if (constraintError) {
+        validationError = constraintError;
+        return;
+      }
+    } else if (currentQuestion.type === 'phone' && answer && answer.trim().length > 0) {
+      const constraintError = validatePhoneConstraints(answer.trim(), currentQuestion.id, currentQuestion.constraints);
       if (constraintError) {
         validationError = constraintError;
         return;
@@ -149,9 +246,26 @@
     return null;
   }
 
+  function validatePhoneConstraints(value: string, questionId: string, constraints?: Constraint[]): string | null {
+    if (!constraints || constraints.length === 0) return null;
+
+    // Get the selected country for this phone question
+    const selectedCountryCode = phoneCountries[questionId];
+    if (!selectedCountryCode) {
+      return 'Please select a country';
+    }
+
+    // Basic phone number validation using libphonenumber-js with country code
+    if (!isValidPhoneNumber(value, selectedCountryCode as any)) {
+      return 'Please enter a valid phone number for the selected country';
+    }
+
+    return null;
+  }
+
   function isAnswered(question: Question): boolean {
     const answer = answers[question.id];
-    if (question.type === 'text' || question.type === 'long-text' || question.type === 'email') {
+    if (question.type === 'text' || question.type === 'long-text' || question.type === 'email' || question.type === 'phone') {
       return answer && answer.trim().length > 0;
     } else if (question.type === 'number') {
       if (answer === undefined || answer === null || answer === '') {
@@ -205,6 +319,12 @@
       }
       const constraintError = validateTextConstraints(answer.trim(), question.constraints);
       if (constraintError) return constraintError;
+    } else if (question.type === 'phone') {
+      if (!answer || answer.trim().length === 0) {
+        return 'This question is required';
+      }
+      const constraintError = validatePhoneConstraints(answer.trim(), question.id, question.constraints);
+      if (constraintError) return constraintError;
     }
     
     if (!isAnswered(question)) {
@@ -254,6 +374,18 @@
       const textValue = answers[currentQuestion.id];
       if (textValue && textValue.trim().length > 0) {
         const constraintError = validateTextConstraints(textValue.trim(), currentQuestion.constraints);
+        if (constraintError) {
+          validationError = constraintError;
+          return;
+        }
+      }
+    }
+
+    // Validate phone constraints if phone field has a value
+    if (currentQuestion.type === 'phone') {
+      const phoneValue = answers[currentQuestion.id];
+      if (phoneValue && phoneValue.trim().length > 0) {
+        const constraintError = validatePhoneConstraints(phoneValue.trim(), currentQuestion.id, currentQuestion.constraints);
         if (constraintError) {
           validationError = constraintError;
           return;
@@ -331,6 +463,18 @@
         const textValue = answers[question.id];
         if (textValue && textValue.trim().length > 0) {
           const constraintError = validateTextConstraints(textValue.trim(), question.constraints);
+          if (constraintError) {
+            validationError = constraintError;
+            return;
+          }
+        }
+      }
+
+      // Validate phone constraints for all phone fields that have values
+      if (question.type === 'phone') {
+        const phoneValue = answers[question.id];
+        if (phoneValue && phoneValue.trim().length > 0) {
+          const constraintError = validatePhoneConstraints(phoneValue.trim(), question.id, question.constraints);
           if (constraintError) {
             validationError = constraintError;
             return;
@@ -425,6 +569,69 @@
           {:else if currentQuestion.type === 'email'}
             <div>
               <input type="email" bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Enter your email..."} class="w-full text-lg text-black placeholder-gray-400 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} on:input={validateCurrentQuestion} />
+              {#if validationError}
+                <p class="text-red-500 text-sm mt-2">{validationError}</p>
+              {:else}
+                <p class="text-xs text-gray-400 mt-2">Press Enter to continue</p>
+              {/if}
+            </div>
+          {:else if currentQuestion.type === 'phone'}
+            <div>
+              <div class="relative">
+                <div class="flex gap-3 items-end">
+                  <!-- Country Selector Button -->
+                  <div class="flex-shrink-0 pb-3 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} transition-colors relative">
+                    <button
+                      type="button"
+                      on:click={() => {
+                        openCountryDropdown = openCountryDropdown === currentQuestion.id ? null : currentQuestion.id;
+                        countrySearchQuery = '';
+                        highlightedCountryIndex = 0;
+                      }}
+                      class="text-lg text-black outline-none bg-transparent border-none focus:ring-0 min-w-max hover:bg-gray-50 px-2 rounded transition-colors"
+                    >
+                      {#if phoneCountries[currentQuestion.id]}
+                        {countryOptions.find(c => c.code === phoneCountries[currentQuestion.id])?.flag}
+                        {phoneCountries[currentQuestion.id]}
+                      {:else}
+                        🌍
+                      {/if}
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    {#if openCountryDropdown === currentQuestion.id}
+                      <div class="absolute bottom-full left-0 mb-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-64 max-h-64 overflow-y-auto">
+                        <input
+                          type="text"
+                          placeholder="Search country (IN, India)..."
+                          bind:value={countrySearchQuery}
+                          on:keydown={(e) => handleCountrySearch(e, currentQuestion.id)}
+                          class="w-full px-3 py-2 border-b border-gray-300 text-sm outline-none focus:ring-1 focus:ring-black"
+                        />
+                        {#each getFilteredCountries(countrySearchQuery) as country, idx}
+                          <button
+                            type="button"
+                            on:click={() => selectCountry(currentQuestion.id, country.code)}
+                            class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors {idx === highlightedCountryIndex ? 'bg-gray-200' : ''}"
+                          >
+                            <span class="text-lg">{country.flag}</span> {country.code} {country.name} {country.dialCode}
+                          </button>
+                        {/each}
+                        {#if getFilteredCountries(countrySearchQuery).length === 0}
+                          <div class="px-4 py-3 text-sm text-gray-500 text-center">
+                            No countries found
+                          </div>
+                        {/if}
+                      </div>
+                    {/if}
+                  </div>
+
+                  <!-- Phone Number Input -->
+                  <div class="flex-1 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} transition-colors">
+                    <input type="tel" bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Enter your phone number..."} class="w-full text-lg text-black placeholder-gray-400 border-none outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} on:input={validateCurrentQuestion} />
+                  </div>
+                </div>
+              </div>
               {#if validationError}
                 <p class="text-red-500 text-sm mt-2">{validationError}</p>
               {:else}

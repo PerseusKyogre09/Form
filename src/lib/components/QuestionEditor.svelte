@@ -61,6 +61,7 @@
     'long-text': 'Long Text',
     number: 'Number',
     email: 'Email',
+    phone: 'Phone Number',
     date: 'Date',
     'multiple-choice': 'Multiple Choice',
     dropdown: 'Dropdown',
@@ -108,6 +109,7 @@
           <option value="long-text">Long Text</option>
           <option value="number">Number</option>
           <option value="email">Email</option>
+          <option value="phone">Phone Number</option>
           <option value="date">Date</option>
           <option value="multiple-choice">Multiple Choice</option>
           <option value="dropdown">Dropdown</option>
@@ -154,7 +156,7 @@
         </div>
       </div>
     </div>
-  {:else if question.type === 'text' || question.type === 'long-text' || question.type === 'email'}
+  {:else if question.type === 'text' || question.type === 'long-text' || question.type === 'email' || question.type === 'phone'}
     <div class="ml-10 space-y-2">
       <p class="text-sm text-gray-500 font-medium mb-3">Placeholder Text</p>
       <input bind:value={question.placeholder} on:input={updateQuestion} placeholder="Enter placeholder text..." class="w-full px-3 py-2 border border-gray-300 rounded text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 text-sm" />
@@ -234,18 +236,17 @@
               <div>
                 <label class="block text-xs text-gray-600 mb-1">Format Type</label>
                 <select 
-                  value={typeof constraint.value === 'string' ? constraint.value : (constraint.value as any)?.type || 'phone'}
+                  value={typeof constraint.value === 'string' ? constraint.value : (constraint.value as any)?.type || 'pin'}
                   on:change={(e) => {
                     const type = e.target.value;
-                    let defaultLength = 10;
+                    let defaultLength = 4;
                     if (type === 'pin') defaultLength = 4;
                     else if (type === 'aadhar') defaultLength = 12;
-                    else if (type === 'phone') defaultLength = 10;
+                    else if (type === 'custom') defaultLength = 10;
                     updateConstraintValue(constraint, { type, length: defaultLength });
                   }}
                   class="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-white"
                 >
-                  <option value="phone">Phone Number (10 digits)</option>
                   <option value="pin">PIN Code (4 digits)</option>
                   <option value="aadhar">Aadhar (12 digits)</option>
                   <option value="custom">Custom Length</option>
