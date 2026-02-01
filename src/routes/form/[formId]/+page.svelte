@@ -19,7 +19,7 @@
           formIdOrSlug,
         );
 
-      let query = supabase.from("forms").select("*");
+      let query = supabase.from("forms").select("*").eq("published", true);
 
       if (isUUID) {
         query = query.eq("id", formIdOrSlug);
@@ -75,6 +75,7 @@
           <FormPreview
             questions={formData.questions}
             formId={formData.id}
+            isClosed={formData.closed || false}
             {onSubmit}
           />
         </div>

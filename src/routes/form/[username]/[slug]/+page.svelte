@@ -68,6 +68,7 @@
           <FormPreview
             questions={formData.questions}
             formId={formData.id}
+            isClosed={formData.closed || false}
             {onSubmit}
           />
         </div>

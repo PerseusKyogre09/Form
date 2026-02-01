@@ -9,6 +9,7 @@
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
   import { Button, Tabs } from "bits-ui";
+  import { notifications } from "../../../lib/stores/notifications";
 
   let view: string = "edit";
   let currentFormData: Form | undefined;
@@ -18,7 +19,7 @@
   let username: string = "";
 
   currentForm.subscribe((value) => {
-    currentFormData = value;
+    currentFormData = { closed: false, ...value };
   });
 
   onMount(async () => {
@@ -104,13 +105,13 @@
       
       if (!data || data.length === 0) {
         console.warn('Warning: Upsert returned no data. Form may not have been saved due to RLS policy.');
-        alert("Form saved, but please verify the changes persisted.");
+        notifications.add("Form saved, but please verify the changes persisted.", "info");
       } else {
-        alert("Form saved!");
+        notifications.add("Form saved!", "success");
       }
     } catch (err) {
       console.error("Error saving form:", err);
-      alert("Failed to save form: " + (err instanceof Error ? err.message : "Unknown error"));
+      notifications.add("Failed to save form: " + (err instanceof Error ? err.message : "Unknown error"), "error");
     }
   }
 
@@ -130,7 +131,7 @@
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        alert("You must be logged in to publish forms.");
+        notifications.add("You must be logged in to save forms.", "error");
         return;
       }
 
@@ -143,10 +144,10 @@
       const { error } = await supabase.from("forms").upsert(payload);
 
       if (error) throw error;
-      alert("Form published!");
+      notifications.add("Form published!", "success");
     } catch (err) {
       console.error("Error publishing form:", err);
-      alert("Failed to publish form.");
+      notifications.add("Failed to publish form.", "error");
     }
   }
 
@@ -162,7 +163,7 @@
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        alert("You must be logged in to unpublish forms.");
+        notifications.add("You must be logged in to publish forms.", "error");
         return;
       }
 
@@ -175,11 +176,42 @@
       const { error } = await supabase.from("forms").upsert(payload);
 
       if (error) throw error;
-      alert("Form unpublished!");
+      notifications.add("Form unpublished!", "success");
       shareLink = ""; // Clear share link when unpublished
     } catch (err) {
       console.error("Error unpublishing form:", err);
-      alert("Failed to unpublish form.");
+      notifications.add("Failed to unpublish form.", "error");
+    }
+  }
+
+  async function toggleFormStatus() {
+    if (!currentFormData) return;
+    
+    const newStatus = !currentFormData.closed;
+    currentForm.update(form => ({ ...form, closed: newStatus }));
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        notifications.add("You must be logged in to change form status.", "error");
+        return;
+      }
+
+      const payload = {
+        ...currentFormData,
+        user_id: user.id,
+        closed: newStatus,
+      };
+
+      const { error } = await supabase.from("forms").upsert(payload);
+
+      if (error) throw error;
+      notifications.add(newStatus ? "Form closed!" : "Form opened!", "success");
+    } catch (err) {
+      console.error("Error toggling form status:", err);
+      notifications.add("Failed to change form status.", "error");
     }
   }
 
@@ -273,6 +305,7 @@
             <FormPreview
               questions={currentFormData.questions}
               formId={currentFormData.id}
+              isClosed={currentFormData.closed || false}
               {onSubmit}
             />
           {/if}
@@ -294,7 +327,7 @@
         </div>
 
         <aside class="lg:col-span-1">
-          <div class="sticky top-24 space-y-4">
+          <div class="sticky top-32 space-y-4">
             <button
               on:click={saveForm}
               class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors rounded-xl text-white shadow-mini hover:bg-black/95 inline-flex
@@ -303,6 +336,26 @@
             >
               Save Form
             </button>
+
+            {#if currentFormData?.closed}
+              <button
+                on:click={toggleFormStatus}
+                class="w-full px-4 py-2 bg-orange-600 text-white rounded-md font-medium hover:bg-orange-700 transition-colors rounded-xl text-white shadow-mini hover:bg-orange-700/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
+              >
+                <i class="fas fa-lock mr-2"></i> Open Form
+              </button>
+            {:else}
+              <button
+                on:click={toggleFormStatus}
+                class="w-full px-4 py-2 bg-yellow-600 text-white rounded-md font-medium hover:bg-yellow-700 transition-colors rounded-xl text-white shadow-mini hover:bg-yellow-700/95 inline-flex
+	h-12 items-center justify-center px-[21px] text-[15px]
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
+              >
+                <i class="fas fa-lock-open mr-2"></i> Close Form
+              </button>
+            {/if}
 
             {#if currentFormData?.published}
               <button

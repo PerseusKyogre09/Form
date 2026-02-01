@@ -25,6 +25,7 @@ export interface Form {
   title: string;
   questions: Question[];
   published?: boolean;
+  closed?: boolean; // Whether the form is closed for submissions
 }
 
 export interface FormResponse {

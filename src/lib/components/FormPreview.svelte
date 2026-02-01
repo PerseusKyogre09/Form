@@ -8,6 +8,7 @@
   export let questions: Question[];
   export let formId: string;
   export let onSubmit: (answers: Record<string, any>) => void;
+  export let isClosed: boolean = false;
 
   let currentQuestionIndex = 0;
   let answers: Record<string, any> = {};
@@ -103,6 +104,13 @@
     countrySearchQuery = '';
     highlightedCountryIndex = 0;
     validateCurrentQuestion();
+  }
+
+  function animateIn() {
+    if (container) {
+      gsap.set(container, { opacity: 0, y: 20 });
+      gsap.to(container, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
+    }
   }
 
   onMount(() => {
@@ -514,7 +522,16 @@
 </script>
 
 <div class="max-w-2xl mx-auto">
-  {#if questions.length > 0}
+  {#if isClosed}
+    <div class="min-h-screen flex items-center justify-center">
+      <div class="text-center space-y-4 px-6">
+        <div class="text-6xl mb-4"><i class="fas fa-lock text-red-600"></i></div>
+        <h2 class="text-3xl font-bold text-gray-900">This form is currently closed</h2>
+        <p class="text-lg text-gray-600">We are no longer accepting responses for this form. Thank you for your interest!</p>
+        <p class="text-sm text-gray-500 mt-6">If you believe this is an error, please contact the form owner.</p>
+      </div>
+    </div>
+  {:else if questions.length > 0}
     <!-- Progress Bar -->
     <div class="mb-12">
       <div class="flex items-center justify-between mb-4">

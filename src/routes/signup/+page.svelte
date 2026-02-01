@@ -1,7 +1,6 @@
 <script lang="ts">
     import { supabase } from "$lib/supabaseClient";
     import { goto } from "$app/navigation";
-    import { Button } from "bits-ui";
 
     let email = "";
     let password = "";
@@ -93,7 +92,7 @@
             {/if}
 
             <div>
-                <Button.Root
+                <button
                     type="submit"
                     disabled={loading}
                     class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
@@ -105,7 +104,7 @@
                     {:else}
                         Sign up
                     {/if}
-                </Button.Root>
+                </button>
             </div>
 
             <div class="relative">
@@ -120,7 +119,7 @@
             </div>
 
             <div>
-                <Button.Root
+                <button
                     type="button"
                     on:click={handleGitHubLogin}
                     disabled={loading}
@@ -140,7 +139,7 @@
                         />
                     </svg>
                     Sign in with GitHub
-                </Button.Root>
+                </button>
             </div>
             <div>
                 <p class="text-center text-sm text-gray-600">

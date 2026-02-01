@@ -5,6 +5,7 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { goto } from "$app/navigation";
 	import { page } from "$app/stores";
+	import NotificationContainer from "$lib/components/NotificationContainer.svelte";
 
 	let { children } = $props();
 
@@ -45,7 +46,10 @@
 <svelte:head>
 	<title>Quill</title>
 	<link rel="icon" href={favicon} />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </svelte:head>
+
+<NotificationContainer />
 
 <div class="min-h-screen">
 	{@render children()}
