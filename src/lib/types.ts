@@ -1,10 +1,10 @@
 // src/lib/types.ts
-export type ConstraintType = 'email-type' | 'email-domain' | 'text-length' | 'phone-format' | 'number-format';
+export type ConstraintType = 'email-type' | 'email-domain' | 'text-length' | 'phone-format' | 'number-format' | 'custom-regex';
 
 export interface Constraint {
   id: string;
   type: ConstraintType;
-  value: string | string[] | number;
+  value: string | string[] | number | { pattern: string; description: string };
 }
 
 export interface Question {

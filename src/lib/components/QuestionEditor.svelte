@@ -36,7 +36,7 @@
     let newConstraint: Constraint = {
       id: Date.now().toString(),
       type: type as any,
-      value: type === 'email-type' ? 'edu' : []
+      value: type === 'email-type' ? 'edu' : type === 'custom-regex' ? { pattern: '', description: '' } : []
     };
     
     question.constraints = [...question.constraints, newConstraint];
@@ -72,7 +72,8 @@
   const constraintLabels = {
     'email-type': 'Email Type (edu/work)',
     'email-domain': 'Email Domain Whitelist',
-    'number-format': 'Number Format (Phone, PIN, Aadhar, etc.)'
+    'number-format': 'Number Format (Phone, PIN, Aadhar, etc.)',
+    'custom-regex': 'Custom Pattern (Regex)'
   };
 
   function getAvailableConstraints() {
@@ -84,6 +85,10 @@
     } else if (question.type === 'number') {
       return [
         { value: 'number-format', label: 'Number Format (Phone, PIN, Aadhar, etc.)' }
+      ];
+    } else if (question.type === 'text' || question.type === 'long-text') {
+      return [
+        { value: 'custom-regex', label: 'Custom Pattern (Regex)' }
       ];
     }
     return [];
@@ -260,6 +265,42 @@
                   placeholder="Number of digits"
                   class="w-full text-sm border border-gray-300 rounded px-2 py-1"
                 />
+              </div>
+            </div>
+          {:else if constraint.type === 'custom-regex'}
+            <div class="space-y-2">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Pattern Description</label>
+                <input 
+                  type="text"
+                  placeholder="e.g., College Roll Number (RA followed by numbers)"
+                  value={(constraint.value as any)?.description || ''}
+                  on:input={(e) => {
+                    const currentValue = constraint.value as any;
+                    updateConstraintValue(constraint, { 
+                      pattern: currentValue?.pattern || '', 
+                      description: e.target.value 
+                    });
+                  }}
+                  class="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">Regex Pattern</label>
+                <input 
+                  type="text"
+                  placeholder="e.g., ^RA\d+$"
+                  value={(constraint.value as any)?.pattern || ''}
+                  on:input={(e) => {
+                    const currentValue = constraint.value as any;
+                    updateConstraintValue(constraint, { 
+                      pattern: e.target.value, 
+                      description: currentValue?.description || '' 
+                    });
+                  }}
+                  class="w-full text-sm border border-gray-300 rounded px-2 py-1 font-mono"
+                />
+                <p class="text-xs text-gray-500 mt-1">Use JavaScript regex syntax. Example: ^RA\d{13}$ for RA followed by 13 digits</p>
               </div>
             </div>
           {/if}

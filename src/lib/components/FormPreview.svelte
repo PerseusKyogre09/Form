@@ -18,8 +18,57 @@
     animateIn();
   });
 
-  function animateIn() {
-    gsap.from(container, { opacity: 0, y: 30, duration: 0.4 });
+  function validateCurrentQuestion() {
+    const answer = answers[currentQuestion.id];
+    
+    // Clear previous validation error
+    validationError = '';
+
+    // Skip validation if no answer provided and question is not required
+    if (!currentQuestion.required && (!answer || answer.trim().length === 0)) {
+      return;
+    }
+
+    // Validate based on question type
+    if (currentQuestion.type === 'email' && answer && answer.trim().length > 0) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(answer.trim())) {
+        validationError = 'Please enter a valid email address';
+        return;
+      }
+      const constraintError = validateEmailConstraints(answer.trim(), currentQuestion.constraints);
+      if (constraintError) {
+        validationError = constraintError;
+        return;
+      }
+    } else if (currentQuestion.type === 'number' && answer !== undefined && answer !== null && answer !== '') {
+      const numAnswer = Number(answer);
+      if (currentQuestion.min !== undefined && numAnswer < currentQuestion.min) {
+        validationError = `Please enter a number of at least ${currentQuestion.min}`;
+        return;
+      }
+      if (currentQuestion.max !== undefined && numAnswer > currentQuestion.max) {
+        validationError = `Please enter a number of at most ${currentQuestion.max}`;
+        return;
+      }
+      const constraintError = validateNumberConstraints(String(answer), currentQuestion.constraints);
+      if (constraintError) {
+        validationError = constraintError;
+        return;
+      }
+    } else if ((currentQuestion.type === 'text' || currentQuestion.type === 'long-text') && answer && answer.trim().length > 0) {
+      const constraintError = validateTextConstraints(answer.trim(), currentQuestion.constraints);
+      if (constraintError) {
+        validationError = constraintError;
+        return;
+      }
+    }
+
+    // Check if required question is answered
+    if (currentQuestion.required && !isAnswered(currentQuestion)) {
+      validationError = 'This question is required';
+      return;
+    }
   }
 
   function validateEmailConstraints(email: string, constraints?: Constraint[]): string | null {
@@ -78,6 +127,28 @@
     return null;
   }
 
+  function validateTextConstraints(value: string, constraints?: Constraint[]): string | null {
+    if (!constraints || constraints.length === 0) return null;
+
+    for (const constraint of constraints) {
+      if (constraint.type === 'custom-regex') {
+        const regexConfig = constraint.value as any;
+        if (regexConfig.pattern) {
+          try {
+            const regex = new RegExp(regexConfig.pattern);
+            if (!regex.test(value)) {
+              const description = regexConfig.description || 'custom pattern';
+              return `Please enter a value that matches the ${description}`;
+            }
+          } catch (e) {
+            return 'Invalid regex pattern configured';
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   function isAnswered(question: Question): boolean {
     const answer = answers[question.id];
     if (question.type === 'text' || question.type === 'long-text' || question.type === 'email') {
@@ -128,6 +199,12 @@
       }
       const constraintError = validateNumberConstraints(String(answer), question.constraints);
       if (constraintError) return constraintError;
+    } else if (question.type === 'text' || question.type === 'long-text') {
+      if (!answer || answer.trim().length === 0) {
+        return 'This question is required';
+      }
+      const constraintError = validateTextConstraints(answer.trim(), question.constraints);
+      if (constraintError) return constraintError;
     }
     
     if (!isAnswered(question)) {
@@ -165,6 +242,18 @@
       const numValue = answers[currentQuestion.id];
       if (numValue !== undefined && numValue !== null && numValue !== '') {
         const constraintError = validateNumberConstraints(String(numValue), currentQuestion.constraints);
+        if (constraintError) {
+          validationError = constraintError;
+          return;
+        }
+      }
+    }
+
+    // Validate text constraints if text field has a value
+    if (currentQuestion.type === 'text' || currentQuestion.type === 'long-text') {
+      const textValue = answers[currentQuestion.id];
+      if (textValue && textValue.trim().length > 0) {
+        const constraintError = validateTextConstraints(textValue.trim(), currentQuestion.constraints);
         if (constraintError) {
           validationError = constraintError;
           return;
@@ -236,6 +325,18 @@
           }
         }
       }
+
+      // Validate text constraints for all text fields that have values
+      if (question.type === 'text' || question.type === 'long-text') {
+        const textValue = answers[question.id];
+        if (textValue && textValue.trim().length > 0) {
+          const constraintError = validateTextConstraints(textValue.trim(), question.constraints);
+          if (constraintError) {
+            validationError = constraintError;
+            return;
+          }
+        }
+      }
     }
     
     validationError = '';
@@ -265,7 +366,7 @@
 
   $: currentQuestion = questions[currentQuestionIndex];
   $: progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-  $: canAdvanceValue = currentQuestion ? (currentQuestion.required ? isAnswered(currentQuestion) : true) : false;
+  $: canAdvanceValue = currentQuestion ? (currentQuestion.required ? isAnswered(currentQuestion) : true) && !validationError : false;
 </script>
 
 <div class="max-w-2xl mx-auto">
@@ -296,7 +397,7 @@
           
           {#if currentQuestion.type === 'text'}
             <div>
-              <input bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Type your answer here..."} class="w-full text-lg text-black placeholder-gray-400 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} />
+              <input bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Type your answer here..."} class="w-full text-lg text-black placeholder-gray-400 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} on:input={validateCurrentQuestion} />
               {#if validationError}
                 <p class="text-red-500 text-sm mt-2">{validationError}</p>
               {:else}
@@ -305,7 +406,7 @@
             </div>
           {:else if currentQuestion.type === 'long-text'}
             <div>
-              <textarea bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Type your answer here..."} rows="4" class="w-full text-lg text-black placeholder-gray-400 border-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 px-4 rounded-lg transition-colors resize-none" on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); nextQuestion(); } }}></textarea>
+              <textarea bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Type your answer here..."} rows="4" class="w-full text-lg text-black placeholder-gray-400 border-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 px-4 rounded-lg transition-colors resize-none" on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); nextQuestion(); } }} on:input={validateCurrentQuestion}></textarea>
               {#if validationError}
                 <p class="text-red-500 text-sm mt-2">{validationError}</p>
               {:else}
@@ -314,7 +415,7 @@
             </div>
           {:else if currentQuestion.type === 'number'}
             <div>
-              <input type="number" bind:value={answers[currentQuestion.id]} min={currentQuestion.min} max={currentQuestion.max} placeholder={currentQuestion.placeholder || "Enter a number..."} class="w-full text-lg text-black placeholder-gray-400 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} />
+              <input type="number" bind:value={answers[currentQuestion.id]} min={currentQuestion.min} max={currentQuestion.max} placeholder={currentQuestion.placeholder || "Enter a number..."} class="w-full text-lg text-black placeholder-gray-400 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} on:input={validateCurrentQuestion} />
               {#if validationError}
                 <p class="text-red-500 text-sm mt-2">{validationError}</p>
               {:else}
@@ -323,7 +424,7 @@
             </div>
           {:else if currentQuestion.type === 'email'}
             <div>
-              <input type="email" bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Enter your email..."} class="w-full text-lg text-black placeholder-gray-400 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} />
+              <input type="email" bind:value={answers[currentQuestion.id]} placeholder={currentQuestion.placeholder || "Enter your email..."} class="w-full text-lg text-black placeholder-gray-400 border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:keydown={handleEnter} on:input={validateCurrentQuestion} />
               {#if validationError}
                 <p class="text-red-500 text-sm mt-2">{validationError}</p>
               {:else}
@@ -341,14 +442,14 @@
             <div class="space-y-3">
               {#each currentQuestion.options || [] as option}
                 <label class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input type="radio" bind:group={answers[currentQuestion.id]} value={option} class="w-5 h-5 cursor-pointer accent-black" />
+                  <input type="radio" bind:group={answers[currentQuestion.id]} value={option} class="w-5 h-5 cursor-pointer accent-black" on:change={validateCurrentQuestion} />
                   <span class="ml-4 text-gray-900 font-medium">{option}</span>
                 </label>
               {/each}
             </div>
           {:else if currentQuestion.type === 'dropdown'}
             <div>
-              <select bind:value={answers[currentQuestion.id]} class="w-full text-lg text-black border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors">
+              <select bind:value={answers[currentQuestion.id]} class="w-full text-lg text-black border-b-2 {validationError ? 'border-red-500' : 'border-gray-300'} focus:border-black outline-none bg-transparent py-3 transition-colors" on:change={validateCurrentQuestion}>
                 <option value="" disabled selected>Select an option...</option>
                 {#each currentQuestion.options || [] as option}
                   <option value={option}>{option}</option>
@@ -362,7 +463,7 @@
             <div class="space-y-3">
               {#each currentQuestion.options || [] as option}
                 <label class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input type="checkbox" bind:group={answers[currentQuestion.id]} value={option} class="w-5 h-5 cursor-pointer accent-black" />
+                  <input type="checkbox" bind:group={answers[currentQuestion.id]} value={option} class="w-5 h-5 cursor-pointer accent-black" on:change={validateCurrentQuestion} />
                   <span class="ml-4 text-gray-900 font-medium">{option}</span>
                 </label>
               {/each}
@@ -371,7 +472,7 @@
             <div class="grid grid-cols-2 gap-4">
               {#each ['Yes', 'No'] as option}
                 <label class="flex items-center justify-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <input type="radio" bind:group={answers[currentQuestion.id]} value={option} class="w-5 h-5 cursor-pointer accent-black" />
+                  <input type="radio" bind:group={answers[currentQuestion.id]} value={option} class="w-5 h-5 cursor-pointer accent-black" on:change={validateCurrentQuestion} />
                   <span class="ml-3 text-gray-900 font-semibold">{option}</span>
                 </label>
               {/each}
@@ -379,7 +480,7 @@
           {:else if currentQuestion.type === 'rating'}
             <div class="flex gap-4 justify-center">
               {#each [1, 2, 3, 4, 5] as rating}
-                <button on:click={() => { answers[currentQuestion.id] = rating; }} class="text-5xl transition-all duration-200 cursor-pointer {answers[currentQuestion.id] >= rating ? 'scale-125' : 'opacity-30 hover:opacity-50 scale-100'}">
+                <button on:click={() => { answers[currentQuestion.id] = rating; validateCurrentQuestion(); }} class="text-5xl transition-all duration-200 cursor-pointer {answers[currentQuestion.id] >= rating ? 'scale-125' : 'opacity-30 hover:opacity-50 scale-100'}">
                   ★
                 </button>
               {/each}
