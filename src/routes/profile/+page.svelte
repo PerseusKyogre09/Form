@@ -80,8 +80,8 @@
             class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"
         >
             <div class="flex items-center gap-4">
-                <a
-                    href="/dashboard"
+                <button
+                    on:click={() => goto("/dashboard")}
                     class="text-gray-500 hover:text-black transition-colors"
                     title="Back to Dashboard"
                 >
@@ -98,7 +98,7 @@
                         class="lucide lucide-arrow-left"
                         ><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg
                     >
-                </a>
+                </button>
                 <h1 class="text-2xl font-bold text-black">Profile</h1>
             </div>
         </div>

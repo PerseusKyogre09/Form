@@ -1,5 +1,7 @@
 <!-- src/routes/form-builder/+page.svelte -->
 <script lang="ts">
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
   import { currentForm, forms } from "../../lib/stores";
   import FormBuilder from "../../lib/components/FormBuilder.svelte";
   import FormPreview from "../../lib/components/FormPreview.svelte";
@@ -12,6 +14,17 @@
   let currentFormData: Form;
   let shareLink: string = "";
   let copied = false;
+
+  onMount(() => {
+    // Create a new form when navigating to /form-builder
+    const newForm: Form = {
+      id: crypto.randomUUID(),
+      title: "Untitled Form",
+      questions: [],
+      published: false
+    };
+    currentForm.set(newForm);
+  });
 
   currentForm.subscribe((value) => {
     currentFormData = value;
@@ -63,12 +76,17 @@
         // Better to warn user or just generate a new one.
         // Let's generate a new UUID
         payload.id = crypto.randomUUID();
+        // Update the current form data with the new ID
+        currentFormData.id = payload.id;
+        currentForm.set(currentFormData);
       }
 
       const { error } = await supabase.from("forms").upsert(payload);
 
       if (error) throw error;
-      alert("Form saved!");
+      
+      // Navigate to the specific form builder page
+      goto(`/form-builder/${currentFormData.id}`);
     } catch (err) {
       console.error("Error saving to server:", err);
       alert("Failed to save form.");
@@ -163,7 +181,7 @@
   }
 
   function goBack() {
-    window.location.href = "/";
+    window.location.href = "/dashboard";
   }
 </script>
 
@@ -172,14 +190,14 @@
     <div
       class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between mb-6"
     >
-      <Button.Root
-        on:click={goBack}
-        class="text-gray-600 hover:text-black font-medium flex items-center gap-2 rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+      <a
+        href="/dashboard"
+        class="font-medium flex items-center gap-2 rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
       >
         ← Back to Forms
-      </Button.Root>
+      </a>
       <h1 class="text-2xl font-bold text-black">
         {currentFormData?.title || "Form Builder"}
       </h1>
@@ -240,33 +258,33 @@
 
         <aside class="lg:col-span-1">
           <div class="sticky top-24 space-y-4">
-            <Button.Root
+            <button
               on:click={saveForm}
-              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors rounded-xl text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
             >
               Save Form
-            </Button.Root>
+            </button>
 
             {#if currentFormData.published}
-              <Button.Root
+              <button
                 on:click={unpublishForm}
-                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors rounded-xl text-white shadow-mini hover:bg-red-700/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
               >
                 Unpublish Form
-              </Button.Root>
+              </button>
             {:else}
-              <Button.Root
+              <button
                 on:click={generateShareLink}
-                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors rounded-xl text-white shadow-mini hover:bg-green-700/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
               >
                 Publish Form
-              </Button.Root>
+              </button>
             {/if}
 
             {#if shareLink && currentFormData.published}
@@ -281,14 +299,14 @@
                     readonly
                     class="flex-1 text-xs px-2 py-2 border border-green-200 rounded bg-white text-gray-700"
                   />
-                  <Button.Root
+                  <button
                     on:click={copyToClipboard}
-                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
+                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors rounded-xl text-white shadow-mini hover:bg-green-700/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
                   >
                     {copied ? "✓" : "Copy"}
-                  </Button.Root>
+                  </button>
                 </div>
                 <p class="text-xs text-green-600 mt-2">
                   Share this link to let others fill out your form

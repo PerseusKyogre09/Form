@@ -98,22 +98,22 @@
         {/if}
       </div>
       <div class="flex gap-4">
-        <Button.Root
+        <button
           on:click={handleLogout}
           class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
         >
           Logout
-        </Button.Root>
-        <Button.Root
-          on:click={() => navigateToBuilder()}
+        </button>
+        <a
+          href="/form-builder"
           class="rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
         >
           + New Form
-        </Button.Root>
+        </a>
       </div>
     </div>
   </header>
