@@ -2,6 +2,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { gsap } from 'gsap';
+  import { Draggable } from 'gsap/dist/Draggable';
   import { isValidPhoneNumber } from 'libphonenumber-js';
   import type { Question, Constraint, FormElement } from '../types';
   import { isAnimationElement } from '../types';
@@ -13,6 +14,8 @@
     slideDropdown,
     slideDropdownOut
   } from '../animations';
+
+  gsap.registerPlugin(Draggable);
 
   export let questions: FormElement[] = [];
   export let formId: string;
@@ -31,6 +34,7 @@
   let currentElement: FormElement | undefined;
   let currentQuestion: Question | undefined;
   let animationTimer: ReturnType<typeof setTimeout> | null = null;
+  let draggableInstance: InstanceType<typeof Draggable> | null = null;
 
   // Country code to country name mapping
   const countryOptions = [
@@ -152,8 +156,42 @@
 
   onMount(() => {
     animateIn();
+    
+    // Setup draggable for smooth swiping
+    if (container) {
+      draggableInstance = Draggable.create(container, {
+        type: 'x,y',
+        edgeResistance: 0.65,
+        bounds: { minX: -100, maxX: 100, minY: -100, maxY: 100 },
+        inertia: true,
+        onDragEnd() {
+          const x = this.getX();
+          const y = this.getY();
+          
+          // Horizontal swipe: left = next, right = previous
+          if (Math.abs(x) > Math.abs(y)) {
+            if (x < -30 && currentQuestionIndex < questions.length - 1) {
+              this.kill();
+              nextQuestion();
+              return;
+            }
+            
+            if (x > 30 && currentQuestionIndex > 0) {
+              this.kill();
+              prevQuestion();
+              return;
+            }
+          }
+          
+          // Snap back to center
+          gsap.to(container, { x: 0, y: 0, duration: 0.4, ease: 'back.out' });
+        }
+      })[0];
+    }
+    
     return () => {
       if (animationTimer) clearTimeout(animationTimer);
+      if (draggableInstance) draggableInstance.kill();
     };
   });
 
@@ -413,6 +451,10 @@
     const targetIndex = currentQuestionIndex + delta;
     if (targetIndex < 0 || targetIndex >= questions.length) return;
     const x = direction === 'next' ? 50 : -50;
+    
+    // Kill draggable during transition
+    if (draggableInstance) draggableInstance.kill();
+    
     gsap.to(container, { opacity: 0, x, duration: 0.4, ease: 'power2.in', onComplete: () => {
       currentQuestionIndex = targetIndex;
       slideQuestion(container, direction, 0.4);
@@ -598,12 +640,54 @@
   }
   $: currentElement = questions[currentQuestionIndex];
   $: currentQuestion = currentElement && !isAnimationElement(currentElement) ? currentElement : undefined;
-  $: progress = questions.length ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
+  
+  // Calculate only actual questions for numbering (exclude animations)
+  $: questionList = questions.filter(q => !isAnimationElement(q));
+  $: currentQuestionNumber = currentElement && !isAnimationElement(currentElement) 
+    ? questionList.findIndex(q => q.id === currentElement.id) + 1 
+    : 0;
+  
+  $: progress = questionList.length ? (currentQuestionNumber / questionList.length) * 100 : 0;
   $: canAdvanceValue = currentElement ? (isAnimationElement(currentElement) ? true : (currentQuestion?.required ? isAnswered(currentQuestion) : true)) && !validationError : false;
   
   // Animate progress bar when progress changes
   $: if (progressBar) {
     animateProgress(progressBar, progress, 0.6);
+  }
+  
+  // Reinitialize draggable when question changes
+  $: if (currentQuestionIndex && container && draggableInstance) {
+    // Reset position and reinitialize draggable
+    gsap.set(container, { x: 0, y: 0 });
+    draggableInstance.kill();
+    draggableInstance = Draggable.create(container, {
+      type: 'x,y',
+      edgeResistance: 0.65,
+      bounds: { minX: -100, maxX: 100, minY: -100, maxY: 100 },
+      inertia: true,
+      onDragEnd() {
+        const x = this.getX();
+        const y = this.getY();
+        
+        // Horizontal swipe: left = next, right = previous
+        if (Math.abs(x) > Math.abs(y)) {
+          if (x < -30 && currentQuestionIndex < questions.length - 1) {
+            this.kill();
+            nextQuestion();
+            return;
+          }
+          
+          if (x > 30 && currentQuestionIndex > 0) {
+            this.kill();
+            prevQuestion();
+            return;
+          }
+        }
+        
+        // Snap back to center
+        gsap.to(container, { x: 0, y: 0, duration: 0.4, ease: 'back.out' });
+      }
+    })[0];
   }
 </script>
 
@@ -623,16 +707,14 @@
       <div class="mb-8 bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm">
-              {currentQuestionIndex + 1}
-            </div>
-            <div class="text-sm text-gray-600 font-medium">
-              {#if currentElement}
-                {isAnimationElement(currentElement) ? 'Animation' : 'Question'} {currentQuestionIndex + 1} of {questions.length}
-              {:else}
-                Step {currentQuestionIndex + 1} of {questions.length}
-              {/if}
-            </div>
+            {#if !isAnimationElement(currentElement)}
+              <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm">
+                {currentQuestionNumber}
+              </div>
+              <div class="text-sm text-gray-600 font-medium">
+                Question {currentQuestionNumber} of {questionList.length}
+              </div>
+            {/if}
           </div>
           <button on:click={() => currentQuestionIndex = 0} class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg">
             <i class="fas fa-times text-lg"></i>
