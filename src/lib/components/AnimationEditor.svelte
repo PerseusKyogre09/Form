@@ -14,17 +14,26 @@
   $: if (animation.autoAdvanceDelay === undefined) {
     animation.autoAdvanceDelay = 3;
   }
-  $: if (!animation.repeatMode) {
-    animation.repeatMode = 'once';
-  }
-  $: if (animation.repeatCount === undefined) {
-    animation.repeatCount = 2;
-  }
+  // Always play once - no repeats allowed
+  animation.repeatMode = 'once';
+  animation.repeatCount = 1;
 
   const animationOptions: { value: AnimationType; label: string }[] = [
     { value: 'fade', label: 'Fade In' },
     { value: 'slide', label: 'Slide Up' },
-    { value: 'pulse', label: 'Pulse' }
+    { value: 'pulse', label: 'Pulse' },
+    { value: 'bounce', label: 'Bounce In' },
+    { value: 'zoom', label: 'Zoom In' },
+    { value: 'flip', label: 'Flip In' },
+    { value: 'rotate', label: 'Rotate In' },
+    { value: 'slideLeft', label: 'Slide Left' },
+    { value: 'slideRight', label: 'Slide Right' },
+    { value: 'wobble', label: 'Wobble' },
+    { value: 'heartbeat', label: 'Heartbeat' },
+    { value: 'swing', label: 'Swing' },
+    { value: 'tada', label: 'Tada' },
+    { value: 'jello', label: 'Jello' },
+    { value: 'blink', label: 'Blink' }
   ];
 
   function updateAnimation() {
@@ -117,33 +126,6 @@
           </div>
         </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="space-y-2">
-          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Repeat</label>
-          <select
-            bind:value={animation.repeatMode}
-            on:change={updateAnimation}
-            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-          >
-            <option value="once">Play Once</option>
-            <option value="times">Play N Times</option>
-            <option value="loop">Loop Forever</option>
-          </select>
-        </div>
-        {#if animation.repeatMode === 'times'}
-          <div class="space-y-2">
-            <label for="repeatCount" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Number of Times</label>
-            <input
-              id="repeatCount"
-              type="number"
-              min="1"
-              bind:value={animation.repeatCount}
-              on:change={updateAnimation}
-              class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all bg-gray-50"
-            />
-          </div>
-        {/if}
-      </div>
       <div class="space-y-2">
         <label class="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer">
           <input
@@ -152,7 +134,7 @@
             on:change={updateAnimation}
             class="w-4 h-4 rounded border-gray-300 text-purple-600 cursor-pointer accent-purple-600"
           />
-          Auto-advance
+          Auto-advance to next question
         </label>
         {#if animation.enableAutoAdvance}
           <div class="space-y-1">
@@ -173,7 +155,7 @@
   </div>
   <div class="space-y-2">
     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Preview</p>
-    <div class={`animation-preview animation-${animation.animationType}`} style="background: {animation.backgroundColor || 'transparent'}; border: 1px solid {animation.backgroundColor === 'transparent' ? 'rgba(229, 231, 235, 1)' : 'transparent'}; animation-iteration-count: {animation.repeatMode === 'loop' ? 'infinite' : animation.repeatCount || 1};">
+    <div class={`animation-preview animation-${animation.animationType}`} style="background: {animation.backgroundColor || 'transparent'}; border: 1px solid {animation.backgroundColor === 'transparent' ? 'rgba(229, 231, 235, 1)' : 'transparent'}; animation-iteration-count: 1;">
       {#if animation.assetUrl}
         <img src={animation.assetUrl} alt="Animation preview" class="max-h-full max-w-full object-contain" />
       {:else}
@@ -185,9 +167,7 @@
             </p>
           {/if}
           <p class="text-xs {animation.backgroundColor === 'transparent' ? 'text-gray-400' : 'text-white text-opacity-80'}">
-            {animation.repeatMode === 'once' && '(plays once)'}
-            {animation.repeatMode === 'times' && `(plays ${animation.repeatCount || 1} times)`}
-            {animation.repeatMode === 'loop' && '(loops forever)'}
+            (plays once)
           </p>
         </div>
       {/if}

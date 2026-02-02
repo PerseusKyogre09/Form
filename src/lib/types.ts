@@ -17,9 +17,10 @@ export interface Question {
   max?: number; // for number
   placeholder?: string; // for text inputs
   constraints?: Constraint[]; // optional constraints for validation
+  exitAnimation?: AnimationType; // optional animation when transitioning to next question
 }
 
-export type AnimationType = 'fade' | 'slide' | 'pulse';
+export type AnimationType = 'fade' | 'slide' | 'pulse' | 'bounce' | 'zoom' | 'flip' | 'rotate' | 'slideLeft' | 'slideRight' | 'wobble' | 'heartbeat' | 'swing' | 'tada' | 'jello' | 'blink';
 export type AnimationRepeatMode = 'once' | 'loop' | 'times';
 
 export interface AnimationElement {

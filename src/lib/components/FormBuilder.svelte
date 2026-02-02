@@ -22,6 +22,7 @@
       type,
       title: '',
       required: false,
+      exitAnimation: 'slideRight',
       options: (type === 'multiple-choice' || type === 'dropdown' || type === 'checkboxes') ? ['Option 1', 'Option 2'] : undefined
     };
     form.questions = [...form.questions, newQuestion];
@@ -35,7 +36,12 @@
       title: 'Animated moment',
       description: 'Share a quick animation or logo',
       assetUrl: '',
-      animationType: 'fade'
+      animationType: 'fade',
+      repeatMode: 'once',
+      repeatCount: 1,
+      backgroundColor: 'transparent',
+      autoAdvanceDelay: 3,
+      enableAutoAdvance: false
     };
   }
 

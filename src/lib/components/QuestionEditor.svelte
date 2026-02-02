@@ -1,13 +1,31 @@
 <!-- src/lib/components/QuestionEditor.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { Question, Constraint } from '../types';
+  import type { Question, Constraint, AnimationType } from '../types';
 
   export let question: Question;
   export let questionNumber: number;
 
   const dispatch = createEventDispatcher();
   let showConstraintDropdown = false;
+
+  const animationOptions: { value: AnimationType; label: string }[] = [
+    { value: 'fade', label: 'Fade' },
+    { value: 'slide', label: 'Slide Up' },
+    { value: 'pulse', label: 'Pulse' },
+    { value: 'bounce', label: 'Bounce' },
+    { value: 'zoom', label: 'Zoom' },
+    { value: 'flip', label: 'Flip' },
+    { value: 'rotate', label: 'Rotate' },
+    { value: 'slideLeft', label: 'Slide Left' },
+    { value: 'slideRight', label: 'Slide Right' },
+    { value: 'wobble', label: 'Wobble' },
+    { value: 'heartbeat', label: 'Heartbeat' },
+    { value: 'swing', label: 'Swing' },
+    { value: 'tada', label: 'Tada' },
+    { value: 'jello', label: 'Jello' },
+    { value: 'blink', label: 'Blink' }
+  ];
 
   function updateQuestion() {
     dispatch('update');
@@ -123,6 +141,11 @@
           <input type="checkbox" bind:checked={question.required} on:change={updateQuestion} class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600" />
           <span class="text-gray-700 font-medium">Required</span>
         </label>
+        <select bind:value={question.exitAnimation} on:change={updateQuestion} class="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          {#each animationOptions as option}
+            <option value={option.value}>{option.label}</option>
+          {/each}
+        </select>
         <button on:click={() => dispatch('delete')} class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" aria-label="Delete question">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
         </button>
