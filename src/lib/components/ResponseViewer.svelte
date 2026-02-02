@@ -2,11 +2,15 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
-  import type { FormResponse, Question } from "../types";
+  import type { FormResponse, FormElement, Question } from "../types";
+  import { isQuestionElement } from "../types";
   import { Button } from "bits-ui";
 
   export let formId: string;
-  export let questions: Question[];
+  export let questions: FormElement[] = [];
+
+  let questionList: Question[] = [];
+  $: questionList = questions.filter(isQuestionElement);
 
   let responses: FormResponse[] = [];
   let loading = true;
@@ -56,7 +60,7 @@
 
   function getQuestionTitle(questionId: string): string {
     return (
-      questions.find((q) => q.id === questionId)?.title || "Unknown Question"
+      questionList.find((q) => q.id === questionId)?.title || "Unknown Question"
     );
   }
 
@@ -130,7 +134,7 @@
             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-200">
               Timestamp
             </th>
-            {#each questions as question}
+            {#each questionList as question}
               <th
                 class="px-6 py-3 text-left text-sm font-semibold text-gray-900 border-r border-gray-200 min-w-48"
               >
@@ -150,7 +154,7 @@
                 <div class="font-medium">{formatDate(response.timestamp)}</div>
                 <div class="text-xs text-gray-500">{response.id}</div>
               </td>
-              {#each questions as question}
+              {#each questionList as question}
                 <td class="px-6 py-4 text-sm text-gray-700 border-r border-gray-200">
                   {#if response.answers[question.id] === undefined || response.answers[question.id] === null || response.answers[question.id] === ""}
                     <span class="text-gray-400 italic">—</span>

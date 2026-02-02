@@ -1,13 +1,15 @@
 <!-- src/lib/components/FormBuilder.svelte -->
 <script lang="ts">
   import { currentForm } from '../stores';
-  import type { Question } from '../types';
+  import type { Question, FormElement, AnimationElement } from '../types';
+  import { isAnimationElement } from '../types';
   import QuestionEditor from './QuestionEditor.svelte';
+  import AnimationEditor from './AnimationEditor.svelte';
   import { DropdownMenu } from 'bits-ui';
 
   export let saveForm: () => void;
 
-  let form: { id: string; title: string; slug?: string; questions: Question[] };
+  let form: { id: string; title: string; slug?: string; questions: FormElement[] };
   let draggedIndex: number | null = null;
 
   currentForm.subscribe(value => {
@@ -26,13 +28,35 @@
     currentForm.set(form);
   }
 
+  function createAnimationBlock(): AnimationElement {
+    return {
+      id: Date.now().toString(),
+      kind: 'animation',
+      title: 'Animated moment',
+      description: 'Share a quick animation or logo',
+      assetUrl: '',
+      animationType: 'fade'
+    };
+  }
+
+  function addAnimation() {
+    form.questions = [...form.questions, createAnimationBlock()];
+    currentForm.set(form);
+  }
+
   function updateForm() {
     currentForm.set(form);
   }
 
-  function deleteQuestion(id: string) {
+  function deleteElement(id: string) {
     form.questions = form.questions.filter(q => q.id !== id);
     updateForm();
+  }
+
+  function getQuestionNumber(index: number) {
+    return form.questions.slice(0, index + 1).reduce((count, item) => {
+      return isAnimationElement(item) ? count : count + 1;
+    }, 0);
   }
 
   function handleDragStart(e: DragEvent, index: number) {
@@ -97,16 +121,26 @@
   </div>
 
   <div class="space-y-6">
-    {#each form.questions as question, idx (question.id)}
+    {#each form.questions as element, idx (element.id)}
       <div on:dragover={handleDragOver} on:drop={(e) => handleDrop(e, idx)} class={draggedIndex === idx ? 'opacity-50' : ''}>
-        <QuestionEditor 
-          {question} 
-          questionNumber={idx + 1} 
-          on:update={updateForm} 
-          on:delete={() => deleteQuestion(question.id)}
-          on:dragstart={(e) => handleDragStart(e.detail, idx)}
-          on:dragend={handleDragEnd}
-        />
+        {#if isAnimationElement(element)}
+          <AnimationEditor
+            animation={element}
+            on:update={updateForm}
+            on:delete={() => deleteElement(element.id)}
+            on:dragstart={(e) => handleDragStart(e.detail, idx)}
+            on:dragend={handleDragEnd}
+          />
+        {:else}
+          <QuestionEditor 
+            question={element}
+            questionNumber={getQuestionNumber(idx)} 
+            on:update={updateForm} 
+            on:delete={() => deleteElement(element.id)}
+            on:dragstart={(e) => handleDragStart(e.detail, idx)}
+            on:dragend={handleDragEnd}
+          />
+        {/if}
       </div>
     {/each}
   </div>
@@ -123,7 +157,7 @@
     </div>
   {/if}
 
-  <div class="mt-12 pt-8 border-t border-gray-200 flex gap-3">
+  <div class="mt-12 pt-8 border-t border-gray-200 flex flex-wrap gap-3">
     <DropdownMenu.Root>
       <DropdownMenu.Trigger class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,5 +274,17 @@
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
+      <button
+        on:click={addAnimation}
+        class="inline-flex items-center gap-2 px-5 py-3 border border-dashed border-purple-300 text-purple-700 rounded-lg text-sm font-semibold hover:border-purple-400 hover:text-purple-800 transition-all duration-200"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 4v16"></path>
+          <path d="M4 12h16"></path>
+          <path d="M16 7l3.5 3.5" stroke-dasharray="4 2"></path>
+          <path d="M8 17l-3.5-3.5" stroke-dasharray="4 2"></path>
+        </svg>
+        Add Animation
+      </button>
   </div>
 </div>

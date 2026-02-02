@@ -1,6 +1,6 @@
 // src/lib/stores.ts
 import { writable } from 'svelte/store';
-import type { Form, Question } from './types';
+import type { Form, FormElement } from './types';
 
 function generateUniqueId(): string {
   // Use crypto.randomUUID() if available, otherwise generate a UUID-like string
@@ -16,7 +16,7 @@ function generateUniqueId(): string {
 export const currentForm = writable<Form>({
   id: generateUniqueId(),
   title: 'My Form',
-  questions: []
+  questions: [] as FormElement[]
 });
 
 export const forms = writable<Form[]>([]);
