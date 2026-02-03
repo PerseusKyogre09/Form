@@ -52,15 +52,18 @@
       question.constraints = [];
     }
 
+    let defaultValue: any = [];
+    if (type === "email-type") defaultValue = "edu";
+    else if (type === "custom-regex")
+      defaultValue = { pattern: "", description: "" };
+    else if (type === "selection-count") defaultValue = { min: 1, max: 1 };
+    else if (type === "date-range") defaultValue = { min: "", max: "" };
+    else if (type === "text-length") defaultValue = { min: 0, max: 100 };
+
     let newConstraint: Constraint = {
       id: Date.now().toString(),
       type: type as any,
-      value:
-        type === "email-type"
-          ? "edu"
-          : type === "custom-regex"
-            ? { pattern: "", description: "" }
-            : [],
+      value: defaultValue,
     };
 
     question.constraints = [...question.constraints, newConstraint];
@@ -99,25 +102,66 @@
     "email-domain": "Email Domain Whitelist",
     "number-format": "Number Format (Phone, PIN, Aadhar, etc.)",
     "custom-regex": "Custom Pattern (Regex)",
+    "selection-count": "Selection Count (Min/Max)",
+    "date-range": "Date Range (Min/Max)",
+    "text-length": "Text Length (Min/Max Characters)",
   };
 
   function getAvailableConstraints() {
+    const types = [];
+
     if (question.type === "email") {
-      return [
-        { value: "email-type", label: "Email Type (edu/work)" },
-        { value: "email-domain", label: "Email Domain Whitelist" },
-      ];
+      types.push({
+        value: "email-type",
+        label: constraintLabels["email-type"],
+      });
+      types.push({
+        value: "email-domain",
+        label: constraintLabels["email-domain"],
+      });
     } else if (question.type === "number") {
-      return [
-        {
-          value: "number-format",
-          label: "Number Format (Phone, PIN, Aadhar, etc.)",
-        },
-      ];
+      types.push({
+        value: "number-format",
+        label: constraintLabels["number-format"],
+      });
     } else if (question.type === "text" || question.type === "long-text") {
-      return [{ value: "custom-regex", label: "Custom Pattern (Regex)" }];
+      types.push({
+        value: "custom-regex",
+        label: constraintLabels["custom-regex"],
+      });
+      types.push({
+        value: "text-length",
+        label: constraintLabels["text-length"],
+      });
+    } else if (question.type === "checkboxes") {
+      types.push({
+        value: "selection-count",
+        label: constraintLabels["selection-count"],
+      });
+    } else if (question.type === "date") {
+      types.push({
+        value: "date-range",
+        label: constraintLabels["date-range"],
+      });
     }
-    return [];
+
+    // Custom Regex is useful for many types
+    if (
+      !types.find((t) => t.value === "custom-regex") &&
+      ["text", "long-text", "phone", "number"].includes(question.type)
+    ) {
+      types.push({
+        value: "custom-regex",
+        label: constraintLabels["custom-regex"],
+      });
+    }
+
+    // Filter out already added constraints (except for custom-regex which can be used multiple times)
+    return types.filter(
+      (t) =>
+        t.value === "custom-regex" ||
+        !(question.constraints || []).some((c) => c.type === t.value),
+    );
   }
 </script>
 
@@ -573,7 +617,7 @@
                     description: (e.target as HTMLInputElement).value,
                   });
                 }}
-                class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 placeholder:text-slate-400"
+                class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 placeholder:text-slate-400"
               />
               <input
                 type="text"
@@ -586,8 +630,132 @@
                     description: currentValue?.description || "",
                   });
                 }}
-                class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 font-mono placeholder:text-slate-400"
+                class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 font-mono placeholder:text-slate-400"
               />
+            </div>
+          {:else if constraint.type === "selection-count"}
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="min-select-{constraint.id}"
+                  class="block text-xs font-medium text-slate-600 mb-2"
+                  >Min Selections</label
+                >
+                <input
+                  id="min-select-{constraint.id}"
+                  type="number"
+                  min="0"
+                  max={question.options?.length || 1}
+                  value={constraint.value.min}
+                  on:input={(e) =>
+                    updateConstraintValue(constraint, {
+                      ...constraint.value,
+                      min: parseInt((e.target as HTMLInputElement).value) || 0,
+                    })}
+                  class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2"
+                />
+              </div>
+              <div>
+                <label
+                  for="max-select-{constraint.id}"
+                  class="block text-xs font-medium text-slate-600 mb-2"
+                  >Max Selections</label
+                >
+                <input
+                  id="max-select-{constraint.id}"
+                  type="number"
+                  min="1"
+                  max={question.options?.length || 1}
+                  value={constraint.value.max}
+                  on:input={(e) =>
+                    updateConstraintValue(constraint, {
+                      ...constraint.value,
+                      max: parseInt((e.target as HTMLInputElement).value) || 1,
+                    })}
+                  class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2"
+                />
+              </div>
+            </div>
+          {:else if constraint.type === "date-range"}
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="min-date-{constraint.id}"
+                  class="block text-xs font-medium text-slate-600 mb-2"
+                  >Min Date</label
+                >
+                <input
+                  id="min-date-{constraint.id}"
+                  type="date"
+                  value={constraint.value.min}
+                  on:input={(e) =>
+                    updateConstraintValue(constraint, {
+                      ...constraint.value,
+                      min: (e.target as HTMLInputElement).value,
+                    })}
+                  class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2"
+                />
+              </div>
+              <div>
+                <label
+                  for="max-date-{constraint.id}"
+                  class="block text-xs font-medium text-slate-600 mb-2"
+                  >Max Date</label
+                >
+                <input
+                  id="max-date-{constraint.id}"
+                  type="date"
+                  value={constraint.value.max}
+                  on:input={(e) =>
+                    updateConstraintValue(constraint, {
+                      ...constraint.value,
+                      max: (e.target as HTMLInputElement).value,
+                    })}
+                  class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2"
+                />
+              </div>
+            </div>
+          {:else if constraint.type === "text-length"}
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="min-len-{constraint.id}"
+                  class="block text-xs font-medium text-slate-600 mb-2"
+                  >Min Characters</label
+                >
+                <input
+                  id="min-len-{constraint.id}"
+                  type="number"
+                  min="0"
+                  value={constraint.value.min}
+                  on:input={(e) =>
+                    updateConstraintValue(constraint, {
+                      ...constraint.value,
+                      min: parseInt((e.target as HTMLInputElement).value) || 0,
+                    })}
+                  class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2"
+                />
+              </div>
+              <div>
+                <label
+                  for="max-len-{constraint.id}"
+                  class="block text-xs font-medium text-slate-600 mb-2"
+                  >Max Characters</label
+                >
+                <input
+                  id="max-len-{constraint.id}"
+                  type="number"
+                  min="1"
+                  value={constraint.value.max}
+                  on:input={(e) =>
+                    updateConstraintValue(constraint, {
+                      ...constraint.value,
+                      max:
+                        parseInt((e.target as HTMLInputElement).value) || 100,
+                    })}
+                  class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2"
+                />
+              </div>
             </div>
           {/if}
         </div>

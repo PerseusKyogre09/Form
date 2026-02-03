@@ -444,6 +444,19 @@
             formatType.charAt(0).toUpperCase() + formatType.slice(1);
           return `${typeLabel} must have exactly ${requiredLength} digits`;
         }
+      } else if (constraint.type === "custom-regex") {
+        const regexConfig = constraint.value as any;
+        if (regexConfig.pattern) {
+          try {
+            const regex = new RegExp(regexConfig.pattern);
+            if (!regex.test(value)) {
+              const description = regexConfig.description || "custom pattern";
+              return `Please enter a value that matches the ${description}`;
+            }
+          } catch (e) {
+            return "Invalid regex pattern configured";
+          }
+        }
       }
     }
     return null;
@@ -469,6 +482,54 @@
             return "Invalid regex pattern configured";
           }
         }
+      } else if (constraint.type === "text-length") {
+        const { min, max } = constraint.value || { min: 0, max: 1000 };
+        if (value.length < (min || 0)) {
+          return `Text must be at least ${min} characters long`;
+        }
+        if (max && value.length > max) {
+          return `Text must be at most ${max} characters long`;
+        }
+      }
+    }
+    return null;
+  }
+
+  function validateSelectionConstraints(
+    selectedOptions: string[],
+    constraints?: Constraint[],
+  ): string | null {
+    if (!constraints || constraints.length === 0) return null;
+
+    for (const constraint of constraints) {
+      if (constraint.type === "selection-count") {
+        const { min, max } = constraint.value || { min: 0, max: 100 };
+        if (selectedOptions.length < (min || 0)) {
+          return `Please select at least ${min} items`;
+        }
+        if (max && selectedOptions.length > max) {
+          return `Please select at most ${max} items`;
+        }
+      }
+    }
+    return null;
+  }
+
+  function validateDateConstraints(
+    date: string,
+    constraints?: Constraint[],
+  ): string | null {
+    if (!constraints || constraints.length === 0) return null;
+
+    for (const constraint of constraints) {
+      if (constraint.type === "date-range") {
+        const { min, max } = constraint.value || { min: "", max: "" };
+        if (min && date < min) {
+          return `Date must be after ${min}`;
+        }
+        if (max && date > max) {
+          return `Date must be before ${max}`;
+        }
       }
     }
     return null;
@@ -492,6 +553,22 @@
 
     // If there are additional constraints, validate those too
     if (!constraints || constraints.length === 0) return null;
+
+    for (const constraint of constraints) {
+      if (constraint.type === "custom-regex") {
+        const regexConfig = constraint.value as any;
+        if (regexConfig.pattern) {
+          try {
+            const regex = new RegExp(regexConfig.pattern);
+            if (!regex.test(value)) {
+              return `Please enter a valid phone number (custom format validation)`;
+            }
+          } catch (e) {
+            return "Invalid regex pattern configured";
+          }
+        }
+      }
+    }
 
     return null;
   }
@@ -567,6 +644,24 @@
       }
       const constraintError = validateTextConstraints(
         answer.trim(),
+        question.constraints,
+      );
+      if (constraintError) return constraintError;
+    } else if (question.type === "date") {
+      if (!answer || answer.trim().length === 0) {
+        return "This question is required";
+      }
+      const constraintError = validateDateConstraints(
+        answer.trim(),
+        question.constraints,
+      );
+      if (constraintError) return constraintError;
+    } else if (question.type === "checkboxes") {
+      if (question.required && (!answer || answer.length === 0)) {
+        return "This question is required";
+      }
+      const constraintError = validateSelectionConstraints(
+        answer || [],
         question.constraints,
       );
       if (constraintError) return constraintError;
