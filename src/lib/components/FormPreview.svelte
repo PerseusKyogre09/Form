@@ -13,6 +13,12 @@
   } from "../types";
   import { isBlockElement } from "../types";
   import {
+    formatText,
+    getTextSizeClass,
+    getFontFamilyClass,
+    getTextAlignClass,
+  } from "../utils/textFormatter";
+  import {
     slideQuestion,
     animateProgress,
     shakeElement,
@@ -35,7 +41,7 @@
   export let onSubmit: (answers: Record<string, any>) => void;
   export let isClosed: boolean = false;
   export let backgroundType: "color" | "image" = "color";
-  export let backgroundColor: string = "#1e293b";
+  export let backgroundColor: string = "#f8fafc";
   export let backgroundImage: string = "";
   export let theme: Theme | undefined = undefined;
 
@@ -167,7 +173,7 @@
       currentElement.enableAutoAdvance
     ) {
       // Calculate delay based on entry animation if present, otherwise just use auto-advance delay
-      const delay = (currentElement.autoAdvanceDelay || 3);
+      const delay = currentElement.autoAdvanceDelay || 3;
       animationTimer = setTimeout(() => {
         nextQuestion();
       }, delay * 1000);
@@ -870,13 +876,14 @@
     // Check if next element is a block OR if current is a block
     const nextElement = questions[targetIndex];
     const isNextBlock = isBlockElement(nextElement);
-    const isCurrentBlock =
-      currentElement && isBlockElement(currentElement);
+    const isCurrentBlock = currentElement && isBlockElement(currentElement);
 
     if (isCurrentBlock) {
       // Exiting a block - use its exit animation type
       const exitAnimationType = (currentElement as any).exitAnimation;
-      const exitDuration = exitAnimationType ? getAnimationExitDuration(exitAnimationType) : 0.3;
+      const exitDuration = exitAnimationType
+        ? getAnimationExitDuration(exitAnimationType)
+        : 0.3;
 
       // Apply exit animation and then fade in the next element
       let exitAnimation: any = {
@@ -1368,366 +1375,479 @@
         </div>
       </div>
     {:else if questions.length > 0}
-      <!-- Header with Progress -->
-      <div
-        class="mb-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-white/20"
-      >
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            {#if !isBlockElement(currentElement)}
-              <div
-                class="bg-gradient-to-br from-blue-400 to-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm shadow-lg"
-              >
-                {currentQuestionNumber}
-              </div>
-              <div class="text-sm text-slate-200 font-medium">
-                Question {currentQuestionNumber} of {questionList.length}
-              </div>
-            {/if}
-          </div>
-          <button
-            on:click={() => (currentQuestionIndex = 0)}
-            class="text-slate-300 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
-          >
-            <i class="fas fa-times text-lg"></i>
-          </button>
-        </div>
-        <!-- Progress Bar -->
+      <!-- Progress Bar (fixed at top) -->
+      <div class="fixed top-0 left-0 right-0 h-1 bg-slate-200 z-50">
         <div
-          class="h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm"
-        >
-          <div
-            bind:this={progressBar}
-            class="h-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-lg"
-            style="width: {progress}%"
-          ></div>
-        </div>
+          bind:this={progressBar}
+          class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+          style="width: {progress}%"
+        ></div>
       </div>
 
       <!-- Question Container -->
-      <div
-        bind:this={container}
-        class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 mb-8"
-      >
-        {#if currentElement}
-          <div>
-            <div class="mb-10">
-              <h3
-                class="text-3xl md:text-4xl font-bold text-white leading-tight"
-              >
-                {currentElement.title}{#if currentQuestion?.required}<span
-                    class="text-red-400 ml-1">*</span
-                  >{/if}
-              </h3>
-            </div>
-
-            {#if isBlockElement(currentElement)}
-              <!-- Block Rendering -->
-              <div
-                class="rounded-2xl overflow-hidden"
-                style="background-color: {currentElement.backgroundColor || '#ffffff'};"
-              >
-                <!-- Header -->
-                {#if currentElement.headerText}
-                  <div class="p-4 border-b border-white/20">
-                    <h4 class="text-lg font-semibold text-white">
-                      {currentElement.headerText}
-                    </h4>
+      <div class="min-h-screen flex items-center justify-center px-6 py-20">
+        <div
+          bind:this={container}
+          class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl p-12 border border-slate-100"
+        >
+          {#if currentElement}
+            <div>
+              <div class="mb-10">
+                <!-- Question Label (e.g., "QUESTION 01 — 05") -->
+                {#if currentQuestion && currentQuestion.questionLabel}
+                  <div
+                    class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-2"
+                  >
+                    {currentQuestion.questionLabel}
                   </div>
                 {/if}
 
-                <!-- Content -->
-                <div class="p-6 space-y-4">
-                  <!-- Image -->
-                  {#if currentElement.imageUrl}
-                    <img
-                      src={currentElement.imageUrl}
-                      alt={currentElement.title || "Block image"}
-                      class="max-h-64 max-w-full object-contain rounded-lg"
-                    />
-                  {/if}
+                <!-- Question Title with Formatting -->
+                <h3
+                  class="{currentQuestion
+                    ? getTextSizeClass(currentQuestion.fontSize || '4xl')
+                    : 'text-3xl md:text-4xl'} {currentQuestion
+                    ? getFontFamilyClass(currentQuestion.fontFamily || 'serif')
+                    : 'font-serif'} {currentQuestion
+                    ? getTextAlignClass(currentQuestion.textAlign)
+                    : 'text-left'} font-medium text-slate-800 leading-tight"
+                >
+                  {@html formatText(
+                    currentElement.title,
+                    currentQuestion?.accentColor || "indigo-600",
+                  )}{#if currentQuestion?.required}<span
+                      class="text-red-500 ml-1">*</span
+                    >{/if}
+                </h3>
 
-                  <!-- Text Content -->
-                  {#if currentElement.text}
-                    <p class="text-base leading-relaxed {currentElement.backgroundColor === 'transparent' || currentElement.backgroundColor === '#ffffff' || currentElement.backgroundColor === 'white' ? 'text-gray-800' : 'text-white'}">
-                      {currentElement.text}
-                    </p>
-                  {/if}
-                </div>
-
-                <!-- Footer -->
-                {#if currentElement.footerText}
-                  <div class="p-4 border-t border-white/20">
-                    <p class="text-sm {currentElement.backgroundColor === 'transparent' || currentElement.backgroundColor === '#ffffff' || currentElement.backgroundColor === 'white' ? 'text-gray-600' : 'text-white/80'}">
-                      {currentElement.footerText}
-                    </p>
-                  </div>
+                <!-- Helper Text -->
+                {#if currentQuestion && currentQuestion.helperText}
+                  <p class="text-base text-slate-600 mt-3">
+                    {currentQuestion.helperText}
+                  </p>
                 {/if}
               </div>
-            {:else if currentQuestion}
-              <div>
-                <div class="space-y-10">
-                  {#if currentQuestion.type === "text"}
-                    <div>
-                      <input
-                        bind:value={answers[currentQuestion.id]}
-                        placeholder={currentQuestion.placeholder ||
-                          "Type your answer here..."}
-                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
-                          ? 'border-red-400/50 focus:border-red-400'
-                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                        on:keydown={handleEnter}
-                        on:input={validateCurrentQuestion}
-                      />
-                      {#if validationError}
-                        <p
-                          bind:this={validationElement}
-                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
-                        >
-                          <i class="fas fa-exclamation-circle"></i>
-                          {validationError}
-                        </p>
-                      {:else}
-                        <p class="text-xs text-slate-400 mt-3">
-                          <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                          continue
-                        </p>
-                      {/if}
-                    </div>
-                  {:else if currentQuestion.type === "long-text"}
-                    <div>
-                      <textarea
-                        bind:value={answers[currentQuestion.id]}
-                        placeholder={currentQuestion.placeholder ||
-                          "Type your answer here..."}
-                        rows="5"
-                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
-                          ? 'border-red-400/50 focus:border-red-400'
-                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 resize-none backdrop-blur-sm"
-                        on:keydown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            nextQuestion();
-                          }
-                        }}
-                        on:input={validateCurrentQuestion}
-                      ></textarea>
-                      {#if validationError}
-                        <p
-                          bind:this={validationElement}
-                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
-                        >
-                          <i class="fas fa-exclamation-circle"></i>
-                          {validationError}
-                        </p>
-                      {:else}
-                        <p class="text-xs text-slate-400 mt-3">
-                          <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                          continue, Shift+Enter for new line
-                        </p>
-                      {/if}
-                    </div>
-                  {:else if currentQuestion.type === "number"}
-                    <div>
-                      <input
-                        type="number"
-                        bind:value={answers[currentQuestion.id]}
-                        min={currentQuestion.min}
-                        max={currentQuestion.max}
-                        placeholder={currentQuestion.placeholder ||
-                          "Enter a number..."}
-                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
-                          ? 'border-red-400/50 focus:border-red-400'
-                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                        on:keydown={handleEnter}
-                        on:input={validateCurrentQuestion}
-                      />
-                      {#if validationError}
-                        <p
-                          bind:this={validationElement}
-                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
-                        >
-                          <i class="fas fa-exclamation-circle"></i>
-                          {validationError}
-                        </p>
-                      {:else}
-                        <p class="text-xs text-slate-400 mt-3">
-                          <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                          continue
-                        </p>
-                      {/if}
-                    </div>
-                  {:else if currentQuestion.type === "email"}
-                    <div>
-                      <input
-                        type="email"
-                        bind:value={answers[currentQuestion.id]}
-                        placeholder={currentQuestion.placeholder ||
-                          "Enter your email..."}
-                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
-                          ? 'border-red-400/50 focus:border-red-400'
-                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                        on:keydown={handleEnter}
-                        on:input={validateCurrentQuestion}
-                      />
-                      {#if validationError}
-                        <p
-                          bind:this={validationElement}
-                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
-                        >
-                          <i class="fas fa-exclamation-circle"></i>
-                          {validationError}
-                        </p>
-                      {:else}
-                        <p class="text-xs text-slate-400 mt-3">
-                          <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                          continue
-                        </p>
-                      {/if}
-                    </div>
-                  {:else if currentQuestion.type === "phone"}
-                    <div>
-                      <div class="flex gap-3 items-end">
-                        <!-- Country Selector Button -->
-                        <div class="flex-shrink-0 relative">
-                          <button
-                            type="button"
-                            on:click={() => {
-                              openCountryDropdown =
-                                openCountryDropdown === currentQuestion.id
-                                  ? null
-                                  : currentQuestion.id;
-                              countrySearchQuery = "";
-                              highlightedCountryIndex = 0;
-                            }}
-                            class="text-lg text-white outline-none bg-white/10 border-2 border-white/20 focus:border-blue-400 focus:outline-none px-4 py-4 rounded-2xl transition-all duration-200 min-w-max hover:border-white/40 backdrop-blur-sm {validationError
-                              ? 'border-red-400/50'
-                              : ''}"
-                          >
-                            {#if phoneCountries[currentQuestion.id]}
-                              {countryOptions.find(
-                                (c) =>
-                                  c.code === phoneCountries[currentQuestion.id],
-                              )?.flag}
-                              <span class="ml-2 font-medium"
-                                >{phoneCountries[currentQuestion.id]}</span
-                              >
-                            {:else}
-                              <i class="fas fa-globe mr-2"></i>
-                              <span class="ml-2 font-medium text-slate-300"
-                                >Select</span
-                              >
-                            {/if}
-                          </button>
 
-                          <!-- Dropdown Menu -->
-                          {#if openCountryDropdown === currentQuestion.id}
+              {#if isBlockElement(currentElement)}
+                <!-- Block Rendering -->
+                <div
+                  class="rounded-2xl overflow-hidden"
+                  style="background-color: {currentElement.backgroundColor ||
+                    '#ffffff'};"
+                >
+                  <!-- Header -->
+                  {#if currentElement.headerText}
+                    <div class="p-4 border-b border-white/20">
+                      <h4 class="text-lg font-semibold text-white">
+                        {currentElement.headerText}
+                      </h4>
+                    </div>
+                  {/if}
+
+                  <!-- Content -->
+                  <div class="p-6 space-y-4">
+                    <!-- Image -->
+                    {#if currentElement.imageUrl}
+                      <img
+                        src={currentElement.imageUrl}
+                        alt={currentElement.title || "Block image"}
+                        class="max-h-64 max-w-full object-contain rounded-lg"
+                      />
+                    {/if}
+
+                    <!-- Text Content -->
+                    {#if currentElement.text}
+                      <p
+                        class="text-base leading-relaxed {currentElement.backgroundColor ===
+                          'transparent' ||
+                        currentElement.backgroundColor === '#ffffff' ||
+                        currentElement.backgroundColor === 'white'
+                          ? 'text-gray-800'
+                          : 'text-white'}"
+                      >
+                        {currentElement.text}
+                      </p>
+                    {/if}
+                  </div>
+
+                  <!-- Footer -->
+                  {#if currentElement.footerText}
+                    <div class="p-4 border-t border-white/20">
+                      <p
+                        class="text-sm {currentElement.backgroundColor ===
+                          'transparent' ||
+                        currentElement.backgroundColor === '#ffffff' ||
+                        currentElement.backgroundColor === 'white'
+                          ? 'text-gray-600'
+                          : 'text-white/80'}"
+                      >
+                        {currentElement.footerText}
+                      </p>
+                    </div>
+                  {/if}
+                </div>
+              {:else if currentQuestion}
+                <div>
+                  <div class="space-y-10">
+                    {#if currentQuestion.type === "text"}
+                      <div>
+                        <input
+                          bind:value={answers[currentQuestion.id]}
+                          placeholder={currentQuestion.placeholder ||
+                            "Type your answer here..."}
+                          class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                            ? 'border-red-400/50 focus:border-red-400'
+                            : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                          on:keydown={handleEnter}
+                          on:input={validateCurrentQuestion}
+                        />
+                        {#if validationError}
+                          <p
+                            bind:this={validationElement}
+                            class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                          >
+                            <i class="fas fa-exclamation-circle"></i>
+                            {validationError}
+                          </p>
+                        {:else}
+                          <p class="text-xs text-slate-400 mt-3">
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter to
+                            continue
+                          </p>
+                        {/if}
+                      </div>
+                    {:else if currentQuestion.type === "long-text"}
+                      <div>
+                        <textarea
+                          bind:value={answers[currentQuestion.id]}
+                          placeholder={currentQuestion.placeholder ||
+                            "Type your answer here..."}
+                          rows="5"
+                          class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                            ? 'border-red-400/50 focus:border-red-400'
+                            : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 resize-none backdrop-blur-sm"
+                          on:keydown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              nextQuestion();
+                            }
+                          }}
+                          on:input={validateCurrentQuestion}
+                        ></textarea>
+                        {#if validationError}
+                          <p
+                            bind:this={validationElement}
+                            class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                          >
+                            <i class="fas fa-exclamation-circle"></i>
+                            {validationError}
+                          </p>
+                        {:else}
+                          <p class="text-xs text-slate-400 mt-3">
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter to
+                            continue, Shift+Enter for new line
+                          </p>
+                        {/if}
+                      </div>
+                    {:else if currentQuestion.type === "number"}
+                      <div>
+                        <input
+                          type="number"
+                          bind:value={answers[currentQuestion.id]}
+                          min={currentQuestion.min}
+                          max={currentQuestion.max}
+                          placeholder={currentQuestion.placeholder ||
+                            "Enter a number..."}
+                          class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                            ? 'border-red-400/50 focus:border-red-400'
+                            : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                          on:keydown={handleEnter}
+                          on:input={validateCurrentQuestion}
+                        />
+                        {#if validationError}
+                          <p
+                            bind:this={validationElement}
+                            class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                          >
+                            <i class="fas fa-exclamation-circle"></i>
+                            {validationError}
+                          </p>
+                        {:else}
+                          <p class="text-xs text-slate-400 mt-3">
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter to
+                            continue
+                          </p>
+                        {/if}
+                      </div>
+                    {:else if currentQuestion.type === "email"}
+                      <div>
+                        <input
+                          type="email"
+                          bind:value={answers[currentQuestion.id]}
+                          placeholder={currentQuestion.placeholder ||
+                            "Enter your email..."}
+                          class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                            ? 'border-red-400/50 focus:border-red-400'
+                            : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                          on:keydown={handleEnter}
+                          on:input={validateCurrentQuestion}
+                        />
+                        {#if validationError}
+                          <p
+                            bind:this={validationElement}
+                            class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                          >
+                            <i class="fas fa-exclamation-circle"></i>
+                            {validationError}
+                          </p>
+                        {:else}
+                          <p class="text-xs text-slate-400 mt-3">
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter to
+                            continue
+                          </p>
+                        {/if}
+                      </div>
+                    {:else if currentQuestion.type === "phone"}
+                      <div>
+                        <div class="flex gap-3 items-end">
+                          <!-- Country Selector Button -->
+                          <div class="flex-shrink-0 relative">
+                            <button
+                              type="button"
+                              on:click={() => {
+                                openCountryDropdown =
+                                  openCountryDropdown === currentQuestion.id
+                                    ? null
+                                    : currentQuestion.id;
+                                countrySearchQuery = "";
+                                highlightedCountryIndex = 0;
+                              }}
+                              class="text-lg text-white outline-none bg-white/10 border-2 border-white/20 focus:border-blue-400 focus:outline-none px-4 py-4 rounded-2xl transition-all duration-200 min-w-max hover:border-white/40 backdrop-blur-sm {validationError
+                                ? 'border-red-400/50'
+                                : ''}"
+                            >
+                              {#if phoneCountries[currentQuestion.id]}
+                                {countryOptions.find(
+                                  (c) =>
+                                    c.code ===
+                                    phoneCountries[currentQuestion.id],
+                                )?.flag}
+                                <span class="ml-2 font-medium"
+                                  >{phoneCountries[currentQuestion.id]}</span
+                                >
+                              {:else}
+                                <i class="fas fa-globe mr-2"></i>
+                                <span class="ml-2 font-medium text-slate-300"
+                                  >Select</span
+                                >
+                              {/if}
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            {#if openCountryDropdown === currentQuestion.id}
+                              <div
+                                class="absolute bottom-full left-0 mb-2 bg-white/10 border border-white/20 rounded-2xl shadow-2xl z-50 w-72 max-h-72 overflow-y-auto backdrop-blur-xl"
+                              >
+                                <input
+                                  type="text"
+                                  placeholder="Search country..."
+                                  bind:value={countrySearchQuery}
+                                  on:keydown={(e) =>
+                                    handleCountrySearch(e, currentQuestion.id)}
+                                  class="w-full px-4 py-3 border-b border-white/10 text-sm outline-none focus:ring-0 sticky top-0 bg-white/5 rounded-t-2xl text-white placeholder-slate-400"
+                                />
+                                {#each getFilteredCountries(countrySearchQuery) as country, idx}
+                                  <button
+                                    type="button"
+                                    on:click={() =>
+                                      selectCountry(
+                                        currentQuestion.id,
+                                        country.code,
+                                      )}
+                                    class="w-full text-left px-4 py-3 text-sm hover:bg-blue-500/30 transition-colors {idx ===
+                                    highlightedCountryIndex
+                                      ? 'bg-blue-500/50'
+                                      : ''} border-b border-white/5 last:border-b-0 text-white"
+                                  >
+                                    <span class="text-lg mr-2"
+                                      >{country.flag}</span
+                                    >
+                                    <span class="font-medium"
+                                      >{country.code}</span
+                                    >
+                                    <span class="text-slate-300 ml-2"
+                                      >{country.name}</span
+                                    >
+                                    <span class="text-slate-400 ml-1"
+                                      >{country.dialCode}</span
+                                    >
+                                  </button>
+                                {/each}
+                                {#if getFilteredCountries(countrySearchQuery).length === 0}
+                                  <div
+                                    class="px-4 py-6 text-sm text-slate-400 text-center"
+                                  >
+                                    <i class="fas fa-search mb-2"></i>
+                                    <p>No countries found</p>
+                                  </div>
+                                {/if}
+                              </div>
+                            {/if}
+                          </div>
+
+                          <!-- Phone Number Input -->
+                          <div class="flex-1">
+                            <input
+                              type="tel"
+                              bind:value={answers[currentQuestion.id]}
+                              placeholder={currentQuestion.placeholder ||
+                                "Enter your phone number..."}
+                              class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                                ? 'border-red-400/50 focus:border-red-400'
+                                : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                              on:keydown={handleEnter}
+                              on:input={validateCurrentQuestion}
+                            />
+                          </div>
+                        </div>
+                        {#if validationError}
+                          <p
+                            bind:this={validationElement}
+                            class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                          >
+                            <i class="fas fa-exclamation-circle"></i>
+                            {validationError}
+                          </p>
+                        {:else}
+                          <p class="text-xs text-slate-400 mt-3">
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter to
+                            continue
+                          </p>
+                        {/if}
+                      </div>
+                    {:else if currentQuestion.type === "date"}
+                      <div>
+                        <input
+                          type="date"
+                          bind:value={answers[currentQuestion.id]}
+                          class="w-full text-lg text-white bg-white/10 border-2 {validationError
+                            ? 'border-red-400/50 focus:border-red-400'
+                            : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                        />
+                        {#if validationError}
+                          <p
+                            bind:this={validationElement}
+                            class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                          >
+                            <i class="fas fa-exclamation-circle"></i>
+                            {validationError}
+                          </p>
+                        {/if}
+                      </div>
+                    {:else if currentQuestion.type === "multiple-choice"}
+                      <div class="space-y-3">
+                        {#each currentQuestion.options || [] as option}
+                          <label
+                            class="flex items-center p-4 border-2 border-white/20 rounded-2xl cursor-pointer hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-200 group backdrop-blur-sm"
+                          >
                             <div
-                              class="absolute bottom-full left-0 mb-2 bg-white/10 border border-white/20 rounded-2xl shadow-2xl z-50 w-72 max-h-72 overflow-y-auto backdrop-blur-xl"
+                              class="relative flex items-center justify-center"
                             >
                               <input
-                                type="text"
-                                placeholder="Search country..."
-                                bind:value={countrySearchQuery}
-                                on:keydown={(e) =>
-                                  handleCountrySearch(e, currentQuestion.id)}
-                                class="w-full px-4 py-3 border-b border-white/10 text-sm outline-none focus:ring-0 sticky top-0 bg-white/5 rounded-t-2xl text-white placeholder-slate-400"
+                                type="radio"
+                                bind:group={answers[currentQuestion.id]}
+                                value={option}
+                                class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
+                                on:change={validateCurrentQuestion}
                               />
-                              {#each getFilteredCountries(countrySearchQuery) as country, idx}
-                                <button
-                                  type="button"
-                                  on:click={() =>
-                                    selectCountry(
-                                      currentQuestion.id,
-                                      country.code,
-                                    )}
-                                  class="w-full text-left px-4 py-3 text-sm hover:bg-blue-500/30 transition-colors {idx ===
-                                  highlightedCountryIndex
-                                    ? 'bg-blue-500/50'
-                                    : ''} border-b border-white/5 last:border-b-0 text-white"
-                                >
-                                  <span class="text-lg mr-2"
-                                    >{country.flag}</span
-                                  >
-                                  <span class="font-medium">{country.code}</span
-                                  >
-                                  <span class="text-slate-300 ml-2"
-                                    >{country.name}</span
-                                  >
-                                  <span class="text-slate-400 ml-1"
-                                    >{country.dialCode}</span
-                                  >
-                                </button>
-                              {/each}
-                              {#if getFilteredCountries(countrySearchQuery).length === 0}
+                              <div
+                                class="w-5 h-5 border-2 border-white/40 rounded-full group-hover:border-blue-400 transition-colors"
+                              ></div>
+                              {#if answers[currentQuestion.id] === option}
                                 <div
-                                  class="px-4 py-6 text-sm text-slate-400 text-center"
-                                >
-                                  <i class="fas fa-search mb-2"></i>
-                                  <p>No countries found</p>
-                                </div>
+                                  class="absolute w-2.5 h-2.5 bg-blue-400 rounded-full"
+                                ></div>
                               {/if}
                             </div>
-                          {/if}
-                        </div>
-
-                        <!-- Phone Number Input -->
-                        <div class="flex-1">
-                          <input
-                            type="tel"
-                            bind:value={answers[currentQuestion.id]}
-                            placeholder={currentQuestion.placeholder ||
-                              "Enter your phone number..."}
-                            class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
-                              ? 'border-red-400/50 focus:border-red-400'
-                              : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                            on:keydown={handleEnter}
-                            on:input={validateCurrentQuestion}
-                          />
-                        </div>
+                            <span
+                              class="ml-4 text-white font-medium group-hover:text-blue-200 transition-colors"
+                              >{option}</span
+                            >
+                          </label>
+                        {/each}
                       </div>
-                      {#if validationError}
-                        <p
-                          bind:this={validationElement}
-                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                    {:else if currentQuestion.type === "dropdown"}
+                      <div>
+                        <select
+                          bind:value={answers[currentQuestion.id]}
+                          class="w-full text-lg text-white bg-white/10 border-2 {validationError
+                            ? 'border-red-400/50 focus:border-red-400'
+                            : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                          on:change={validateCurrentQuestion}
                         >
-                          <i class="fas fa-exclamation-circle"></i>
-                          {validationError}
-                        </p>
-                      {:else}
-                        <p class="text-xs text-slate-400 mt-3">
-                          <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                          continue
-                        </p>
-                      {/if}
-                    </div>
-                  {:else if currentQuestion.type === "date"}
-                    <div>
-                      <input
-                        type="date"
-                        bind:value={answers[currentQuestion.id]}
-                        class="w-full text-lg text-white bg-white/10 border-2 {validationError
-                          ? 'border-red-400/50 focus:border-red-400'
-                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                      />
-                      {#if validationError}
-                        <p
-                          bind:this={validationElement}
-                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
-                        >
-                          <i class="fas fa-exclamation-circle"></i>
-                          {validationError}
-                        </p>
-                      {/if}
-                    </div>
-                  {:else if currentQuestion.type === "multiple-choice"}
-                    <div class="space-y-3">
-                      {#each currentQuestion.options || [] as option}
-                        <label
-                          class="flex items-center p-4 border-2 border-white/20 rounded-2xl cursor-pointer hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-200 group backdrop-blur-sm"
-                        >
-                          <div
-                            class="relative flex items-center justify-center"
+                          <option
+                            value=""
+                            disabled
+                            selected
+                            class="bg-slate-800">Select an option...</option
+                          >
+                          {#each currentQuestion.options || [] as option}
+                            <option value={option} class="bg-slate-800"
+                              >{option}</option
+                            >
+                          {/each}
+                        </select>
+                        {#if validationError}
+                          <p
+                            bind:this={validationElement}
+                            class="text-red-300 text-sm mt-3 flex items-center gap-2"
+                          >
+                            <i class="fas fa-exclamation-circle"></i>
+                            {validationError}
+                          </p>
+                        {/if}
+                      </div>
+                    {:else if currentQuestion.type === "checkboxes"}
+                      <div class="space-y-3">
+                        {#each currentQuestion.options || [] as option}
+                          <label
+                            class="flex items-center p-4 border-2 border-white/20 rounded-2xl cursor-pointer hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-200 group backdrop-blur-sm"
+                          >
+                            <div
+                              class="relative flex items-center justify-center"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:group={answers[currentQuestion.id]}
+                                value={option}
+                                class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
+                                on:change={validateCurrentQuestion}
+                              />
+                              <div
+                                class="w-5 h-5 border-2 border-white/40 rounded-lg group-hover:border-blue-400 transition-colors flex items-center justify-center"
+                              >
+                                {#if answers[currentQuestion.id]?.includes(option)}
+                                  <i class="fas fa-check text-blue-400 text-xs"
+                                  ></i>
+                                {/if}
+                              </div>
+                            </div>
+                            <span
+                              class="ml-4 text-white font-medium group-hover:text-blue-200 transition-colors"
+                              >{option}</span
+                            >
+                          </label>
+                        {/each}
+                      </div>
+                    {:else if currentQuestion.type === "yes-no"}
+                      <div class="grid grid-cols-2 gap-4">
+                        {#each ["Yes", "No"] as option}
+                          <label
+                            class="flex items-center justify-center p-4 border-2 {answers[
+                              currentQuestion.id
+                            ] === option
+                              ? 'border-blue-400 bg-blue-500/30'
+                              : 'border-white/20 hover:border-blue-400/50'} rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
                           >
                             <input
                               type="radio"
@@ -1736,166 +1856,87 @@
                               class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
                               on:change={validateCurrentQuestion}
                             />
-                            <div
-                              class="w-5 h-5 border-2 border-white/40 rounded-full group-hover:border-blue-400 transition-colors"
-                            ></div>
-                            {#if answers[currentQuestion.id] === option}
-                              <div
-                                class="absolute w-2.5 h-2.5 bg-blue-400 rounded-full"
-                              ></div>
-                            {/if}
-                          </div>
-                          <span
-                            class="ml-4 text-white font-medium group-hover:text-blue-200 transition-colors"
-                            >{option}</span
-                          >
-                        </label>
-                      {/each}
-                    </div>
-                  {:else if currentQuestion.type === "dropdown"}
-                    <div>
-                      <select
-                        bind:value={answers[currentQuestion.id]}
-                        class="w-full text-lg text-white bg-white/10 border-2 {validationError
-                          ? 'border-red-400/50 focus:border-red-400'
-                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                        on:change={validateCurrentQuestion}
-                      >
-                        <option value="" disabled selected class="bg-slate-800"
-                          >Select an option...</option
-                        >
-                        {#each currentQuestion.options || [] as option}
-                          <option value={option} class="bg-slate-800"
-                            >{option}</option
-                          >
-                        {/each}
-                      </select>
-                      {#if validationError}
-                        <p
-                          bind:this={validationElement}
-                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
-                        >
-                          <i class="fas fa-exclamation-circle"></i>
-                          {validationError}
-                        </p>
-                      {/if}
-                    </div>
-                  {:else if currentQuestion.type === "checkboxes"}
-                    <div class="space-y-3">
-                      {#each currentQuestion.options || [] as option}
-                        <label
-                          class="flex items-center p-4 border-2 border-white/20 rounded-2xl cursor-pointer hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-200 group backdrop-blur-sm"
-                        >
-                          <div
-                            class="relative flex items-center justify-center"
-                          >
-                            <input
-                              type="checkbox"
-                              bind:group={answers[currentQuestion.id]}
-                              value={option}
-                              class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
-                              on:change={validateCurrentQuestion}
-                            />
-                            <div
-                              class="w-5 h-5 border-2 border-white/40 rounded-lg group-hover:border-blue-400 transition-colors flex items-center justify-center"
+                            <span
+                              class="text-lg font-bold {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? 'text-blue-200'
+                                : 'text-white group-hover:text-blue-200'} transition-colors"
+                              >{option}</span
                             >
-                              {#if answers[currentQuestion.id]?.includes(option)}
-                                <i class="fas fa-check text-blue-400 text-xs"
-                                ></i>
-                              {/if}
-                            </div>
-                          </div>
-                          <span
-                            class="ml-4 text-white font-medium group-hover:text-blue-200 transition-colors"
-                            >{option}</span
-                          >
-                        </label>
-                      {/each}
-                    </div>
-                  {:else if currentQuestion.type === "yes-no"}
-                    <div class="grid grid-cols-2 gap-4">
-                      {#each ["Yes", "No"] as option}
-                        <label
-                          class="flex items-center justify-center p-4 border-2 {answers[
-                            currentQuestion.id
-                          ] === option
-                            ? 'border-blue-400 bg-blue-500/30'
-                            : 'border-white/20 hover:border-blue-400/50'} rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
-                        >
-                          <input
-                            type="radio"
-                            bind:group={answers[currentQuestion.id]}
-                            value={option}
-                            class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
-                            on:change={validateCurrentQuestion}
-                          />
-                          <span
-                            class="text-lg font-bold {answers[
+                          </label>
+                        {/each}
+                      </div>
+                    {:else if currentQuestion.type === "rating"}
+                      <div class="flex gap-6 justify-center py-6">
+                        {#each [1, 2, 3, 4, 5] as rating}
+                          <button
+                            on:click={() => {
+                              answers[currentQuestion.id] = rating;
+                              validateCurrentQuestion();
+                            }}
+                            class="transition-all duration-200 cursor-pointer text-5xl {answers[
                               currentQuestion.id
-                            ] === option
-                              ? 'text-blue-200'
-                              : 'text-white group-hover:text-blue-200'} transition-colors"
-                            >{option}</span
+                            ] >= rating
+                              ? 'text-yellow-300 scale-125 drop-shadow-lg'
+                              : 'text-slate-400 hover:text-yellow-200 scale-100 hover:scale-110'}"
                           >
-                        </label>
-                      {/each}
-                    </div>
-                  {:else if currentQuestion.type === "rating"}
-                    <div class="flex gap-6 justify-center py-6">
-                      {#each [1, 2, 3, 4, 5] as rating}
-                        <button
-                          on:click={() => {
-                            answers[currentQuestion.id] = rating;
-                            validateCurrentQuestion();
-                          }}
-                          class="transition-all duration-200 cursor-pointer text-5xl {answers[
-                            currentQuestion.id
-                          ] >= rating
-                            ? 'text-yellow-300 scale-125 drop-shadow-lg'
-                            : 'text-slate-400 hover:text-yellow-200 scale-100 hover:scale-110'}"
-                        >
-                          <i class="fas fa-star"></i>
-                        </button>
-                      {/each}
-                    </div>
-                  {/if}
+                            <i class="fas fa-star"></i>
+                          </button>
+                        {/each}
+                      </div>
+                    {/if}
+                  </div>
                 </div>
-              </div>
-            {/if}
-          </div>
-        {/if}
+              {/if}
+            </div>
+          {/if}
+        </div>
       </div>
 
-      <!-- Navigation -->
-      <div class="flex gap-6 items-center justify-between pt-6">
-        <button
-          on:click={prevQuestion}
-          disabled={currentQuestionIndex === 0}
-          class="px-6 py-3 text-slate-200 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 font-medium flex items-center gap-2 border border-white/20 rounded-2xl hover:border-white/40 hover:bg-white/10 disabled:hover:border-white/20 disabled:hover:bg-transparent backdrop-blur-sm"
-        >
-          <i class="fas fa-arrow-left"></i> Previous
-        </button>
-        <div class="text-xs text-slate-400 hidden md:block">
-          <i class="fas fa-keyboard mr-1"></i>Press Enter to continue
+      <!-- Navigation - Premium Style -->
+      <div class="fixed bottom-8 right-8 flex items-center gap-4 z-40">
+        <!-- Up/Down Navigation Arrows -->
+        <div class="flex flex-col gap-2">
+          <button
+            on:click={prevQuestion}
+            disabled={currentQuestionIndex === 0}
+            aria-label="Previous question"
+            class="w-12 h-12 rounded-full border-2 border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center text-slate-700 hover:border-slate-400 disabled:hover:border-slate-300 disabled:hover:bg-white shadow-lg"
+          >
+            <i class="fas fa-chevron-up"></i>
+          </button>
+          {#if currentQuestionIndex < questions.length - 1}
+            <button
+              on:click={nextQuestion}
+              disabled={!canAdvanceValue}
+              aria-label="Next question"
+              class="w-12 h-12 rounded-full border-2 border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center text-slate-700 hover:border-slate-400 disabled:hover:border-slate-300 disabled:hover:bg-white shadow-lg"
+            >
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          {/if}
         </div>
+
+        <!-- NEXT / Submit Button -->
         {#if currentQuestionIndex < questions.length - 1}
           <button
             on:click={nextQuestion}
             disabled={!canAdvanceValue}
-            class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-bold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl flex items-center gap-2 disabled:shadow-none backdrop-blur-sm"
+            class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-bold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl hover:shadow-indigo-500/50 flex items-center gap-3 disabled:shadow-none"
           >
-            Next <i class="fas fa-arrow-right"></i>
+            NEXT <i class="fas fa-arrow-right"></i>
           </button>
         {:else}
           <button
             on:click={submitForm}
             disabled={!canAdvanceValue || isSubmitting}
-            class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl font-bold hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl flex items-center gap-2 disabled:shadow-none backdrop-blur-sm"
+            class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-bold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl hover:shadow-indigo-500/50 flex items-center gap-3 disabled:shadow-none"
           >
             {#if isSubmitting}
-              <i class="fas fa-spinner fa-spin"></i> Submitting...
+              <i class="fas fa-spinner fa-spin"></i> SUBMITTING...
             {:else}
-              <i class="fas fa-check"></i> Submit
+              SUBMIT <i class="fas fa-check"></i>
             {/if}
           </button>
         {/if}

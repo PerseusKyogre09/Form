@@ -1,0 +1,97 @@
+// src/lib/utils/textFormatter.ts
+
+/**
+ * Parses markdown-like formatting in text and converts to HTML
+ * Supports:
+ * - _text_ for italic
+ * - *text* for bold
+ * - __text__ for underline
+ * - ~text~ for strikethrough
+ * - {color:text} for colored text
+ */
+export function formatText(text: string, accentColor: string = 'indigo-600'): string {
+    if (!text) return '';
+
+    let formatted = text;
+
+    // Order matters! Process longer patterns first to avoid conflicts
+
+    // Underline: __text__ -> <u>text</u> (MUST come before italic)
+    formatted = formatted.replace(/__([^_]+)__/g, '<u class="underline decoration-2 underline-offset-2">$1</u>');
+
+    // Bold: *text* -> <strong>text</strong>
+    formatted = formatted.replace(/\*([^*]+)\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+
+    // Italic: _text_ -> <em>text</em>
+    formatted = formatted.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+    // Strikethrough: ~text~ -> <s>text</s>
+    formatted = formatted.replace(/~([^~]+)~/g, '<s class="line-through decoration-slate-400">$1</s>');
+
+    // Color highlighting: {color:text} -> <span class="text-color">text</span>
+    formatted = formatted.replace(/\{([^:}]+):([^}]+)\}/g, (match, color, content) => {
+        return `<span class="text-${color}-600 font-medium">${content}</span>`;
+    });
+
+    // Auto-apply accent color to italics AND keep them italic
+    formatted = formatted.replace(/<em>([^<]+)<\/em>/g, `<em class="text-${accentColor} italic font-medium">$1</em>`);
+
+    return formatted;
+}
+
+/**
+ * Strips all formatting and returns plain text
+ */
+export function stripFormatting(text: string): string {
+    if (!text) return '';
+
+    return text
+        .replace(/__([^_]+)__/g, '$1')  // underline first
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/_([^_]+)_/g, '$1')    // italic second
+        .replace(/~([^~]+)~/g, '$1')
+        .replace(/\{[^:}]+:([^}]+)\}/g, '$1');
+}
+
+/**
+ * Gets the appropriate Tailwind text size class
+ */
+export function getTextSizeClass(size: string = 'xl'): string {
+    const sizeMap: Record<string, string> = {
+        'sm': 'text-sm',
+        'base': 'text-base',
+        'lg': 'text-lg',
+        'xl': 'text-xl',
+        '2xl': 'text-2xl',
+        '3xl': 'text-3xl',
+        '4xl': 'text-4xl',
+    };
+
+    return sizeMap[size] || sizeMap['xl'];
+}
+
+/**
+ * Gets the appropriate font family class
+ */
+export function getFontFamilyClass(family: string = 'serif'): string {
+    const familyMap: Record<string, string> = {
+        'serif': 'font-serif',
+        'sans': 'font-sans',
+        'mono': 'font-mono',
+    };
+
+    return familyMap[family] || familyMap['serif'];
+}
+
+/**
+ * Gets the appropriate text alignment class
+ */
+export function getTextAlignClass(align: string = 'left'): string {
+    const alignMap: Record<string, string> = {
+        'left': 'text-left',
+        'center': 'text-center',
+        'right': 'text-right',
+    };
+
+    return alignMap[align] || alignMap['left'];
+}

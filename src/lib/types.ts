@@ -18,6 +18,13 @@ export interface Question {
   placeholder?: string; // for text inputs
   constraints?: Constraint[]; // optional constraints for validation
   exitAnimation?: AnimationType; // optional animation when transitioning to next question
+  // Text styling options
+  fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  fontFamily?: 'serif' | 'sans' | 'mono';
+  textAlign?: 'left' | 'center' | 'right';
+  questionLabel?: string; // e.g., "QUESTION 01 — 05"
+  helperText?: string; // Subtitle/description below title
+  accentColor?: string; // For highlighted words in title
 }
 
 export type AnimationType = 'fade' | 'slide' | 'pulse' | 'bounce' | 'zoom' | 'flip' | 'rotate' | 'slideLeft' | 'slideRight' | 'wobble' | 'heartbeat' | 'swing' | 'tada' | 'jello' | 'blink';

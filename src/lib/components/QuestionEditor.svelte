@@ -8,6 +8,7 @@
 
   const dispatch = createEventDispatcher();
   let showConstraintDropdown = false;
+  let showStylingPanel = false; // Styling panel collapsed by default
 
   const animationOptions: { value: AnimationType; label: string }[] = [
     { value: "fade", label: "Fade" },
@@ -121,7 +122,7 @@
 </script>
 
 <div
-  class="bg-surface-light bg-surface p-8 rounded-xl border border-slate-200  custom-shadow group transition-all duration-200"
+  class="bg-surface-light bg-surface p-8 rounded-xl border border-slate-200 custom-shadow group transition-all duration-200"
 >
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
@@ -144,7 +145,7 @@
         <select
           bind:value={question.type}
           on:change={updateQuestion}
-          class="appearance-none bg-slate-50 bg-slate-50 border-none rounded-lg py-1.5 pl-3 pr-8 text-sm font-medium focus:ring-0 cursor-pointer text-slate-700 "
+          class="appearance-none bg-slate-50 bg-slate-50 border-none rounded-lg py-1.5 pl-3 pr-8 text-sm font-medium focus:ring-0 cursor-pointer text-slate-700"
         >
           <option value="text">Short Text</option>
           <option value="long-text">Long Text</option>
@@ -171,9 +172,7 @@
           on:change={updateQuestion}
           class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
         />
-        <span class="text-sm font-medium text-slate-600 "
-          >Required</span
-        >
+        <span class="text-sm font-medium text-slate-600">Required</span>
       </label>
       <button
         on:click={() => dispatch("delete")}
@@ -188,10 +187,175 @@
     <input
       bind:value={question.title}
       on:input={updateQuestion}
-      class="w-full bg-transparent border-none p-0 text-xl font-semibold focus:ring-0 placeholder:text-slate-300  text-slate-900 "
-      placeholder="Question Title"
+      class="w-full bg-transparent border-none p-0 text-xl font-semibold focus:ring-0 placeholder:text-slate-300 text-slate-900"
+      placeholder="Question Title (use _italic_, *bold*, __underline__, ~strikethrough~)"
       type="text"
     />
+
+    <!-- Formatting Tip & Toggle -->
+    <div class="flex items-center justify-between gap-4">
+      <div class="text-xs text-slate-500 italic flex-1">
+        💡 Use <code class="bg-slate-100 px-1 rounded">_text_</code> italic,
+        <code class="bg-slate-100 px-1 rounded">*text*</code> bold
+      </div>
+      <button
+        type="button"
+        on:click={() => (showStylingPanel = !showStylingPanel)}
+        class="text-xs font-semibold text-primary hover:text-indigo-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+      >
+        <span class="fas fa-{showStylingPanel ? 'chevron-up' : 'palette'}"
+        ></span>
+        {showStylingPanel ? "Hide" : "Customize"}
+      </button>
+    </div>
+
+    <!-- Styling Controls (Collapsible) -->
+    {#if showStylingPanel}
+      <div class="bg-slate-50 rounded-lg p-4 space-y-4 border border-slate-200">
+        <div
+          class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-3"
+        >
+          📝 Text Styling
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <!-- Font Family -->
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1.5"
+              >Font</label
+            >
+            <select
+              bind:value={question.fontFamily}
+              on:change={updateQuestion}
+              class="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+              <option value={undefined}>Default</option>
+              <option value="serif">Serif (Elegant)</option>
+              <option value="sans">Sans (Modern)</option>
+              <option value="mono">Mono (Code)</option>
+            </select>
+          </div>
+
+          <!-- Font Size -->
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1.5"
+              >Size</label
+            >
+            <select
+              bind:value={question.fontSize}
+              on:change={updateQuestion}
+              class="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+              <option value={undefined}>Default (XL)</option>
+              <option value="sm">Small</option>
+              <option value="base">Medium</option>
+              <option value="lg">Large</option>
+              <option value="xl">XL</option>
+              <option value="2xl">2XL</option>
+              <option value="3xl">3XL</option>
+              <option value="4xl">4XL</option>
+            </select>
+          </div>
+
+          <!-- Text Alignment -->
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1.5"
+              >Align</label
+            >
+            <div class="flex gap-1">
+              <button
+                type="button"
+                on:click={() => {
+                  question.textAlign = "left";
+                  updateQuestion();
+                }}
+                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 rounded-lg transition-colors {question.textAlign ===
+                  'left' || !question.textAlign
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white hover:bg-slate-50'}"
+              >
+                <span class="fas fa-align-left"></span>
+              </button>
+              <button
+                type="button"
+                on:click={() => {
+                  question.textAlign = "center";
+                  updateQuestion();
+                }}
+                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 rounded-lg transition-colors {question.textAlign ===
+                'center'
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white hover:bg-slate-50'}"
+              >
+                <span class="fas fa-align-center"></span>
+              </button>
+              <button
+                type="button"
+                on:click={() => {
+                  question.textAlign = "right";
+                  updateQuestion();
+                }}
+                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 rounded-lg transition-colors {question.textAlign ===
+                'right'
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white hover:bg-slate-50'}"
+              >
+                <span class="fas fa-align-right"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Label (e.g. "QUESTION 01 — 05") -->
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1.5">
+            Question Label <span class="text-slate-400">(optional)</span>
+          </label>
+          <input
+            type="text"
+            bind:value={question.questionLabel}
+            on:input={updateQuestion}
+            placeholder="e.g., QUESTION 01 — 05"
+            class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400"
+          />
+        </div>
+
+        <!-- Helper Text -->
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1.5">
+            Helper Text <span class="text-slate-400">(optional)</span>
+          </label>
+          <input
+            type="text"
+            bind:value={question.helperText}
+            on:input={updateQuestion}
+            placeholder="Subtitle or description below the question"
+            class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400"
+          />
+        </div>
+
+        <!-- Accent Color -->
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1.5">
+            Accent Color <span class="text-slate-400">(for italic text)</span>
+          </label>
+          <select
+            bind:value={question.accentColor}
+            on:change={updateQuestion}
+            class="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary"
+          >
+            <option value={undefined}>Default (Indigo)</option>
+            <option value="blue-600">Blue</option>
+            <option value="purple-600">Purple</option>
+            <option value="pink-600">Pink</option>
+            <option value="red-600">Red</option>
+            <option value="orange-600">Orange</option>
+            <option value="green-600">Green</option>
+            <option value="teal-600">Teal</option>
+          </select>
+        </div>
+      </div>
+    {/if}
 
     {#if question.type === "multiple-choice" || question.type === "dropdown" || question.type === "checkboxes"}
       <div class="bg-slate-50 bg-slate-50 rounded-lg p-4 space-y-3">
@@ -207,7 +371,7 @@
             <input
               bind:value={option}
               on:input={updateQuestion}
-              class="flex-1 bg-transparent border-none text-sm text-slate-700  focus:ring-0 p-0"
+              class="flex-1 bg-transparent border-none text-sm text-slate-700 focus:ring-0 p-0"
               placeholder="Option {i + 1}"
             />
             <button
@@ -230,27 +394,27 @@
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-slate-50 bg-slate-50 rounded-lg p-3">
           <label
-            class="text-xs font-bold text-slate-400  uppercase tracking-wide block mb-1"
+            class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1"
             >Min Value</label
           >
           <input
             type="number"
             bind:value={question.min}
             on:input={updateQuestion}
-            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700 "
+            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700"
             placeholder="No Min"
           />
         </div>
         <div class="bg-slate-50 bg-slate-50 rounded-lg p-3">
           <label
-            class="text-xs font-bold text-slate-400  uppercase tracking-wide block mb-1"
+            class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1"
             >Max Value</label
           >
           <input
             type="number"
             bind:value={question.max}
             on:input={updateQuestion}
-            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700 "
+            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700"
             placeholder="No Max"
           />
         </div>
@@ -259,7 +423,7 @@
       <div class="relative group/placeholder">
         <input
           disabled
-          class="w-full bg-slate-50 bg-slate-50 border-slate-200  focus:border-primary focus:ring-0 rounded-lg p-4 transition-all text-slate-500  cursor-not-allowed disabled:bg-slate-100  placeholder:text-slate-400"
+          class="w-full bg-slate-50 bg-slate-50 border-slate-200 focus:border-primary focus:ring-0 rounded-lg p-4 transition-all text-slate-500 cursor-not-allowed disabled:bg-slate-100 placeholder:text-slate-400"
           placeholder={question.placeholder || "Answer will appear here..."}
           type="text"
         />
@@ -278,7 +442,7 @@
           id="placeholder-{question.id}"
           bind:value={question.placeholder}
           on:input={updateQuestion}
-          class="w-full bg-transparent border-none p-0 text-sm text-slate-500  focus:ring-0 placeholder:text-slate-400"
+          class="w-full bg-transparent border-none p-0 text-sm text-slate-500 focus:ring-0 placeholder:text-slate-400"
           placeholder="Edit placeholder text (optional)..."
           type="text"
         />
@@ -288,9 +452,7 @@
     <!-- Constraints Area -->
     {#if getAvailableConstraints().length > 0}
       {#each question.constraints || [] as constraint (constraint.id)}
-        <div
-          class="bg-indigo-50/50  rounded-lg p-4 border border-indigo-100 "
-        >
+        <div class="bg-indigo-50/50 rounded-lg p-4 border border-indigo-100">
           <div class="flex items-center justify-between mb-2">
             <span
               class="text-xs font-bold text-indigo-400 uppercase tracking-wide"
@@ -314,7 +476,7 @@
                   constraint,
                   (e.target as HTMLSelectElement).value,
                 )}
-              class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900 "
+              class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900"
             >
               <option value="edu">Educational (.edu, .edu.in, .ac.in)</option>
               <option value="work">Work/Corporate</option>
@@ -333,14 +495,14 @@
                   .filter((d) => d);
                 updateConstraintValue(constraint, domains);
               }}
-              class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900  p-2 placeholder:text-slate-400"
+              class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 placeholder:text-slate-400"
             />
           {:else if constraint.type === "number-format"}
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label
                   for="format-type"
-                  class="block text-xs font-medium text-slate-600  mb-2"
+                  class="block text-xs font-medium text-slate-600 mb-2"
                   >Format Type</label
                 >
                 <select
@@ -360,7 +522,7 @@
                       length: defaultLength,
                     });
                   }}
-                  class="w-full text-sm border border-slate-300  rounded-lg px-3 py-2.5 bg-slate-50 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary transition-all text-slate-900 "
+                  class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary transition-all text-slate-900"
                 >
                   <option value="pin">PIN Code (4 digits)</option>
                   <option value="aadhar">Aadhar (12 digits)</option>
@@ -370,7 +532,7 @@
               <div>
                 <label
                   for="required-digits"
-                  class="block text-xs font-medium text-slate-600  mb-2"
+                  class="block text-xs font-medium text-slate-600 mb-2"
                   >Required Digits</label
                 >
                 <input
@@ -394,7 +556,7 @@
                     updateConstraintValue(constraint, { type, length });
                   }}
                   placeholder="Number of digits"
-                  class="w-full text-sm border border-slate-300  rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 "
+                  class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900"
                 />
               </div>
             </div>
@@ -411,7 +573,7 @@
                     description: (e.target as HTMLInputElement).value,
                   });
                 }}
-                class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900  p-2 placeholder:text-slate-400"
+                class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 placeholder:text-slate-400"
               />
               <input
                 type="text"
@@ -424,7 +586,7 @@
                     description: currentValue?.description || "",
                   });
                 }}
-                class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900  p-2 font-mono placeholder:text-slate-400"
+                class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 font-mono placeholder:text-slate-400"
               />
             </div>
           {/if}
@@ -434,24 +596,24 @@
   </div>
 
   <div
-    class="mt-6 flex items-center justify-between border-t border-slate-100  pt-6"
+    class="mt-6 flex items-center justify-between border-t border-slate-100 pt-6"
   >
     <div class="relative">
       <button
         on:click={() => (showConstraintDropdown = !showConstraintDropdown)}
-        class="flex items-center gap-1.5 text-primary font-semibold hover:bg-indigo-50  px-3 py-1.5 rounded-lg transition-colors text-sm"
+        class="flex items-center gap-1.5 text-primary font-semibold hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors text-sm"
       >
         <span class="fas fa-plus-circle text-base"></span>
         Add constraint
       </button>
       {#if showConstraintDropdown}
         <div
-          class="absolute top-full left-0 mt-2 w-56 bg-white bg-surface border border-slate-200  rounded-lg shadow-xl z-20 overflow-hidden"
+          class="absolute top-full left-0 mt-2 w-56 bg-white bg-surface border border-slate-200 rounded-lg shadow-xl z-20 overflow-hidden"
         >
           {#each getAvailableConstraints() as constraint}
             <button
               on:click={() => addConstraint(constraint.value)}
-              class="w-full text-left px-4 py-3 hover:bg-slate-50  text-sm text-slate-700  transition-colors border-b border-slate-100  last:border-0"
+              class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 transition-colors border-b border-slate-100 last:border-0"
             >
               {constraint.label}
             </button>
@@ -477,4 +639,3 @@
     </div>
   </div>
 </div>
-

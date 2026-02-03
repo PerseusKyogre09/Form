@@ -10,8 +10,10 @@ export default {
         surface: "#ffffff",
       },
       fontFamily: {
-        display: ["Inter", "sans-serif"],
-        sans: ["Inter", "sans-serif"],
+        display: ["Playfair Display", "Georgia", "serif"],
+        serif: ["Playfair Display", "Georgia", "serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "Menlo", "monospace"],
       },
       borderRadius: {
         DEFAULT: "0.75rem",
