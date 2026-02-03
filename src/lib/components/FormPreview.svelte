@@ -1,6 +1,6 @@
 <!-- src/lib/components/FormPreview.svelte -->
 <script lang="ts">
-  import { onMount, tick } from "svelte";
+  import { onMount, onDestroy, tick } from "svelte";
   import { gsap } from "gsap";
   import { Draggable } from "gsap/dist/Draggable";
   import { isValidPhoneNumber } from "libphonenumber-js";
@@ -9,6 +9,7 @@
     Constraint,
     FormElement,
     AnimationType,
+    Theme,
   } from "../types";
   import { isAnimationElement } from "../types";
   import {
@@ -33,9 +34,10 @@
   export let formId: string;
   export let onSubmit: (answers: Record<string, any>) => void;
   export let isClosed: boolean = false;
-  export let backgroundType: 'color' | 'image' = 'color';
-  export let backgroundColor: string = '#1e293b';
-  export let backgroundImage: string = '';
+  export let backgroundType: "color" | "image" = "color";
+  export let backgroundColor: string = "#1e293b";
+  export let backgroundImage: string = "";
+  export let theme: Theme | undefined = undefined;
 
   let currentQuestionIndex = 0;
   let answers: Record<string, any> = {};
@@ -202,6 +204,56 @@
     }
   }
 
+  // Theme-related elements that need cleanup
+  let themeElements: HTMLElement[] = [];
+
+  function applyFormTheme() {
+    // Remove any previously injected theme elements for this form
+    cleanupTheme();
+
+    if (!theme) return;
+
+    // Apply external font if available
+    if (theme.fontUrl) {
+      const fontLink = document.createElement("link");
+      fontLink.rel = "stylesheet";
+      fontLink.href = theme.fontUrl;
+      fontLink.setAttribute("data-form-theme", formId);
+      document.head.appendChild(fontLink);
+      themeElements.push(fontLink);
+    }
+
+    // Apply external CSS if available
+    if (theme.cssUrl) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = theme.cssUrl;
+      link.setAttribute("data-form-theme", formId);
+      document.head.appendChild(link);
+      themeElements.push(link);
+    }
+
+    // Apply custom CSS if available
+    if (theme.customCss) {
+      const style = document.createElement("style");
+      style.setAttribute("data-form-theme", formId);
+      style.textContent = theme.customCss;
+      document.head.appendChild(style);
+      themeElements.push(style);
+    }
+  }
+
+  function cleanupTheme() {
+    // Remove all theme elements for this form
+    themeElements.forEach((el) => el.remove());
+    themeElements = [];
+
+    // Also remove any orphaned theme elements with this form's ID
+    document
+      .querySelectorAll(`[data-form-theme="${formId}"]`)
+      .forEach((el) => el.remove());
+  }
+
   onMount(() => {
     // Ensure all questions have exitAnimation set (for backward compatibility)
     questions.forEach((el) => {
@@ -210,12 +262,24 @@
       }
     });
 
+    // Apply theme if available
+    applyFormTheme();
+
     animateIn();
 
     return () => {
       if (animationTimer) clearTimeout(animationTimer);
+      cleanupTheme();
     };
   });
+
+  // Re-apply theme when it changes (for preview mode)
+  $: if (theme) {
+    // Only apply if we're mounted (themeElements array exists)
+    if (typeof document !== "undefined") {
+      applyFormTheme();
+    }
+  }
 
   function validateCurrentQuestion() {
     if (!currentQuestion) return;
@@ -1301,9 +1365,11 @@
 
 <div
   class="min-h-screen py-12 px-4 relative overflow-hidden"
-  style="background-color: {backgroundType === 'color' ? backgroundColor : '#1e293b'};"
+  style="background-color: {backgroundType === 'color'
+    ? backgroundColor
+    : '#1e293b'};"
 >
-  {#if backgroundType === 'image' && backgroundImage}
+  {#if backgroundType === "image" && backgroundImage}
     <div
       class="absolute inset-0"
       style="background-image: url('{backgroundImage}'); background-size: cover; background-position: center; background-attachment: fixed; filter: blur(0px);"
@@ -1312,7 +1378,9 @@
   <div class="max-w-2xl mx-auto relative z-10">
     {#if isClosed}
       <div class="min-h-screen flex items-center justify-center">
-        <div class="text-center space-y-6 px-6 bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20">
+        <div
+          class="text-center space-y-6 px-6 bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20"
+        >
           <div class="text-8xl mb-4">
             <i class="fas fa-lock text-red-400"></i>
           </div>
@@ -1352,7 +1420,9 @@
           </button>
         </div>
         <!-- Progress Bar -->
-        <div class="h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+        <div
+          class="h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm"
+        >
           <div
             bind:this={progressBar}
             class="h-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-lg"
@@ -1613,8 +1683,7 @@
                                   <span class="text-lg mr-2"
                                     >{country.flag}</span
                                   >
-                                  <span class="font-medium"
-                                    >{country.code}</span
+                                  <span class="font-medium">{country.code}</span
                                   >
                                   <span class="text-slate-300 ml-2"
                                     >{country.name}</span
@@ -1730,7 +1799,9 @@
                           >Select an option...</option
                         >
                         {#each currentQuestion.options || [] as option}
-                          <option value={option} class="bg-slate-800">{option}</option>
+                          <option value={option} class="bg-slate-800"
+                            >{option}</option
+                          >
                         {/each}
                       </select>
                       {#if validationError}

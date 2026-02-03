@@ -39,6 +39,22 @@ export interface AnimationElement {
 
 export type FormElement = Question | AnimationElement;
 
+export interface Theme {
+  id: string;
+  name: string;
+  description?: string;
+  cssUrl?: string; // External CSS URL (e.g., for NES.css)
+  fontUrl?: string; // External font URL (e.g., Google Fonts)
+  customCss?: string; // Custom CSS as string
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    background?: string;
+    text?: string;
+  };
+}
+
 export interface Form {
   id: string;
   slug?: string; // Custom identifier for public link (e.g., "data-class")
@@ -55,6 +71,7 @@ export interface Form {
   backgroundType?: 'color' | 'image';
   backgroundColor?: string;
   backgroundImage?: string;
+  theme?: Theme; // Optional theme configuration
 }
 
 export interface FormResponse {

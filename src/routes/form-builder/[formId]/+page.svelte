@@ -5,6 +5,7 @@
   import FormBuilder from "../../../lib/components/FormBuilder.svelte";
   import FormPreview from "../../../lib/components/FormPreview.svelte";
   import ResponseViewer from "../../../lib/components/ResponseViewer.svelte";
+  import ThemesModal from "../../../lib/components/ThemesModal.svelte";
   import type { Form } from "../../../lib/types";
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
@@ -41,6 +42,7 @@
           backgroundType: data.background_type || "color",
           backgroundColor: data.background_color || "#1e293b",
           backgroundImage: data.background_image || "",
+          theme: data.theme || undefined,
         };
         currentForm.set(formData);
       }
@@ -460,6 +462,7 @@
               backgroundType={currentFormData.backgroundType || "color"}
               backgroundColor={currentFormData.backgroundColor || "#1e293b"}
               backgroundImage={currentFormData.backgroundImage || ""}
+              theme={currentFormData.theme}
               {onSubmit}
             />
           {/if}
@@ -599,6 +602,8 @@
             >
               Save Form
             </button>
+
+            <ThemesModal />
 
             {#if currentFormData?.closed}
               <button

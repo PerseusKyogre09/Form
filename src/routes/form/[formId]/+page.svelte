@@ -26,7 +26,9 @@
 
       let query = supabase
         .from("forms")
-        .select("id, slug, title, questions, published, closed, background_type, background_color, background_image")
+        .select(
+          "id, slug, title, questions, published, closed, background_type, background_color, background_image, theme",
+        )
         .eq("published", true);
 
       if (isUUID) {
@@ -52,6 +54,7 @@
           backgroundType: data.background_type || "color",
           backgroundColor: data.background_color || "#1e293b",
           backgroundImage: data.background_image || "",
+          theme: data.theme || undefined,
         };
         notFound = false;
       }
@@ -102,6 +105,7 @@
           backgroundType={formData.backgroundType || "color"}
           backgroundColor={formData.backgroundColor || "#1e293b"}
           backgroundImage={formData.backgroundImage || ""}
+          theme={formData.theme}
           {onSubmit}
         />
       </div>

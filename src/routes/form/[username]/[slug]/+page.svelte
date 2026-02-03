@@ -37,7 +37,9 @@
       // Then get the form by user_id and slug
       const { data, error } = await supabase
         .from("forms")
-        .select("id, slug, title, questions, published, closed, background_type, background_color, background_image")
+        .select(
+          "id, slug, title, questions, published, closed, background_type, background_color, background_image, theme",
+        )
         .eq("user_id", profileData.id)
         .eq("slug", slug)
         .eq("published", true)
@@ -57,6 +59,7 @@
           backgroundType: data.background_type || "color",
           backgroundColor: data.background_color || "#1e293b",
           backgroundImage: data.background_image || "",
+          theme: data.theme || undefined,
         };
         notFound = false;
       }
@@ -109,6 +112,7 @@
           backgroundType={formData.backgroundType || "color"}
           backgroundColor={formData.backgroundColor || "#1e293b"}
           backgroundImage={formData.backgroundImage || ""}
+          theme={formData.theme}
           {onSubmit}
         />
       </div>
