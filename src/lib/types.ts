@@ -23,21 +23,22 @@ export interface Question {
 export type AnimationType = 'fade' | 'slide' | 'pulse' | 'bounce' | 'zoom' | 'flip' | 'rotate' | 'slideLeft' | 'slideRight' | 'wobble' | 'heartbeat' | 'swing' | 'tada' | 'jello' | 'blink';
 export type AnimationRepeatMode = 'once' | 'loop' | 'times';
 
-export interface AnimationElement {
+export interface BlockElement {
   id: string;
-  kind: 'animation';
+  kind: 'block';
   title: string;
-  description?: string;
-  assetUrl?: string;
-  animationType: AnimationType;
-  backgroundColor?: string; // hex color, defaults to transparent
+  text?: string; // Main content text
+  imageUrl?: string; // Optional image
+  headerText?: string; // Optional header
+  footerText?: string; // Optional footer
+  backgroundColor?: string; // hex color for background
+  entryAnimation?: AnimationType; // animation when block enters
+  exitAnimation?: AnimationType; // animation when block exits
   enableAutoAdvance?: boolean; // auto-advance to next after delay
   autoAdvanceDelay?: number; // delay in seconds before auto-advance
-  repeatMode?: AnimationRepeatMode; // 'once', 'loop', or 'times'
-  repeatCount?: number; // number of times to repeat if repeatMode === 'times'
 }
 
-export type FormElement = Question | AnimationElement;
+export type FormElement = Question | BlockElement;
 
 export interface Theme {
   id: string;
@@ -81,10 +82,10 @@ export interface FormResponse {
   answers: Record<string, string | number | boolean | string[]>;
 }
 
-export function isAnimationElement(element: FormElement): element is AnimationElement {
-  return (element as AnimationElement).kind === 'animation';
+export function isBlockElement(element: FormElement): element is BlockElement {
+  return (element as BlockElement).kind === 'block';
 }
 
 export function isQuestionElement(element: FormElement): element is Question {
-  return !isAnimationElement(element);
+  return !isBlockElement(element);
 }

@@ -11,7 +11,7 @@
     AnimationType,
     Theme,
   } from "../types";
-  import { isAnimationElement } from "../types";
+  import { isBlockElement } from "../types";
   import {
     slideQuestion,
     animateProgress,
@@ -159,45 +159,15 @@
       });
     }
 
-    // Setup auto-advance if current element is an animation with auto-advance enabled
+    // Setup auto-advance if current element is a block with auto-advance enabled
     if (animationTimer) clearTimeout(animationTimer);
     if (
       currentElement &&
-      isAnimationElement(currentElement) &&
+      isBlockElement(currentElement) &&
       currentElement.enableAutoAdvance
     ) {
-      // Animation always plays once, so just use the base animation duration
-      let animationDuration = 3; // default fade duration in seconds
-      if (currentElement.animationType === "fade") animationDuration = 3;
-      else if (currentElement.animationType === "slide")
-        animationDuration = 2.8;
-      else if (currentElement.animationType === "pulse")
-        animationDuration = 2.2;
-      else if (currentElement.animationType === "bounce")
-        animationDuration = 2.5;
-      else if (currentElement.animationType === "zoom") animationDuration = 2.6;
-      else if (currentElement.animationType === "flip") animationDuration = 2.6;
-      else if (currentElement.animationType === "rotate")
-        animationDuration = 2.4;
-      else if (
-        currentElement.animationType === "slideLeft" ||
-        currentElement.animationType === "slideRight"
-      )
-        animationDuration = 2.4;
-      else if (currentElement.animationType === "wobble")
-        animationDuration = 2.5;
-      else if (currentElement.animationType === "heartbeat")
-        animationDuration = 2.4;
-      else if (currentElement.animationType === "swing")
-        animationDuration = 2.2;
-      else if (currentElement.animationType === "tada") animationDuration = 2.5;
-      else if (currentElement.animationType === "jello")
-        animationDuration = 2.6;
-      else if (currentElement.animationType === "blink")
-        animationDuration = 1.8;
-
-      // Add the auto-advance delay on top of animation completion
-      const delay = animationDuration + (currentElement.autoAdvanceDelay || 3);
+      // Calculate delay based on entry animation if present, otherwise just use auto-advance delay
+      const delay = (currentElement.autoAdvanceDelay || 3);
       animationTimer = setTimeout(() => {
         nextQuestion();
       }, delay * 1000);
@@ -257,7 +227,7 @@
   onMount(() => {
     // Ensure all questions have exitAnimation set (for backward compatibility)
     questions.forEach((el) => {
-      if (!isAnimationElement(el) && !el.exitAnimation) {
+      if (!isBlockElement(el) && !el.exitAnimation) {
         (el as Question).exitAnimation = "slideRight";
       }
     });
@@ -634,9 +604,14 @@
   }
 
   function applyAnimationExit() {
-    if (!currentElement || !isAnimationElement(currentElement)) return;
+    if (!currentElement || !isBlockElement(currentElement)) return;
 
-    const animationType = currentElement.animationType;
+    const animationType = currentElement.exitAnimation;
+    if (!animationType) {
+      // No exit animation, just fade out
+      gsap.to(container, { opacity: 0, duration: 0.3, ease: "power2.in" });
+      return;
+    }
     const duration = getAnimationExitDuration(animationType);
 
     // Apply exit animation based on type
@@ -890,20 +865,18 @@
     if (targetIndex < 0 || targetIndex >= questions.length) return;
 
     // Kill draggable during transition
-    // Check if next element is an animation block OR if current is an animation block
+    // Check if next element is a block OR if current is a block
 
-    // Check if next element is an animation block OR if current is an animation block
+    // Check if next element is a block OR if current is a block
     const nextElement = questions[targetIndex];
-    const isNextAnimation = isAnimationElement(nextElement);
-    const isCurrentAnimation =
-      currentElement && isAnimationElement(currentElement);
+    const isNextBlock = isBlockElement(nextElement);
+    const isCurrentBlock =
+      currentElement && isBlockElement(currentElement);
 
-    if (isCurrentAnimation) {
-      // Exiting an animation block - use its animation type for exit
-      const exitDuration = getAnimationExitDuration(
-        (currentElement as any).animationType,
-      );
-      const animationType = (currentElement as any).animationType;
+    if (isCurrentBlock) {
+      // Exiting a block - use its exit animation type
+      const exitAnimationType = (currentElement as any).exitAnimation;
+      const exitDuration = exitAnimationType ? getAnimationExitDuration(exitAnimationType) : 0.3;
 
       // Apply exit animation and then fade in the next element
       let exitAnimation: any = {
@@ -912,7 +885,7 @@
         ease: "power2.in",
       };
 
-      switch (animationType) {
+      switch (exitAnimationType) {
         case "fade":
           exitAnimation = {
             opacity: 0,
@@ -1053,8 +1026,8 @@
           );
         },
       });
-    } else if (isNextAnimation) {
-      // Entering an animation block - just fade out current and reset transforms
+    } else if (isNextBlock) {
+      // Entering a block - just fade out current and reset transforms
       gsap.to(container, {
         opacity: 0,
         duration: 0.3,
@@ -1118,7 +1091,7 @@
 
   function nextQuestion() {
     if (!currentElement) return;
-    if (isAnimationElement(currentElement)) {
+    if (isBlockElement(currentElement)) {
       validationError = "";
       transitionStep("next");
       return;
@@ -1223,7 +1196,7 @@
 
   async function submitForm() {
     // Check if all required questions are answered
-    for (const element of questions.filter((el) => !isAnimationElement(el))) {
+    for (const element of questions.filter((el) => !isBlockElement(el))) {
       const question = element as Question;
       if (question.required && !isAnswered(question)) {
         validationError = `Please answer: ${question.title}`;
@@ -1334,14 +1307,14 @@
   }
   $: currentElement = questions[currentQuestionIndex];
   $: currentQuestion =
-    currentElement && !isAnimationElement(currentElement)
+    currentElement && !isBlockElement(currentElement)
       ? currentElement
       : undefined;
 
-  // Calculate only actual questions for numbering (exclude animations)
-  $: questionList = questions.filter((q) => !isAnimationElement(q));
+  // Calculate only actual questions for numbering (exclude blocks)
+  $: questionList = questions.filter((q) => !isBlockElement(q));
   $: currentQuestionNumber =
-    currentElement && !isAnimationElement(currentElement)
+    currentElement && !isBlockElement(currentElement)
       ? questionList.findIndex((q) => q.id === currentElement.id) + 1
       : 0;
 
@@ -1350,7 +1323,7 @@
     : 0;
   $: canAdvanceValue =
     currentElement && answers
-      ? (isAnimationElement(currentElement)
+      ? (isBlockElement(currentElement)
           ? true
           : currentQuestion?.required
             ? isAnswered(currentQuestion)
@@ -1401,7 +1374,7 @@
       >
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
-            {#if !isAnimationElement(currentElement)}
+            {#if !isBlockElement(currentElement)}
               <div
                 class="bg-gradient-to-br from-blue-400 to-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm shadow-lg"
               >
@@ -1446,55 +1419,48 @@
                     class="text-red-400 ml-1">*</span
                   >{/if}
               </h3>
-              {#if isAnimationElement(currentElement) && currentElement.description}
-                <p class="text-sm text-slate-300 mt-2 max-w-2xl">
-                  {currentElement.description}
-                </p>
-              {/if}
             </div>
 
-            {#if isAnimationElement(currentElement)}
+            {#if isBlockElement(currentElement)}
+              <!-- Block Rendering -->
               <div
-                class={`animation-stage animation-stage--${currentElement.animationType}`}
-                style="background-color: {currentElement.backgroundColor ||
-                  'transparent'}; animation-iteration-count: 1;"
+                class="rounded-2xl overflow-hidden"
+                style="background-color: {currentElement.backgroundColor || '#ffffff'};"
               >
-                {#if currentElement.assetUrl}
-                  <img
-                    src={currentElement.assetUrl}
-                    alt={currentElement.title || "Animation"}
-                    class="max-h-96 max-w-full object-contain"
-                  />
-                {:else}
-                  <div class="text-center space-y-3 px-4">
-                    <p
-                      class="text-3xl font-bold {currentElement.backgroundColor ===
-                      'transparent'
-                        ? 'text-white'
-                        : 'text-white'}"
-                    >
-                      {currentElement.title || "Animation"}
+                <!-- Header -->
+                {#if currentElement.headerText}
+                  <div class="p-4 border-b border-white/20">
+                    <h4 class="text-lg font-semibold text-white">
+                      {currentElement.headerText}
+                    </h4>
+                  </div>
+                {/if}
+
+                <!-- Content -->
+                <div class="p-6 space-y-4">
+                  <!-- Image -->
+                  {#if currentElement.imageUrl}
+                    <img
+                      src={currentElement.imageUrl}
+                      alt={currentElement.title || "Block image"}
+                      class="max-h-64 max-w-full object-contain rounded-lg"
+                    />
+                  {/if}
+
+                  <!-- Text Content -->
+                  {#if currentElement.text}
+                    <p class="text-base leading-relaxed {currentElement.backgroundColor === 'transparent' || currentElement.backgroundColor === '#ffffff' || currentElement.backgroundColor === 'white' ? 'text-gray-800' : 'text-white'}">
+                      {currentElement.text}
                     </p>
-                    {#if currentElement.description}
-                      <p
-                        class="text-sm {currentElement.backgroundColor ===
-                        'transparent'
-                          ? 'text-slate-300'
-                          : 'text-white text-opacity-90'}"
-                      >
-                        {currentElement.description}
-                      </p>
-                    {/if}
-                    {#if currentElement.enableAutoAdvance}
-                      <p
-                        class="text-xs font-semibold pt-4 {currentElement.backgroundColor ===
-                        'transparent'
-                          ? 'text-slate-400'
-                          : 'text-white text-opacity-70'}"
-                      >
-                        Auto-advancing...
-                      </p>
-                    {/if}
+                  {/if}
+                </div>
+
+                <!-- Footer -->
+                {#if currentElement.footerText}
+                  <div class="p-4 border-t border-white/20">
+                    <p class="text-sm {currentElement.backgroundColor === 'transparent' || currentElement.backgroundColor === '#ffffff' || currentElement.backgroundColor === 'white' ? 'text-gray-600' : 'text-white/80'}">
+                      {currentElement.footerText}
+                    </p>
                   </div>
                 {/if}
               </div>

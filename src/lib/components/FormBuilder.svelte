@@ -1,10 +1,10 @@
 <!-- src/lib/components/FormBuilder.svelte -->
 <script lang="ts">
   import { currentForm } from '../stores';
-  import type { Question, FormElement, AnimationElement } from '../types';
-  import { isAnimationElement } from '../types';
+  import type { Question, FormElement, BlockElement } from '../types';
+  import { isBlockElement } from '../types';
   import QuestionEditor from './QuestionEditor.svelte';
-  import AnimationEditor from './AnimationEditor.svelte';
+  import BlockEditor from './BlockEditor.svelte';
   import { DropdownMenu } from 'bits-ui';
 
   export let saveForm: () => void;
@@ -29,24 +29,25 @@
     currentForm.set(form);
   }
 
-  function createAnimationBlock(): AnimationElement {
+  function createBlock(): BlockElement {
     return {
       id: Date.now().toString(),
-      kind: 'animation',
-      title: 'Animated moment',
-      description: 'Share a quick animation or logo',
-      assetUrl: '',
-      animationType: 'fade',
-      repeatMode: 'once',
-      repeatCount: 1,
-      backgroundColor: 'transparent',
-      autoAdvanceDelay: 3,
-      enableAutoAdvance: false
+      kind: 'block',
+      title: 'Content Block',
+      text: '',
+      headerText: '',
+      footerText: '',
+      imageUrl: '',
+      backgroundColor: '#ffffff',
+      entryAnimation: undefined,
+      exitAnimation: undefined,
+      enableAutoAdvance: false,
+      autoAdvanceDelay: 3
     };
   }
 
-  function addAnimation() {
-    form.questions = [...form.questions, createAnimationBlock()];
+  function addBlock() {
+    form.questions = [...form.questions, createBlock()];
     currentForm.set(form);
   }
 
@@ -61,7 +62,7 @@
 
   function getQuestionNumber(index: number) {
     return form.questions.slice(0, index + 1).reduce((count, item) => {
-      return isAnimationElement(item) ? count : count + 1;
+      return isBlockElement(item) ? count : count + 1;
     }, 0);
   }
 
@@ -129,9 +130,9 @@
   <div class="space-y-6">
     {#each form.questions as element, idx (element.id)}
       <div on:dragover={handleDragOver} on:drop={(e) => handleDrop(e, idx)} class={draggedIndex === idx ? 'opacity-50' : ''}>
-        {#if isAnimationElement(element)}
-          <AnimationEditor
-            animation={element}
+        {#if isBlockElement(element)}
+          <BlockEditor
+            block={element}
             on:update={updateForm}
             on:delete={() => deleteElement(element.id)}
             on:dragstart={(e) => handleDragStart(e.detail, idx)}
@@ -281,16 +282,13 @@
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
       <button
-        on:click={addAnimation}
-        class="inline-flex items-center gap-2 px-5 py-3 border border-dashed border-purple-300 text-purple-700 rounded-lg text-sm font-semibold hover:border-purple-400 hover:text-purple-800 transition-all duration-200"
+        on:click={addBlock}
+        class="inline-flex items-center gap-2 px-5 py-3 border border-dashed border-blue-300 text-blue-700 rounded-lg text-sm font-semibold hover:border-blue-400 hover:text-blue-800 transition-all duration-200"
       >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 4v16"></path>
-          <path d="M4 12h16"></path>
-          <path d="M16 7l3.5 3.5" stroke-dasharray="4 2"></path>
-          <path d="M8 17l-3.5-3.5" stroke-dasharray="4 2"></path>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Add Animation
+        Add Block
       </button>
   </div>
 </div>
