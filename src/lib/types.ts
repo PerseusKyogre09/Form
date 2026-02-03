@@ -58,6 +58,7 @@ export interface Theme {
 
 export interface Form {
   id: string;
+  user_id?: string; // Owner ID
   slug?: string; // Custom identifier for public link (e.g., "data-class")
   title: string;
   questions: FormElement[];

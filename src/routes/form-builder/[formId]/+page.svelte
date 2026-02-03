@@ -389,53 +389,75 @@
   }
 </script>
 
-<div class="min-h-screen bg-white">
-  <header class="border-b border-gray-200 sticky top-0 bg-white z-50">
+<div
+  class="min-h-screen bg-background text-slate-900 transition-colors duration-200 font-sans"
+>
+  <header
+    class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-slate-200"
+  >
     <div
-      class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between mb-6"
+      class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between"
     >
-      <a
-        href="/dashboard"
-        class="font-medium flex items-center gap-2 rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
-      >
-        ← Back to Forms
-      </a>
-      <h1 class="text-2xl font-bold text-black">
-        {currentFormData?.title || "Form Builder"}
-      </h1>
-      <div class="w-24"></div>
-    </div>
-    <div class="max-w-6xl mx-auto px-6">
-      <Tabs.Root bind:value={view}>
-        <Tabs.List
-          class="bg-transparent border-b border-gray-200 gap-0 grid w-auto grid-cols-3 p-0"
+      <div class="flex items-center gap-4">
+        <button
+          on:click={goBack}
+          class="p-2 hover:bg-slate-100 rounded-full transition-colors"
         >
-          <Tabs.Trigger
-            value="edit"
-            class="px-4 py-3 font-semibold text-[15px] data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 bg-transparent border-0 rounded-none h-auto"
+          <span class="fas fa-arrow-left text-slate-600"></span>
+        </button>
+        <h1 class="text-lg font-semibold tracking-tight text-slate-900">
+          {currentFormData?.title || "Form Builder"}
+        </h1>
+      </div>
+
+      <div class="max-w-6xl mx-auto px-6">
+        <Tabs.Root bind:value={view}>
+          <Tabs.List
+            class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl"
           >
-            Edit
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="preview"
-            class="px-4 py-3 font-semibold text-[15px] data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 bg-transparent border-0 rounded-none h-auto"
+            <Tabs.Trigger
+              value="edit"
+              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
+            >
+              Edit
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="preview"
+              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:dark:bg-slate-700 data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:dark:text-slate-400 data-[state=inactive]:hover:text-slate-900 data-[state=inactive]:dark:hover:text-white"
+            >
+              Preview
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="responses"
+              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:dark:bg-slate-700 data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:dark:text-slate-400 data-[state=inactive]:hover:text-slate-900 data-[state=inactive]:dark:hover:text-white"
+            >
+              Responses
+            </Tabs.Trigger>
+          </Tabs.List>
+        </Tabs.Root>
+      </div>
+
+      <div class="flex items-center gap-3">
+        {#if currentFormData?.published}
+          <button
+            on:click={unpublishForm}
+            class="px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all active:scale-95"
           >
-            Preview
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="responses"
-            class="px-4 py-3 font-semibold text-[15px] data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 bg-transparent border-0 rounded-none h-auto"
+            Unpublish Form
+          </button>
+        {:else}
+          <button
+            on:click={generateShareLink}
+            class="px-5 py-2 text-sm font-semibold text-white bg-primary hover:bg-indigo-600 rounded-lg shadow-sm transition-all active:scale-95"
           >
-            Responses
-          </Tabs.Trigger>
-        </Tabs.List>
-      </Tabs.Root>
+            Publish Form
+          </button>
+        {/if}
+      </div>
     </div>
   </header>
 
-  <div class="max-w-6xl mx-auto px-6 py-8">
+  <div class="max-w-[1400px] mx-auto px-6 py-8">
     {#if loading}
       <div class="text-center py-12">
         <p class="text-gray-500">Loading form...</p>
@@ -443,7 +465,7 @@
     {:else if view === "preview"}
       <!-- Full preview screen -->
       <div
-        class="min-h-screen flex items-center justify-center"
+        class="min-h-screen flex items-center justify-center rounded-xl overflow-hidden"
         style="background-color: {currentFormData?.backgroundType === 'image' &&
         currentFormData?.backgroundImage
           ? 'transparent'
@@ -453,7 +475,7 @@
           ? `background-image: url('${currentFormData?.backgroundImage}'); background-size: cover; background-position: center;`
           : ''}"
       >
-        <div class="w-full max-w-2xl">
+        <div class="w-full max-w-2xl scale-[0.85] origin-top">
           {#if currentFormData}
             <FormPreview
               questions={currentFormData.questions}
@@ -478,216 +500,186 @@
       {/if}
     {:else}
       <!-- Form builder layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div class="lg:col-span-3">
+      <main class="flex gap-8">
+        <div class="flex-1 space-y-6">
           <FormBuilder {saveForm} />
         </div>
 
-        <aside class="lg:col-span-1">
+        <aside class="w-80 space-y-6 sticky top-24 self-start">
           <div
-            class="sticky top-32 space-y-4 max-h-[calc(100vh-8rem)] overflow-y-auto pr-2"
+            class="bg-surface p-6 rounded-xl border border-slate-200 custom-shadow space-y-4"
           >
-            <!-- Form Background Settings -->
-            <div
-              class="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-purple-50"
+            <h3
+              class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2"
             >
-              <div class="flex items-center gap-2 mb-3">
-                <i class="fas fa-palette text-blue-600"></i>
-                <h3 class="font-semibold text-gray-900 text-sm">
-                  Form Background
-                </h3>
-              </div>
-
-              <!-- Background Type Toggle -->
-              <div class="flex gap-2 mb-3">
-                <button
-                  on:click={() =>
-                    updateBackgroundColor(
-                      currentFormData?.backgroundColor || "#1e293b",
-                    )}
-                  class="flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors {currentFormData?.backgroundType ===
-                  'color'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'}"
-                >
-                  <i class="fas fa-palette mr-1"></i> Color
-                </button>
-                <button
-                  on:click={() => {
-                    if (currentFormData?.backgroundImage) {
-                      currentForm.update((form) => ({
-                        ...form,
-                        backgroundType: "image",
-                      }));
-                    }
-                  }}
-                  disabled={!currentFormData?.backgroundImage}
-                  class="flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors {currentFormData?.backgroundType ===
-                    'image' && currentFormData?.backgroundImage
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'}"
-                >
-                  <i class="fas fa-image mr-1"></i> Image
-                </button>
-              </div>
-
-              <!-- Color Picker -->
-              {#if currentFormData?.backgroundType === "color"}
-                <div class="space-y-2">
-                  <div class="flex gap-2">
-                    <input
-                      type="color"
-                      value={currentFormData?.backgroundColor || "#1e293b"}
-                      on:input={(e) =>
-                        updateBackgroundColor(e.currentTarget.value)}
-                      class="w-12 h-10 rounded cursor-pointer border border-gray-200"
-                    />
-                    <input
-                      type="text"
-                      value={currentFormData?.backgroundColor || "#1e293b"}
-                      on:input={(e) =>
-                        updateBackgroundColor(e.currentTarget.value)}
-                      class="flex-1 px-2 py-1 text-xs border border-gray-200 rounded font-mono"
-                      placeholder="#1e293b"
-                    />
-                  </div>
-
-                  <!-- Preset Colors -->
-                  <div class="grid grid-cols-4 gap-2 mt-2">
-                    {#each ["#1e293b", "#0f172a", "#1f2937", "#111827", "#7c3aed", "#3b82f6", "#06b6d4", "#10b981"] as color}
-                      <button
-                        on:click={() => updateBackgroundColor(color)}
-                        class="w-full h-8 rounded border-2 transition-transform hover:scale-110 {currentFormData?.backgroundColor ===
-                        color
-                          ? 'border-gray-900'
-                          : 'border-gray-200'}"
-                        style="background-color: {color}"
-                        title={color}
-                      />
-                    {/each}
-                  </div>
-                </div>
-              {/if}
-
-              <!-- Image Upload -->
-              <div class="border-t pt-3 mt-3">
-                <label class="block">
-                  <span class="text-xs font-medium text-gray-700 block mb-2"
-                    >Background Image</span
-                  >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    on:change={handleBackgroundImageUpload}
-                    class="w-full text-xs text-gray-700 file:mr-2 file:py-2 file:px-3 file:rounded file:border-0 file:bg-blue-100 file:text-blue-700 file:cursor-pointer hover:file:bg-blue-200"
-                  />
-                </label>
-              </div>
-
-              {#if currentFormData?.backgroundImage}
-                <button
-                  on:click={removeBackgroundImage}
-                  class="w-full mt-2 px-3 py-2 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                >
-                  <i class="fas fa-trash mr-1"></i> Remove Image
-                </button>
-              {/if}
-            </div>
-
-            <button
-              on:click={saveForm}
-              class="w-full px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-900 transition-colors rounded-xl text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
-            >
-              Save Form
-            </button>
+              Form Settings
+            </h3>
 
             <ThemesModal />
 
-            {#if currentFormData?.closed}
-              <button
-                on:click={toggleFormStatus}
-                class="w-full px-4 py-2 bg-orange-600 text-white rounded-md font-medium hover:bg-orange-700 transition-colors rounded-xl text-white shadow-mini hover:bg-orange-700/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
-              >
-                <i class="fas fa-lock mr-2"></i> Open Form
-              </button>
-            {:else}
-              <button
-                on:click={toggleFormStatus}
-                class="w-full px-4 py-2 bg-yellow-600 text-white rounded-md font-medium hover:bg-yellow-700 transition-colors rounded-xl text-white shadow-mini hover:bg-yellow-700/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
-              >
-                <i class="fas fa-lock-open mr-2"></i> Close Form
-              </button>
-            {/if}
-
-            {#if currentFormData?.published}
-              <button
-                on:click={unpublishForm}
-                class="w-full px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors rounded-xl text-white shadow-mini hover:bg-red-700/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
-              >
-                Unpublish Form
-              </button>
-            {:else}
-              <button
-                on:click={generateShareLink}
-                class="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors rounded-xl text-white shadow-mini hover:bg-green-700/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
-              >
-                Publish Form
-              </button>
-            {/if}
-
-            {#if shareLink && currentFormData?.published}
-              <div class="border border-green-200 bg-green-50 rounded-lg p-4">
-                <p class="text-xs text-green-700 font-semibold mb-2">
-                  Share Link
-                </p>
-                <div class="flex gap-2">
-                  <input
-                    type="text"
-                    value={shareLink}
-                    readonly
-                    class="flex-1 text-xs px-2 py-2 border border-green-200 rounded bg-white text-gray-700"
-                  />
-                  <button
-                    on:click={copyToClipboard}
-                    class="px-3 py-2 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors rounded-xl text-white shadow-mini hover:bg-green-700/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all cursor-pointer"
-                  >
-                    {copied ? "✓" : "Copy"}
-                  </button>
+            <!-- Background Settings -->
+            <button
+              class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
+              on:click={() => {
+                // Placeholder for now, moving background logic inside here might require UI refactor for the popover/modal
+                // For now, let's keep the existing logic but style it better if possible, or just keep it as a button that triggers a modal?
+                // The previous implementation had inline controls. Let's create a "BackgroundSettings" component or inline the controls in a nicer way.
+                // For this specific design, it looks like these are buttons that open sub-menus.
+              }}
+            >
+              <div class="flex flex-col gap-2 w-full">
+                <div class="flex items-center justify-between w-full group">
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="fas fa-image text-secondary group-hover:scale-110 transition-transform"
+                    ></span>
+                    <span class="text-sm font-medium">Background Image</span>
+                  </div>
+                  <span class="fas fa-chevron-right text-slate-300 text-sm"
+                  ></span>
                 </div>
-                <p class="text-xs text-green-600 mt-2">
-                  Share this link to let others fill out your form
-                </p>
-              </div>
-            {/if}
 
-            <div class="border-t pt-4">
-              <h3 class="font-semibold text-gray-900 mb-3">Quick Links</h3>
+                <!-- Inline Quick Settings for Background (Simplified from previous version) -->
+                <div class="pl-8 pt-2 space-y-2">
+                  {#if currentFormData?.backgroundType === "color"}
+                    <div class="flex gap-2">
+                      <input
+                        type="color"
+                        value={currentFormData?.backgroundColor || "#1e293b"}
+                        on:input={(e) =>
+                          updateBackgroundColor(e.currentTarget.value)}
+                        class="w-8 h-8 rounded cursor-pointer border border-gray-200"
+                      />
+                      <span class="text-xs text-slate-500 self-center"
+                        >{currentFormData?.backgroundColor}</span
+                      >
+                    </div>
+                  {:else}
+                    <div class="text-xs text-slate-500">Image selected</div>
+                  {/if}
+                  <label
+                    class="text-xs text-primary cursor-pointer hover:underline"
+                  >
+                    {currentFormData?.backgroundImage
+                      ? "Change Image"
+                      : "Upload Image"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      on:change={handleBackgroundImageUpload}
+                      class="hidden"
+                    />
+                  </label>
+                  {#if currentFormData?.backgroundImage}
+                    <button
+                      on:click={removeBackgroundImage}
+                      class="text-xs text-red-500 block hover:underline"
+                      >Remove Image</button
+                    >
+                  {/if}
+                </div>
+              </div>
+            </button>
+
+            <button
+              on:click={toggleFormStatus}
+              class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 group transition-all"
+            >
+              {#if currentFormData?.closed}
+                <div class="flex items-center gap-3 text-orange-600">
+                  <span
+                    class="fas fa-lock group-hover:scale-110 transition-transform"
+                  ></span>
+                  <span class="text-sm font-medium">Form is Closed</span>
+                </div>
+              {:else}
+                <div class="flex items-center gap-3 text-emerald-600">
+                  <span
+                    class="fas fa-lock-open group-hover:scale-110 transition-transform"
+                  ></span>
+                  <span class="text-sm font-medium">Form is Open</span>
+                </div>
+              {/if}
+              <span class="fas fa-chevron-right text-slate-300 text-sm"></span>
+            </button>
+            <button
+              on:click={saveForm}
+              class="w-full flex items-center justify-center gap-2 p-3 text-sm font-medium bg-black text-white rounded-xl hover:opacity-90 transition-all mt-4"
+            >
+              <span class="fas fa-save text-sm"></span>
+              Save Changes
+            </button>
+          </div>
+
+          {#if shareLink && currentFormData?.published}
+            <div
+              class="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 space-y-3"
+            >
+              <h3
+                class="text-xs font-bold text-primary uppercase tracking-widest"
+              >
+                Share Link
+              </h3>
+              <div class="flex gap-2">
+                <input
+                  class="flex-1 text-xs bg-white border-indigo-100 rounded-lg py-2 px-3 focus:ring-primary outline-none"
+                  readonly
+                  type="text"
+                  value={shareLink}
+                />
+                <button
+                  on:click={copyToClipboard}
+                  class="bg-primary text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-600 transition-colors"
+                  >Copy</button
+                >
+              </div>
+              <p class="text-[10px] text-slate-500 leading-relaxed italic">
+                Share this link to let others fill out your form. Responses will
+                appear in the tab above.
+              </p>
+            </div>
+          {/if}
+
+          <div class="space-y-3">
+            <h3
+              class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1"
+            >
+              Quick Links
+            </h3>
+            <div class="grid grid-cols-2 gap-2">
               {#if shareLink && currentFormData?.published}
                 <a
                   href={shareLink}
                   target="_blank"
-                  rel="noreferrer"
-                  class="block text-xs px-3 py-2 text-center bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                  class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface hover:border-primary transition-colors text-center no-underline"
                 >
-                  Preview Public Form
+                  <span class="fas fa-eye text-slate-400"></span>
+                  <span class="text-[10px] font-semibold text-slate-600"
+                    >Public Preview</span
+                  >
                 </a>
+              {:else}
+                <button
+                  class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface opacity-50 cursor-not-allowed"
+                >
+                  <span class="fas fa-eye-slash text-slate-400"></span>
+                  <span class="text-[10px] font-semibold text-slate-600"
+                    >Not Published</span
+                  >
+                </button>
               {/if}
+              <button
+                class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface hover:border-primary transition-colors"
+              >
+                <span class="fas fa-cog text-slate-400"></span>
+                <span class="text-[10px] font-semibold text-slate-600"
+                  >Advanced Settings</span
+                >
+              </button>
             </div>
           </div>
         </aside>
-      </div>
+      </main>
     {/if}
   </div>
 </div>

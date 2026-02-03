@@ -1,7 +1,7 @@
 <!-- src/lib/components/QuestionEditor.svelte -->
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import type { Question, Constraint, AnimationType } from '../types';
+  import { createEventDispatcher } from "svelte";
+  import type { Question, Constraint, AnimationType } from "../types";
 
   export let question: Question;
   export let questionNumber: number;
@@ -10,30 +10,30 @@
   let showConstraintDropdown = false;
 
   const animationOptions: { value: AnimationType; label: string }[] = [
-    { value: 'fade', label: 'Fade' },
-    { value: 'slide', label: 'Slide Up' },
-    { value: 'pulse', label: 'Pulse' },
-    { value: 'bounce', label: 'Bounce' },
-    { value: 'zoom', label: 'Zoom' },
-    { value: 'flip', label: 'Flip' },
-    { value: 'rotate', label: 'Rotate' },
-    { value: 'slideLeft', label: 'Slide Left' },
-    { value: 'slideRight', label: 'Slide Right' },
-    { value: 'wobble', label: 'Wobble' },
-    { value: 'heartbeat', label: 'Heartbeat' },
-    { value: 'swing', label: 'Swing' },
-    { value: 'tada', label: 'Tada' },
-    { value: 'jello', label: 'Jello' },
-    { value: 'blink', label: 'Blink' }
+    { value: "fade", label: "Fade" },
+    { value: "slide", label: "Slide Up" },
+    { value: "pulse", label: "Pulse" },
+    { value: "bounce", label: "Bounce" },
+    { value: "zoom", label: "Zoom" },
+    { value: "flip", label: "Flip" },
+    { value: "rotate", label: "Rotate" },
+    { value: "slideLeft", label: "Slide Left" },
+    { value: "slideRight", label: "Slide Right" },
+    { value: "wobble", label: "Wobble" },
+    { value: "heartbeat", label: "Heartbeat" },
+    { value: "swing", label: "Swing" },
+    { value: "tada", label: "Tada" },
+    { value: "jello", label: "Jello" },
+    { value: "blink", label: "Blink" },
   ];
 
   function updateQuestion() {
-    dispatch('update');
+    dispatch("update");
   }
 
   function addOption() {
     if (question.options) {
-      question.options = [...question.options, ''];
+      question.options = [...question.options, ""];
       updateQuestion();
     }
   }
@@ -50,13 +50,18 @@
     if (!question.constraints) {
       question.constraints = [];
     }
-    
+
     let newConstraint: Constraint = {
       id: Date.now().toString(),
       type: type as any,
-      value: type === 'email-type' ? 'edu' : type === 'custom-regex' ? { pattern: '', description: '' } : []
+      value:
+        type === "email-type"
+          ? "edu"
+          : type === "custom-regex"
+            ? { pattern: "", description: "" }
+            : [],
     };
-    
+
     question.constraints = [...question.constraints, newConstraint];
     showConstraintDropdown = false;
     updateQuestion();
@@ -64,7 +69,7 @@
 
   function removeConstraint(id: string) {
     if (question.constraints) {
-      question.constraints = question.constraints.filter(c => c.id !== id);
+      question.constraints = question.constraints.filter((c) => c.id !== id);
       updateQuestion();
     }
   }
@@ -75,56 +80,72 @@
   }
 
   const typeLabels = {
-    text: 'Short Text',
-    'long-text': 'Long Text',
-    number: 'Number',
-    email: 'Email',
-    phone: 'Phone Number',
-    date: 'Date',
-    'multiple-choice': 'Multiple Choice',
-    dropdown: 'Dropdown',
-    checkboxes: 'Checkboxes',
-    'yes-no': 'Yes/No',
-    rating: 'Rating'
+    text: "Short Text",
+    "long-text": "Long Text",
+    number: "Number",
+    email: "Email",
+    phone: "Phone Number",
+    date: "Date",
+    "multiple-choice": "Multiple Choice",
+    dropdown: "Dropdown",
+    checkboxes: "Checkboxes",
+    "yes-no": "Yes/No",
+    rating: "Rating",
   };
 
   const constraintLabels = {
-    'email-type': 'Email Type (edu/work)',
-    'email-domain': 'Email Domain Whitelist',
-    'number-format': 'Number Format (Phone, PIN, Aadhar, etc.)',
-    'custom-regex': 'Custom Pattern (Regex)'
+    "email-type": "Email Type (edu/work)",
+    "email-domain": "Email Domain Whitelist",
+    "number-format": "Number Format (Phone, PIN, Aadhar, etc.)",
+    "custom-regex": "Custom Pattern (Regex)",
   };
 
   function getAvailableConstraints() {
-    if (question.type === 'email') {
+    if (question.type === "email") {
       return [
-        { value: 'email-type', label: 'Email Type (edu/work)' },
-        { value: 'email-domain', label: 'Email Domain Whitelist' }
+        { value: "email-type", label: "Email Type (edu/work)" },
+        { value: "email-domain", label: "Email Domain Whitelist" },
       ];
-    } else if (question.type === 'number') {
+    } else if (question.type === "number") {
       return [
-        { value: 'number-format', label: 'Number Format (Phone, PIN, Aadhar, etc.)' }
+        {
+          value: "number-format",
+          label: "Number Format (Phone, PIN, Aadhar, etc.)",
+        },
       ];
-    } else if (question.type === 'text' || question.type === 'long-text') {
-      return [
-        { value: 'custom-regex', label: 'Custom Pattern (Regex)' }
-      ];
+    } else if (question.type === "text" || question.type === "long-text") {
+      return [{ value: "custom-regex", label: "Custom Pattern (Regex)" }];
     }
     return [];
   }
 </script>
 
-<div class="border border-gray-200 rounded-xl p-6 bg-white hover:border-gray-300 hover:shadow-md transition-all duration-200 group">
-  <div class="flex items-start gap-4 mb-4">
-    <div class="flex-shrink-0 pt-1">
-      <div class="text-gray-300 cursor-grab active:cursor-grabbing group-hover:text-gray-400 transition-colors text-lg" draggable="true" on:dragstart={(e) => { e.dataTransfer.effectAllowed = 'move'; dispatch('dragstart', e); }} on:dragend={(e) => dispatch('dragend', e)}>
-        ⋮⋮
+<div
+  class="bg-surface-light bg-surface p-8 rounded-xl border border-slate-200  custom-shadow group transition-all duration-200"
+>
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div
+        class="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400"
+        draggable="true"
+        on:dragstart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          dispatch("dragstart", e);
+        }}
+        on:dragend={(e) => dispatch("dragend", e)}
+      >
+        <span class="fas fa-grip-vertical"></span>
       </div>
-    </div>
-    <div class="flex-1 space-y-3">
-      <div class="flex flex-wrap items-center gap-3">
-        <span class="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full">Q{questionNumber}</span>
-        <select bind:value={question.type} on:change={updateQuestion} class="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+      <span
+        class="w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-lg font-bold text-sm"
+        >Q{questionNumber}</span
+      >
+      <div class="relative">
+        <select
+          bind:value={question.type}
+          on:change={updateQuestion}
+          class="appearance-none bg-slate-50 bg-slate-50 border-none rounded-lg py-1.5 pl-3 pr-8 text-sm font-medium focus:ring-0 cursor-pointer text-slate-700 "
+        >
           <option value="text">Short Text</option>
           <option value="long-text">Long Text</option>
           <option value="number">Number</option>
@@ -137,149 +158,209 @@
           <option value="yes-no">Yes/No</option>
           <option value="rating">Rating</option>
         </select>
-        <label class="ml-auto flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" bind:checked={question.required} on:change={updateQuestion} class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600" />
-          <span class="text-gray-700 font-medium">Required</span>
-        </label>
-        <select bind:value={question.exitAnimation} on:change={updateQuestion} class="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-          {#each animationOptions as option}
-            <option value={option.value}>{option.label}</option>
-          {/each}
-        </select>
-        <button on:click={() => dispatch('delete')} class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" aria-label="Delete question">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-        </button>
+        <span
+          class="fas fa-chevron-down absolute right-2 top-2.5 text-slate-400 pointer-events-none text-xs leading-none"
+        ></span>
       </div>
-      <input bind:value={question.title} on:input={updateQuestion} placeholder="Enter your question here" class="w-full text-xl font-semibold text-gray-900 border-none outline-none placeholder-gray-400 bg-transparent" />
+    </div>
+    <div class="flex items-center gap-4">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          bind:checked={question.required}
+          on:change={updateQuestion}
+          class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+        />
+        <span class="text-sm font-medium text-slate-600 "
+          >Required</span
+        >
+      </label>
+      <button
+        on:click={() => dispatch("delete")}
+        class="text-slate-400 hover:text-red-500 transition-colors"
+      >
+        <span class="fas fa-trash text-lg"></span>
+      </button>
     </div>
   </div>
 
-  {#if question.type === 'multiple-choice' || question.type === 'dropdown' || question.type === 'checkboxes'}
-    <div class="ml-10 mt-6 space-y-3 bg-gray-50 rounded-lg p-4 border border-gray-100">
-      <p class="text-sm font-semibold text-gray-700">Options</p>
-      {#each question.options || [] as option, i}
-        <div class="flex gap-2 items-center">
-          <input bind:value={option} on:input={updateQuestion} placeholder="Add an option..." class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
-          <button on:click={() => removeOption(i)} class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" aria-label="Delete option">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-          </button>
-        </div>
-      {/each}
-      <button on:click={addOption} class="text-sm text-blue-600 hover:text-blue-700 font-semibold mt-3 flex items-center gap-2 transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Add option
-      </button>
-    </div>
-  {:else if question.type === 'number'}
-    <div class="ml-10 mt-6 space-y-4 bg-gray-50 rounded-lg p-4 border border-gray-100">
-      <p class="text-sm font-semibold text-gray-700">Range Settings</p>
-      <div class="flex gap-4">
-        <div class="flex-1">
-          <label for="min-input" class="block text-xs font-medium text-gray-600 mb-2">Minimum</label>
-          <input id="min-input" type="number" bind:value={question.min} on:input={updateQuestion} placeholder="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
-        </div>
-        <div class="flex-1">
-          <label for="max-input" class="block text-xs font-medium text-gray-600 mb-2">Maximum</label>
-          <input id="max-input" type="number" bind:value={question.max} on:input={updateQuestion} placeholder="100" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
-        </div>
-      </div>
-    </div>
-  {:else if question.type === 'text' || question.type === 'long-text' || question.type === 'email' || question.type === 'phone'}
-    <div class="ml-10 mt-6 space-y-3 bg-gray-50 rounded-lg p-4 border border-gray-100">
-      <p class="text-sm font-semibold text-gray-700">Placeholder Text</p>
-      <input bind:value={question.placeholder} on:input={updateQuestion} placeholder="e.g., Enter your answer..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
-    </div>
-  {/if}
+  <div class="space-y-4">
+    <input
+      bind:value={question.title}
+      on:input={updateQuestion}
+      class="w-full bg-transparent border-none p-0 text-xl font-semibold focus:ring-0 placeholder:text-slate-300  text-slate-900 "
+      placeholder="Question Title"
+      type="text"
+    />
 
-  {#if getAvailableConstraints().length > 0}
-    <div class="ml-10 mt-6 space-y-3">
-      <div class="flex items-center justify-between">
-        <p class="text-sm font-semibold text-gray-700">Constraints (Optional)</p>
-        <div class="relative">
-          <button 
-            on:click={() => showConstraintDropdown = !showConstraintDropdown}
-            class="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 transition-colors"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Add constraint
-          </button>
-          {#if showConstraintDropdown}
-            <div class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-10">
-              {#each getAvailableConstraints() as constraint}
-                <button
-                  on:click={() => addConstraint(constraint.value)}
-                  class="w-full text-left px-4 py-3 hover:bg-blue-50 text-sm text-gray-700 first:rounded-t-lg last:rounded-b-lg transition-colors"
-                >
-                  {constraint.label}
-                </button>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      </div>
-
-      {#each question.constraints || [] as constraint (constraint.id)}
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-semibold text-blue-900">
-              {constraintLabels[constraint.type as keyof typeof constraintLabels] || constraint.type}
-            </span>
-            <button on:click={() => removeConstraint(constraint.id)} class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors" aria-label="Remove constraint">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+    {#if question.type === "multiple-choice" || question.type === "dropdown" || question.type === "checkboxes"}
+      <div class="bg-slate-50 bg-slate-50 rounded-lg p-4 space-y-3">
+        {#each question.options || [] as option, i}
+          <div class="flex items-center gap-2">
+            <span
+              class="fas {question.type === 'multiple-choice'
+                ? 'fa-circle'
+                : question.type === 'checkboxes'
+                  ? 'fa-square'
+                  : 'fa-caret-right'} text-slate-300 text-sm"
+            ></span>
+            <input
+              bind:value={option}
+              on:input={updateQuestion}
+              class="flex-1 bg-transparent border-none text-sm text-slate-700  focus:ring-0 p-0"
+              placeholder="Option {i + 1}"
+            />
+            <button
+              on:click={() => removeOption(i)}
+              class="text-slate-400 hover:text-red-500"
+            >
+              <span class="fas fa-times text-sm"></span>
             </button>
           </div>
+        {/each}
+        <button
+          on:click={addOption}
+          class="flex items-center gap-2 text-primary font-medium text-sm mt-2 hover:underline"
+        >
+          <span class="fas fa-plus text-sm"></span>
+          Add Option
+        </button>
+      </div>
+    {:else if question.type === "number"}
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-slate-50 bg-slate-50 rounded-lg p-3">
+          <label
+            class="text-xs font-bold text-slate-400  uppercase tracking-wide block mb-1"
+            >Min Value</label
+          >
+          <input
+            type="number"
+            bind:value={question.min}
+            on:input={updateQuestion}
+            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700 "
+            placeholder="No Min"
+          />
+        </div>
+        <div class="bg-slate-50 bg-slate-50 rounded-lg p-3">
+          <label
+            class="text-xs font-bold text-slate-400  uppercase tracking-wide block mb-1"
+            >Max Value</label
+          >
+          <input
+            type="number"
+            bind:value={question.max}
+            on:input={updateQuestion}
+            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700 "
+            placeholder="No Max"
+          />
+        </div>
+      </div>
+    {:else}
+      <div class="relative group/placeholder">
+        <input
+          disabled
+          class="w-full bg-slate-50 bg-slate-50 border-slate-200  focus:border-primary focus:ring-0 rounded-lg p-4 transition-all text-slate-500  cursor-not-allowed disabled:bg-slate-100  placeholder:text-slate-400"
+          placeholder={question.placeholder || "Answer will appear here..."}
+          type="text"
+        />
+        <!-- Helper text to indicate this is a preview -->
+        <div
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 italic pointer-events-none opacity-50"
+        >
+          Preview
+        </div>
+      </div>
+      <div class="mt-2">
+        <label for="placeholder-{question.id}" class="sr-only"
+          >Edit Placeholder</label
+        >
+        <input
+          id="placeholder-{question.id}"
+          bind:value={question.placeholder}
+          on:input={updateQuestion}
+          class="w-full bg-transparent border-none p-0 text-sm text-slate-500  focus:ring-0 placeholder:text-slate-400"
+          placeholder="Edit placeholder text (optional)..."
+          type="text"
+        />
+      </div>
+    {/if}
 
-          {#if constraint.type === 'email-type'}
-            <select 
-              value={constraint.value}
-              on:change={(e) => updateConstraintValue(constraint, e.target.value)}
-              class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+    <!-- Constraints Area -->
+    {#if getAvailableConstraints().length > 0}
+      {#each question.constraints || [] as constraint (constraint.id)}
+        <div
+          class="bg-indigo-50/50  rounded-lg p-4 border border-indigo-100 "
+        >
+          <div class="flex items-center justify-between mb-2">
+            <span
+              class="text-xs font-bold text-indigo-400 uppercase tracking-wide"
             >
-              <option value="edu">Educational (.edu, .edu.in, .ac.in, etc.)</option>
-              <option value="work">Work Email</option>
+              {constraintLabels[
+                constraint.type as keyof typeof constraintLabels
+              ] || constraint.type}
+            </span>
+            <button
+              on:click={() => removeConstraint(constraint.id)}
+              class="text-indigo-300 hover:text-indigo-500"
+            >
+              <span class="fas fa-times text-sm"></span>
+            </button>
+          </div>
+          {#if constraint.type === "email-type"}
+            <select
+              value={constraint.value}
+              on:change={(e) =>
+                updateConstraintValue(
+                  constraint,
+                  (e.target as HTMLSelectElement).value,
+                )}
+              class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900 "
+            >
+              <option value="edu">Educational (.edu, .edu.in, .ac.in)</option>
+              <option value="work">Work/Corporate</option>
             </select>
-            {#if constraint.value === 'work'}
-              <input 
-                type="text"
-                placeholder="Comma-separated domains (e.g., company.com, company.co.uk)"
-                on:blur={(e) => {
-                  const domains = (e.target as HTMLInputElement).value.split(',').map(d => d.trim());
-                  updateConstraintValue(constraint, { type: 'work', domains });
-                }}
-                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              />
-            {/if}
-          {:else if constraint.type === 'email-domain'}
-            <input 
+          {:else if constraint.type === "email-domain"}
+            <input
               type="text"
-              placeholder="Comma-separated domains (e.g., domain1.com, domain2.com)"
-              value={Array.isArray(constraint.value) ? constraint.value.join(', ') : ''}
+              placeholder="Comma-separated domains"
+              value={Array.isArray(constraint.value)
+                ? constraint.value.join(", ")
+                : ""}
               on:blur={(e) => {
-                const domains = (e.target as HTMLInputElement).value.split(',').map(d => d.trim()).filter(d => d);
+                const domains = (e.target as HTMLInputElement).value
+                  .split(",")
+                  .map((d) => d.trim())
+                  .filter((d) => d);
                 updateConstraintValue(constraint, domains);
               }}
-              class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900  p-2 placeholder:text-slate-400"
             />
-          {:else if constraint.type === 'number-format'}
-            <div class="space-y-3">
+          {:else if constraint.type === "number-format"}
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label for="format-type" class="block text-xs font-medium text-gray-600 mb-2">Format Type</label>
-                <select 
+                <label
+                  for="format-type"
+                  class="block text-xs font-medium text-slate-600  mb-2"
+                  >Format Type</label
+                >
+                <select
                   id="format-type"
-                  value={typeof constraint.value === 'string' ? constraint.value : (constraint.value as any)?.type || 'pin'}
+                  value={typeof constraint.value === "string"
+                    ? constraint.value
+                    : (constraint.value as any)?.type || "pin"}
                   on:change={(e) => {
-                    const type = e.target.value;
+                    const target = e.target as HTMLSelectElement;
+                    const type = target.value;
                     let defaultLength = 4;
-                    if (type === 'pin') defaultLength = 4;
-                    else if (type === 'aadhar') defaultLength = 12;
-                    else if (type === 'custom') defaultLength = 10;
-                    updateConstraintValue(constraint, { type, length: defaultLength });
+                    if (type === "pin") defaultLength = 4;
+                    else if (type === "aadhar") defaultLength = 12;
+                    else if (type === "custom") defaultLength = 10;
+                    updateConstraintValue(constraint, {
+                      type,
+                      length: defaultLength,
+                    });
                   }}
-                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  class="w-full text-sm border border-slate-300  rounded-lg px-3 py-2.5 bg-slate-50 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary transition-all text-slate-900 "
                 >
                   <option value="pin">PIN Code (4 digits)</option>
                   <option value="aadhar">Aadhar (12 digits)</option>
@@ -287,63 +368,113 @@
                 </select>
               </div>
               <div>
-                <label for="required-digits" class="block text-xs font-medium text-gray-600 mb-2">Required Digits</label>
-                <input 
+                <label
+                  for="required-digits"
+                  class="block text-xs font-medium text-slate-600  mb-2"
+                  >Required Digits</label
+                >
+                <input
                   id="required-digits"
                   type="number"
                   min="1"
-                  value={typeof constraint.value === 'object' ? constraint.value.length : 10}
+                  value={typeof constraint.value === "object" &&
+                  constraint.value !== null &&
+                  "length" in constraint.value
+                    ? constraint.value.length
+                    : 10}
                   on:blur={(e) => {
-                    const length = parseInt((e.target as HTMLInputElement).value) || 10;
-                    const type = typeof constraint.value === 'object' ? constraint.value.type : 'phone';
+                    const target = e.target as HTMLInputElement;
+                    const length = parseInt(target.value) || 10;
+                    const type =
+                      typeof constraint.value === "object" &&
+                      constraint.value !== null &&
+                      "type" in constraint.value
+                        ? constraint.value.type
+                        : "phone";
                     updateConstraintValue(constraint, { type, length });
                   }}
                   placeholder="Number of digits"
-                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  class="w-full text-sm border border-slate-300  rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 "
                 />
               </div>
             </div>
-          {:else if constraint.type === 'custom-regex'}
-            <div class="space-y-3">
-              <div>
-                <label for="pattern-desc" class="block text-xs font-medium text-gray-600 mb-2">Pattern Description</label>
-                <input 
-                  id="pattern-desc"
-                  type="text"
-                  placeholder="e.g., College Roll Number (RA followed by numbers)"
-                  value={(constraint.value as any)?.description || ''}
-                  on:input={(e) => {
-                    const currentValue = constraint.value as any;
-                    updateConstraintValue(constraint, { 
-                      pattern: currentValue?.pattern || '', 
-                      description: e.target.value 
-                    });
-                  }}
-                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-              </div>
-              <div>
-                <label for="regex-pattern" class="block text-xs font-medium text-gray-600 mb-2">Regex Pattern</label>
-                <input 
-                  id="regex-pattern"
-                  type="text"
-                  placeholder="e.g., ^RA\d+$"
-                  value={(constraint.value as any)?.pattern || ''}
-                  on:input={(e) => {
-                    const currentValue = constraint.value as any;
-                    updateConstraintValue(constraint, { 
-                      pattern: e.target.value, 
-                      description: currentValue?.description || '' 
-                    });
-                  }}
-                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
-                />
-                <p class="text-xs text-gray-600 mt-2">Use JavaScript regex syntax. Example: ^RA\d{13}$ for RA followed by 13 digits</p>
-              </div>
+          {:else if constraint.type === "custom-regex"}
+            <div class="space-y-2">
+              <input
+                type="text"
+                placeholder="Description (e.g. Roll Number)"
+                value={(constraint.value as any)?.description || ""}
+                on:input={(e) => {
+                  const currentValue = constraint.value as any;
+                  updateConstraintValue(constraint, {
+                    pattern: currentValue?.pattern || "",
+                    description: (e.target as HTMLInputElement).value,
+                  });
+                }}
+                class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900  p-2 placeholder:text-slate-400"
+              />
+              <input
+                type="text"
+                placeholder="Regex Pattern"
+                value={(constraint.value as any)?.pattern || ""}
+                on:input={(e) => {
+                  const currentValue = constraint.value as any;
+                  updateConstraintValue(constraint, {
+                    pattern: (e.target as HTMLInputElement).value,
+                    description: currentValue?.description || "",
+                  });
+                }}
+                class="w-full bg-slate-50 bg-slate-50 border-indigo-200  rounded-lg text-sm focus:ring-primary text-slate-900  p-2 font-mono placeholder:text-slate-400"
+              />
             </div>
           {/if}
         </div>
       {/each}
+    {/if}
+  </div>
+
+  <div
+    class="mt-6 flex items-center justify-between border-t border-slate-100  pt-6"
+  >
+    <div class="relative">
+      <button
+        on:click={() => (showConstraintDropdown = !showConstraintDropdown)}
+        class="flex items-center gap-1.5 text-primary font-semibold hover:bg-indigo-50  px-3 py-1.5 rounded-lg transition-colors text-sm"
+      >
+        <span class="fas fa-plus-circle text-base"></span>
+        Add constraint
+      </button>
+      {#if showConstraintDropdown}
+        <div
+          class="absolute top-full left-0 mt-2 w-56 bg-white bg-surface border border-slate-200  rounded-lg shadow-xl z-20 overflow-hidden"
+        >
+          {#each getAvailableConstraints() as constraint}
+            <button
+              on:click={() => addConstraint(constraint.value)}
+              class="w-full text-left px-4 py-3 hover:bg-slate-50  text-sm text-slate-700  transition-colors border-b border-slate-100  last:border-0"
+            >
+              {constraint.label}
+            </button>
+          {/each}
+        </div>
+      {/if}
     </div>
-  {/if}
+
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-semibold text-slate-400 uppercase mr-2"
+        >Exit Animation</span
+      >
+      <select
+        bind:value={question.exitAnimation}
+        on:change={updateQuestion}
+        class="bg-slate-50 bg-slate-50 border-none rounded-lg text-xs font-medium focus:ring-0 cursor-pointer text-slate-600 dark:text-slate-300"
+      >
+        <option value={undefined}>None</option>
+        {#each animationOptions as option}
+          <option value={option.value}>{option.label}</option>
+        {/each}
+      </select>
+    </div>
+  </div>
 </div>
+
