@@ -33,6 +33,9 @@
   export let formId: string;
   export let onSubmit: (answers: Record<string, any>) => void;
   export let isClosed: boolean = false;
+  export let backgroundType: 'color' | 'image' = 'color';
+  export let backgroundColor: string = '#1e293b';
+  export let backgroundImage: string = '';
 
   let currentQuestionIndex = 0;
   let answers: Record<string, any> = {};
@@ -46,6 +49,7 @@
   let currentElement: FormElement | undefined;
   let currentQuestion: Question | undefined;
   let animationTimer: ReturnType<typeof setTimeout> | null = null;
+  let showBlurredImage = true;
 
   // Country code to country name mapping
   const countryOptions = [
@@ -1296,21 +1300,28 @@
 </script>
 
 <div
-  class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-12 px-4"
+  class="min-h-screen py-12 px-4 relative overflow-hidden"
+  style="background-color: {backgroundType === 'color' ? backgroundColor : '#1e293b'};"
 >
-  <div class="max-w-2xl mx-auto">
+  {#if backgroundType === 'image' && backgroundImage}
+    <div
+      class="absolute inset-0"
+      style="background-image: url('{backgroundImage}'); background-size: cover; background-position: center; background-attachment: fixed; filter: blur(0px);"
+    ></div>
+  {/if}
+  <div class="max-w-2xl mx-auto relative z-10">
     {#if isClosed}
       <div class="min-h-screen flex items-center justify-center">
-        <div class="text-center space-y-6 px-6">
+        <div class="text-center space-y-6 px-6 bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20">
           <div class="text-8xl mb-4">
-            <i class="fas fa-lock text-red-600"></i>
+            <i class="fas fa-lock text-red-400"></i>
           </div>
-          <h2 class="text-4xl font-bold text-gray-900">This form is closed</h2>
-          <p class="text-lg text-gray-600">
+          <h2 class="text-4xl font-bold text-white">This form is closed</h2>
+          <p class="text-lg text-slate-200">
             We are no longer accepting responses for this form. Thank you for
             your interest!
           </p>
-          <p class="text-sm text-gray-500 mt-8">
+          <p class="text-sm text-slate-400 mt-8">
             If you believe this is an error, please contact the form owner.
           </p>
         </div>
@@ -1318,33 +1329,33 @@
     {:else if questions.length > 0}
       <!-- Header with Progress -->
       <div
-        class="mb-8 bg-white rounded-2xl shadow-sm p-6 border border-gray-100"
+        class="mb-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-white/20"
       >
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
             {#if !isAnimationElement(currentElement)}
               <div
-                class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm"
+                class="bg-gradient-to-br from-blue-400 to-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm shadow-lg"
               >
                 {currentQuestionNumber}
               </div>
-              <div class="text-sm text-gray-600 font-medium">
+              <div class="text-sm text-slate-200 font-medium">
                 Question {currentQuestionNumber} of {questionList.length}
               </div>
             {/if}
           </div>
           <button
             on:click={() => (currentQuestionIndex = 0)}
-            class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
+            class="text-slate-300 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
           >
             <i class="fas fa-times text-lg"></i>
           </button>
         </div>
         <!-- Progress Bar -->
-        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div class="h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
           <div
             bind:this={progressBar}
-            class="h-full bg-gradient-to-r from-blue-500 to-blue-600"
+            class="h-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-lg"
             style="width: {progress}%"
           ></div>
         </div>
@@ -1353,20 +1364,20 @@
       <!-- Question Container -->
       <div
         bind:this={container}
-        class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 mb-8"
+        class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 mb-8"
       >
         {#if currentElement}
           <div>
             <div class="mb-10">
               <h3
-                class="text-3xl md:text-4xl font-bold text-gray-900 leading-tight"
+                class="text-3xl md:text-4xl font-bold text-white leading-tight"
               >
                 {currentElement.title}{#if currentQuestion?.required}<span
-                    class="text-red-500 ml-1">*</span
+                    class="text-red-400 ml-1">*</span
                   >{/if}
               </h3>
               {#if isAnimationElement(currentElement) && currentElement.description}
-                <p class="text-sm text-gray-500 mt-2 max-w-2xl">
+                <p class="text-sm text-slate-300 mt-2 max-w-2xl">
                   {currentElement.description}
                 </p>
               {/if}
@@ -1389,7 +1400,7 @@
                     <p
                       class="text-3xl font-bold {currentElement.backgroundColor ===
                       'transparent'
-                        ? 'text-gray-900'
+                        ? 'text-white'
                         : 'text-white'}"
                     >
                       {currentElement.title || "Animation"}
@@ -1398,7 +1409,7 @@
                       <p
                         class="text-sm {currentElement.backgroundColor ===
                         'transparent'
-                          ? 'text-gray-600'
+                          ? 'text-slate-300'
                           : 'text-white text-opacity-90'}"
                       >
                         {currentElement.description}
@@ -1408,7 +1419,7 @@
                       <p
                         class="text-xs font-semibold pt-4 {currentElement.backgroundColor ===
                         'transparent'
-                          ? 'text-gray-400'
+                          ? 'text-slate-400'
                           : 'text-white text-opacity-70'}"
                       >
                         Auto-advancing...
@@ -1426,22 +1437,22 @@
                         bind:value={answers[currentQuestion.id]}
                         placeholder={currentQuestion.placeholder ||
                           "Type your answer here..."}
-                        class="w-full text-lg text-gray-900 placeholder-gray-400 bg-gray-50 border-2 {validationError
-                          ? 'border-red-400 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'} focus:outline-none py-4 px-4 rounded-xl transition-all duration-200"
+                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                          ? 'border-red-400/50 focus:border-red-400'
+                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
                         on:keydown={handleEnter}
                         on:input={validateCurrentQuestion}
                       />
                       {#if validationError}
                         <p
                           bind:this={validationElement}
-                          class="text-red-600 text-sm mt-3 flex items-center gap-2"
+                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
                         >
                           <i class="fas fa-exclamation-circle"></i>
                           {validationError}
                         </p>
                       {:else}
-                        <p class="text-xs text-gray-400 mt-3">
+                        <p class="text-xs text-slate-400 mt-3">
                           <i class="fas fa-keyboard mr-1"></i>Press Enter to
                           continue
                         </p>
@@ -1454,9 +1465,9 @@
                         placeholder={currentQuestion.placeholder ||
                           "Type your answer here..."}
                         rows="5"
-                        class="w-full text-lg text-gray-900 placeholder-gray-400 bg-gray-50 border-2 {validationError
-                          ? 'border-red-400 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'} focus:outline-none py-4 px-4 rounded-xl transition-all duration-200 resize-none"
+                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                          ? 'border-red-400/50 focus:border-red-400'
+                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 resize-none backdrop-blur-sm"
                         on:keydown={(e) => {
                           if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
@@ -1468,13 +1479,13 @@
                       {#if validationError}
                         <p
                           bind:this={validationElement}
-                          class="text-red-600 text-sm mt-3 flex items-center gap-2"
+                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
                         >
                           <i class="fas fa-exclamation-circle"></i>
                           {validationError}
                         </p>
                       {:else}
-                        <p class="text-xs text-gray-400 mt-3">
+                        <p class="text-xs text-slate-400 mt-3">
                           <i class="fas fa-keyboard mr-1"></i>Press Enter to
                           continue, Shift+Enter for new line
                         </p>
@@ -1489,22 +1500,22 @@
                         max={currentQuestion.max}
                         placeholder={currentQuestion.placeholder ||
                           "Enter a number..."}
-                        class="w-full text-lg text-gray-900 placeholder-gray-400 bg-gray-50 border-2 {validationError
-                          ? 'border-red-400 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'} focus:outline-none py-4 px-4 rounded-xl transition-all duration-200"
+                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                          ? 'border-red-400/50 focus:border-red-400'
+                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
                         on:keydown={handleEnter}
                         on:input={validateCurrentQuestion}
                       />
                       {#if validationError}
                         <p
                           bind:this={validationElement}
-                          class="text-red-600 text-sm mt-3 flex items-center gap-2"
+                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
                         >
                           <i class="fas fa-exclamation-circle"></i>
                           {validationError}
                         </p>
                       {:else}
-                        <p class="text-xs text-gray-400 mt-3">
+                        <p class="text-xs text-slate-400 mt-3">
                           <i class="fas fa-keyboard mr-1"></i>Press Enter to
                           continue
                         </p>
@@ -1517,22 +1528,22 @@
                         bind:value={answers[currentQuestion.id]}
                         placeholder={currentQuestion.placeholder ||
                           "Enter your email..."}
-                        class="w-full text-lg text-gray-900 placeholder-gray-400 bg-gray-50 border-2 {validationError
-                          ? 'border-red-400 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'} focus:outline-none py-4 px-4 rounded-xl transition-all duration-200"
+                        class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                          ? 'border-red-400/50 focus:border-red-400'
+                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
                         on:keydown={handleEnter}
                         on:input={validateCurrentQuestion}
                       />
                       {#if validationError}
                         <p
                           bind:this={validationElement}
-                          class="text-red-600 text-sm mt-3 flex items-center gap-2"
+                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
                         >
                           <i class="fas fa-exclamation-circle"></i>
                           {validationError}
                         </p>
                       {:else}
-                        <p class="text-xs text-gray-400 mt-3">
+                        <p class="text-xs text-slate-400 mt-3">
                           <i class="fas fa-keyboard mr-1"></i>Press Enter to
                           continue
                         </p>
@@ -1553,8 +1564,8 @@
                               countrySearchQuery = "";
                               highlightedCountryIndex = 0;
                             }}
-                            class="text-lg text-gray-900 outline-none bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:outline-none px-4 py-4 rounded-xl transition-all duration-200 min-w-max hover:border-gray-300 {validationError
-                              ? 'border-red-400'
+                            class="text-lg text-white outline-none bg-white/10 border-2 border-white/20 focus:border-blue-400 focus:outline-none px-4 py-4 rounded-2xl transition-all duration-200 min-w-max hover:border-white/40 backdrop-blur-sm {validationError
+                              ? 'border-red-400/50'
                               : ''}"
                           >
                             {#if phoneCountries[currentQuestion.id]}
@@ -1567,7 +1578,7 @@
                               >
                             {:else}
                               <i class="fas fa-globe mr-2"></i>
-                              <span class="ml-2 font-medium text-gray-500"
+                              <span class="ml-2 font-medium text-slate-300"
                                 >Select</span
                               >
                             {/if}
@@ -1576,7 +1587,7 @@
                           <!-- Dropdown Menu -->
                           {#if openCountryDropdown === currentQuestion.id}
                             <div
-                              class="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-72 max-h-72 overflow-y-auto"
+                              class="absolute bottom-full left-0 mb-2 bg-white/10 border border-white/20 rounded-2xl shadow-2xl z-50 w-72 max-h-72 overflow-y-auto backdrop-blur-xl"
                             >
                               <input
                                 type="text"
@@ -1584,7 +1595,7 @@
                                 bind:value={countrySearchQuery}
                                 on:keydown={(e) =>
                                   handleCountrySearch(e, currentQuestion.id)}
-                                class="w-full px-4 py-3 border-b border-gray-200 text-sm outline-none focus:ring-0 sticky top-0 bg-white rounded-t-xl"
+                                class="w-full px-4 py-3 border-b border-white/10 text-sm outline-none focus:ring-0 sticky top-0 bg-white/5 rounded-t-2xl text-white placeholder-slate-400"
                               />
                               {#each getFilteredCountries(countrySearchQuery) as country, idx}
                                 <button
@@ -1594,28 +1605,28 @@
                                       currentQuestion.id,
                                       country.code,
                                     )}
-                                  class="w-full text-left px-4 py-3 text-sm hover:bg-blue-50 transition-colors {idx ===
+                                  class="w-full text-left px-4 py-3 text-sm hover:bg-blue-500/30 transition-colors {idx ===
                                   highlightedCountryIndex
-                                    ? 'bg-blue-100'
-                                    : ''} border-b border-gray-100 last:border-b-0"
+                                    ? 'bg-blue-500/50'
+                                    : ''} border-b border-white/5 last:border-b-0 text-white"
                                 >
                                   <span class="text-lg mr-2"
                                     >{country.flag}</span
                                   >
-                                  <span class="font-medium text-gray-900"
+                                  <span class="font-medium"
                                     >{country.code}</span
                                   >
-                                  <span class="text-gray-600 ml-2"
+                                  <span class="text-slate-300 ml-2"
                                     >{country.name}</span
                                   >
-                                  <span class="text-gray-400 ml-1"
+                                  <span class="text-slate-400 ml-1"
                                     >{country.dialCode}</span
                                   >
                                 </button>
                               {/each}
                               {#if getFilteredCountries(countrySearchQuery).length === 0}
                                 <div
-                                  class="px-4 py-6 text-sm text-gray-500 text-center"
+                                  class="px-4 py-6 text-sm text-slate-400 text-center"
                                 >
                                   <i class="fas fa-search mb-2"></i>
                                   <p>No countries found</p>
@@ -1632,9 +1643,9 @@
                             bind:value={answers[currentQuestion.id]}
                             placeholder={currentQuestion.placeholder ||
                               "Enter your phone number..."}
-                            class="w-full text-lg text-gray-900 placeholder-gray-400 bg-gray-50 border-2 {validationError
-                              ? 'border-red-400 focus:border-red-500'
-                              : 'border-gray-200 focus:border-blue-500'} focus:outline-none py-4 px-4 rounded-xl transition-all duration-200"
+                            class="w-full text-lg text-white placeholder-slate-400 bg-white/10 border-2 {validationError
+                              ? 'border-red-400/50 focus:border-red-400'
+                              : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
                             on:keydown={handleEnter}
                             on:input={validateCurrentQuestion}
                           />
@@ -1643,13 +1654,13 @@
                       {#if validationError}
                         <p
                           bind:this={validationElement}
-                          class="text-red-600 text-sm mt-3 flex items-center gap-2"
+                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
                         >
                           <i class="fas fa-exclamation-circle"></i>
                           {validationError}
                         </p>
                       {:else}
-                        <p class="text-xs text-gray-400 mt-3">
+                        <p class="text-xs text-slate-400 mt-3">
                           <i class="fas fa-keyboard mr-1"></i>Press Enter to
                           continue
                         </p>
@@ -1660,14 +1671,14 @@
                       <input
                         type="date"
                         bind:value={answers[currentQuestion.id]}
-                        class="w-full text-lg text-gray-900 bg-gray-50 border-2 {validationError
-                          ? 'border-red-400 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'} focus:outline-none py-4 px-4 rounded-xl transition-all duration-200"
+                        class="w-full text-lg text-white bg-white/10 border-2 {validationError
+                          ? 'border-red-400/50 focus:border-red-400'
+                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
                       />
                       {#if validationError}
                         <p
                           bind:this={validationElement}
-                          class="text-red-600 text-sm mt-3 flex items-center gap-2"
+                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
                         >
                           <i class="fas fa-exclamation-circle"></i>
                           {validationError}
@@ -1678,7 +1689,7 @@
                     <div class="space-y-3">
                       {#each currentQuestion.options || [] as option}
                         <label
-                          class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 group"
+                          class="flex items-center p-4 border-2 border-white/20 rounded-2xl cursor-pointer hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-200 group backdrop-blur-sm"
                         >
                           <div
                             class="relative flex items-center justify-center"
@@ -1687,20 +1698,20 @@
                               type="radio"
                               bind:group={answers[currentQuestion.id]}
                               value={option}
-                              class="w-5 h-5 cursor-pointer accent-blue-500 opacity-0 absolute"
+                              class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
                               on:change={validateCurrentQuestion}
                             />
                             <div
-                              class="w-5 h-5 border-2 border-gray-300 rounded-full group-hover:border-blue-400 transition-colors"
+                              class="w-5 h-5 border-2 border-white/40 rounded-full group-hover:border-blue-400 transition-colors"
                             ></div>
                             {#if answers[currentQuestion.id] === option}
                               <div
-                                class="absolute w-2.5 h-2.5 bg-blue-500 rounded-full"
+                                class="absolute w-2.5 h-2.5 bg-blue-400 rounded-full"
                               ></div>
                             {/if}
                           </div>
                           <span
-                            class="ml-4 text-gray-900 font-medium group-hover:text-blue-600 transition-colors"
+                            class="ml-4 text-white font-medium group-hover:text-blue-200 transition-colors"
                             >{option}</span
                           >
                         </label>
@@ -1710,22 +1721,22 @@
                     <div>
                       <select
                         bind:value={answers[currentQuestion.id]}
-                        class="w-full text-lg text-gray-900 bg-gray-50 border-2 {validationError
-                          ? 'border-red-400 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'} focus:outline-none py-4 px-4 rounded-xl transition-all duration-200"
+                        class="w-full text-lg text-white bg-white/10 border-2 {validationError
+                          ? 'border-red-400/50 focus:border-red-400'
+                          : 'border-white/20 focus:border-blue-400'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
                         on:change={validateCurrentQuestion}
                       >
-                        <option value="" disabled selected
+                        <option value="" disabled selected class="bg-slate-800"
                           >Select an option...</option
                         >
                         {#each currentQuestion.options || [] as option}
-                          <option value={option}>{option}</option>
+                          <option value={option} class="bg-slate-800">{option}</option>
                         {/each}
                       </select>
                       {#if validationError}
                         <p
                           bind:this={validationElement}
-                          class="text-red-600 text-sm mt-3 flex items-center gap-2"
+                          class="text-red-300 text-sm mt-3 flex items-center gap-2"
                         >
                           <i class="fas fa-exclamation-circle"></i>
                           {validationError}
@@ -1736,7 +1747,7 @@
                     <div class="space-y-3">
                       {#each currentQuestion.options || [] as option}
                         <label
-                          class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 group"
+                          class="flex items-center p-4 border-2 border-white/20 rounded-2xl cursor-pointer hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-200 group backdrop-blur-sm"
                         >
                           <div
                             class="relative flex items-center justify-center"
@@ -1745,20 +1756,20 @@
                               type="checkbox"
                               bind:group={answers[currentQuestion.id]}
                               value={option}
-                              class="w-5 h-5 cursor-pointer accent-blue-500 opacity-0 absolute"
+                              class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
                               on:change={validateCurrentQuestion}
                             />
                             <div
-                              class="w-5 h-5 border-2 border-gray-300 rounded-lg group-hover:border-blue-400 transition-colors flex items-center justify-center"
+                              class="w-5 h-5 border-2 border-white/40 rounded-lg group-hover:border-blue-400 transition-colors flex items-center justify-center"
                             >
                               {#if answers[currentQuestion.id]?.includes(option)}
-                                <i class="fas fa-check text-blue-500 text-xs"
+                                <i class="fas fa-check text-blue-400 text-xs"
                                 ></i>
                               {/if}
                             </div>
                           </div>
                           <span
-                            class="ml-4 text-gray-900 font-medium group-hover:text-blue-600 transition-colors"
+                            class="ml-4 text-white font-medium group-hover:text-blue-200 transition-colors"
                             >{option}</span
                           >
                         </label>
@@ -1771,22 +1782,22 @@
                           class="flex items-center justify-center p-4 border-2 {answers[
                             currentQuestion.id
                           ] === option
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-blue-300'} rounded-xl cursor-pointer transition-all duration-200 group"
+                            ? 'border-blue-400 bg-blue-500/30'
+                            : 'border-white/20 hover:border-blue-400/50'} rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
                         >
                           <input
                             type="radio"
                             bind:group={answers[currentQuestion.id]}
                             value={option}
-                            class="w-5 h-5 cursor-pointer accent-blue-500 opacity-0 absolute"
+                            class="w-5 h-5 cursor-pointer accent-blue-400 opacity-0 absolute"
                             on:change={validateCurrentQuestion}
                           />
                           <span
                             class="text-lg font-bold {answers[
                               currentQuestion.id
                             ] === option
-                              ? 'text-blue-600'
-                              : 'text-gray-700 group-hover:text-blue-600'} transition-colors"
+                              ? 'text-blue-200'
+                              : 'text-white group-hover:text-blue-200'} transition-colors"
                             >{option}</span
                           >
                         </label>
@@ -1803,8 +1814,8 @@
                           class="transition-all duration-200 cursor-pointer text-5xl {answers[
                             currentQuestion.id
                           ] >= rating
-                            ? 'text-yellow-400 scale-125 drop-shadow-lg'
-                            : 'text-gray-300 hover:text-yellow-300 scale-100 hover:scale-110'}"
+                            ? 'text-yellow-300 scale-125 drop-shadow-lg'
+                            : 'text-slate-400 hover:text-yellow-200 scale-100 hover:scale-110'}"
                         >
                           <i class="fas fa-star"></i>
                         </button>
@@ -1823,18 +1834,18 @@
         <button
           on:click={prevQuestion}
           disabled={currentQuestionIndex === 0}
-          class="px-6 py-3 text-gray-700 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 font-medium flex items-center gap-2 border border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50 disabled:hover:border-gray-200 disabled:hover:bg-transparent"
+          class="px-6 py-3 text-slate-200 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 font-medium flex items-center gap-2 border border-white/20 rounded-2xl hover:border-white/40 hover:bg-white/10 disabled:hover:border-white/20 disabled:hover:bg-transparent backdrop-blur-sm"
         >
           <i class="fas fa-arrow-left"></i> Previous
         </button>
-        <div class="text-xs text-gray-400 hidden md:block">
+        <div class="text-xs text-slate-400 hidden md:block">
           <i class="fas fa-keyboard mr-1"></i>Press Enter to continue
         </div>
         {#if currentQuestionIndex < questions.length - 1}
           <button
             on:click={nextQuestion}
             disabled={!canAdvanceValue}
-            class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center gap-2 disabled:shadow-none"
+            class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-bold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl flex items-center gap-2 disabled:shadow-none backdrop-blur-sm"
           >
             Next <i class="fas fa-arrow-right"></i>
           </button>
@@ -1842,7 +1853,7 @@
           <button
             on:click={submitForm}
             disabled={!canAdvanceValue || isSubmitting}
-            class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center gap-2 disabled:shadow-none"
+            class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl font-bold hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl flex items-center gap-2 disabled:shadow-none backdrop-blur-sm"
           >
             {#if isSubmitting}
               <i class="fas fa-spinner fa-spin"></i> Submitting...
@@ -1854,7 +1865,7 @@
       </div>
     {:else}
       <div class="text-center py-12">
-        <p class="text-gray-500">Add questions to preview your form</p>
+        <p class="text-slate-400">Add questions to preview your form</p>
       </div>
     {/if}
   </div>
@@ -1864,13 +1875,15 @@
   .animation-stage {
     min-height: 280px;
     border-radius: 2rem;
-    border: 1px solid rgba(229, 231, 235, 1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     padding: 2rem;
     position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
   }
 
   .animation-stage--fade {

@@ -48,6 +48,13 @@ export interface Form {
   closed?: boolean; // Whether the form is closed for submissions
   created_at?: string; // ISO timestamp
   updated_at?: string; // ISO timestamp for last edit
+  background_type?: 'color' | 'image'; // 'color' or 'image'
+  background_color?: string; // hex color for background
+  background_image?: string; // URL or base64 for background image
+  // Support both camelCase and snake_case for compatibility
+  backgroundType?: 'color' | 'image';
+  backgroundColor?: string;
+  backgroundImage?: string;
 }
 
 export interface FormResponse {

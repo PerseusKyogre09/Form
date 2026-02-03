@@ -47,6 +47,34 @@
   function handleDragEnd(event: DragEvent) {
     dispatch('dragend', event);
   }
+
+  async function handleImageUpload(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      try {
+        const { supabase } = await import('$lib/supabaseClient');
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError, data } = await supabase.storage
+          .from('Images')
+          .upload(`animation-blocks/${fileName}`, file, { upsert: false });
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('Images')
+          .getPublicUrl(`animation-blocks/${fileName}`);
+        
+        animation.assetUrl = publicUrl;
+        updateAnimation();
+      } catch (err) {
+        console.error('Error uploading image:', err);
+        alert('Failed to upload image');
+      }
+    }
+  }
 </script>
 
 <div class="border border-gray-200 rounded-xl p-6 bg-white hover:border-gray-300 hover:shadow-md transition-all duration-200">
@@ -93,6 +121,26 @@
           placeholder="Add a supporting message"
           class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all bg-gray-50 resize-none"
         ></textarea>
+      </div>
+      <div class="space-y-2">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Animation Image (optional)</label>
+        <input
+          type="file"
+          accept="image/*"
+          on:change={handleImageUpload}
+          class="w-full text-xs text-gray-700 file:mr-2 file:py-2 file:px-3 file:rounded file:border-0 file:bg-purple-100 file:text-purple-700 file:cursor-pointer hover:file:bg-purple-200"
+        />
+        {#if animation.assetUrl}
+          <button
+            on:click={() => {
+              animation.assetUrl = '';
+              updateAnimation();
+            }}
+            class="w-full text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg px-2 py-1 hover:bg-red-100 transition-colors mt-1"
+          >
+            Remove Image
+          </button>
+        {/if}
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="space-y-2">
