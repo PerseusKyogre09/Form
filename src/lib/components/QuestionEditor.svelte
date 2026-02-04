@@ -379,24 +379,55 @@
         </div>
 
         <!-- Accent Color -->
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1.5">
-            Accent Color <span class="text-slate-400">(for italic text)</span>
-          </label>
-          <select
-            bind:value={question.accentColor}
-            on:change={updateQuestion}
-            class="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary"
-          >
-            <option value={undefined}>Default (Indigo)</option>
-            <option value="blue-600">Blue</option>
-            <option value="purple-600">Purple</option>
-            <option value="pink-600">Pink</option>
-            <option value="red-600">Red</option>
-            <option value="orange-600">Orange</option>
-            <option value="green-600">Green</option>
-            <option value="teal-600">Teal</option>
-          </select>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1.5">
+              Accent Color <span class="text-slate-400">(italic)</span>
+            </label>
+            <div class="flex gap-2">
+              <input
+                type="color"
+                bind:value={question.accentColor}
+                on:input={updateQuestion}
+                class="h-9 w-12 rounded cursor-pointer border border-slate-300 p-0.5"
+              />
+              <button
+                type="button"
+                on:click={() => {
+                  question.accentColor = undefined;
+                  updateQuestion();
+                }}
+                class="text-xs text-slate-400 hover:text-red-500 underline"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Text Color Override -->
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1.5">
+              Text Color <span class="text-slate-400">(override)</span>
+            </label>
+            <div class="flex gap-2">
+              <input
+                type="color"
+                bind:value={question.textColor}
+                on:input={updateQuestion}
+                class="h-9 w-12 rounded cursor-pointer border border-slate-300 p-0.5"
+              />
+              <button
+                type="button"
+                on:click={() => {
+                  question.textColor = undefined;
+                  updateQuestion();
+                }}
+                class="text-xs text-slate-400 hover:text-red-500 underline"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     {/if}

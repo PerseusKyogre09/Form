@@ -27,7 +27,7 @@
       let query = supabase
         .from("forms")
         .select(
-          "id, slug, title, questions, published, closed, background_type, background_color, background_image, theme",
+          "id, slug, title, questions, published, closed, background_type, background_color, background_image, theme, global_text_color",
         )
         .eq("published", true);
 
@@ -43,6 +43,7 @@
         console.error("Error loading form:", error);
         notFound = true;
       } else {
+        console.log("Fetched form data:", data);
         // Convert snake_case to camelCase for consistency
         formData = {
           id: data.id,
@@ -54,8 +55,10 @@
           backgroundType: data.background_type || "color",
           backgroundColor: data.background_color || "#1e293b",
           backgroundImage: data.background_image || "",
+          globalTextColor: data.global_text_color || "",
           theme: data.theme || undefined,
         };
+        console.log("Mapped formData:", formData);
         notFound = false;
       }
     } catch (error) {
@@ -96,6 +99,7 @@
         backgroundColor={formData.backgroundColor || "#1e293b"}
         backgroundImage={formData.backgroundImage || ""}
         theme={formData.theme}
+        globalTextColor={formData.globalTextColor || ""}
         {onSubmit}
       />
     </div>

@@ -5,12 +5,12 @@
   import FormBuilder from "../../../lib/components/FormBuilder.svelte";
   import FormPreview from "../../../lib/components/FormPreview.svelte";
   import ResponseViewer from "../../../lib/components/ResponseViewer.svelte";
-  import ThemesModal from "../../../lib/components/ThemesModal.svelte";
   import type { Form } from "../../../lib/types";
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
   import { Button, Tabs } from "bits-ui";
   import { notifications } from "../../../lib/stores/notifications";
+  import FormBuilderSettings from "../../../lib/components/FormBuilderSettings.svelte";
 
   let view: string = "edit";
   let currentFormData: Form | undefined;
@@ -18,6 +18,7 @@
   let copied = false;
   let loading = true;
   let username: string = "";
+  let isSettingsOpen = false;
 
   currentForm.subscribe((value) => {
     currentFormData = { closed: false, ...value };
@@ -42,6 +43,7 @@
           backgroundType: data.background_type || "color",
           backgroundColor: data.background_color || "#1e293b",
           backgroundImage: data.background_image || "",
+          globalTextColor: data.global_text_color || "",
           theme: data.theme || undefined,
         };
         currentForm.set(formData);
@@ -107,10 +109,12 @@
         background_type: currentFormData.backgroundType || "color",
         background_color: currentFormData.backgroundColor || "#1e293b",
         background_image: currentFormData.backgroundImage || "",
+        global_text_color: currentFormData.globalTextColor || "",
         // Remove camelCase versions
         backgroundType: undefined,
         backgroundColor: undefined,
         backgroundImage: undefined,
+        globalTextColor: undefined,
       };
 
       // Use upsert directly with Supabase and select() to confirm save
@@ -179,6 +183,7 @@
         background_type: currentFormData.backgroundType || "color",
         background_color: currentFormData.backgroundColor || "#1e293b",
         background_image: currentFormData.backgroundImage || "",
+        global_text_color: currentFormData.globalTextColor || "",
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -219,6 +224,7 @@
         background_type: currentFormData.backgroundType || "color",
         background_color: currentFormData.backgroundColor || "#1e293b",
         background_image: currentFormData.backgroundImage || "",
+        global_text_color: currentFormData.globalTextColor || "",
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -262,6 +268,7 @@
         background_type: currentFormData.backgroundType || "color",
         background_color: currentFormData.backgroundColor || "#1e293b",
         background_image: currentFormData.backgroundImage || "",
+        global_text_color: currentFormData.globalTextColor || "",
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -387,6 +394,13 @@
       backgroundType: "color",
     }));
   }
+
+  function updateGlobalTextColor(color: string) {
+    currentForm.update((form) => ({
+      ...form,
+      globalTextColor: color,
+    }));
+  }
 </script>
 
 <div
@@ -396,21 +410,28 @@
     class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-slate-200"
   >
     <div
-      class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between"
+      class="max-w-[1400px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between relative"
     >
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 md:gap-4 flex-1 justify-start">
         <button
           on:click={goBack}
-          class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+          class="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0"
         >
           <span class="fas fa-arrow-left text-slate-600"></span>
         </button>
-        <h1 class="text-lg font-semibold tracking-tight text-slate-900">
-          {currentFormData?.title || "Form Builder"}
-        </h1>
+        <input
+          type="text"
+          value={currentFormData?.title || ""}
+          on:input={(e) => {
+            const newTitle = e.currentTarget.value;
+            currentForm.update((f) => ({ ...f, title: newTitle }));
+          }}
+          placeholder="Untitled Form"
+          class="text-lg font-semibold tracking-tight text-slate-900 bg-transparent border-none focus:ring-0 p-0 w-full md:w-64 placeholder:text-slate-400 min-w-[50px] overflow-hidden text-ellipsis whitespace-nowrap"
+        />
       </div>
 
-      <div class="max-w-6xl mx-auto px-6">
+      <div class="hidden lg:flex absolute left-1/2 -translate-x-1/2">
         <Tabs.Root bind:value={view}>
           <Tabs.List
             class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl"
@@ -437,22 +458,30 @@
         </Tabs.Root>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 md:gap-3 flex-1 justify-end">
         {#if currentFormData?.published}
           <button
             on:click={unpublishForm}
-            class="px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all active:scale-95"
+            class="hidden md:block px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all active:scale-95"
           >
             Unpublish Form
           </button>
         {:else}
           <button
             on:click={generateShareLink}
-            class="px-5 py-2 text-sm font-semibold text-white bg-primary hover:bg-indigo-600 rounded-lg shadow-sm transition-all active:scale-95"
+            class="hidden md:block px-5 py-2 text-sm font-semibold text-white bg-primary hover:bg-indigo-600 rounded-lg shadow-sm transition-all active:scale-95"
           >
             Publish Form
           </button>
         {/if}
+
+        <!-- Mobile Settings Button -->
+        <button
+          on:click={() => (isSettingsOpen = true)}
+          class="p-2 hover:bg-slate-100 rounded-lg lg:hidden"
+        >
+          <span class="fas fa-cog text-slate-600 text-xl"></span>
+        </button>
       </div>
     </div>
   </header>
@@ -476,6 +505,7 @@
               backgroundType={currentFormData.backgroundType || "color"}
               backgroundColor={currentFormData.backgroundColor || "#1e293b"}
               backgroundImage={currentFormData.backgroundImage || ""}
+              globalTextColor={currentFormData?.globalTextColor || ""}
               theme={currentFormData.theme}
               {onSubmit}
             />
@@ -492,186 +522,104 @@
       {/if}
     {:else}
       <!-- Form builder layout -->
-      <main class="flex gap-8">
+      <main class="flex flex-col lg:flex-row gap-6 lg:gap-8">
         <div class="flex-1 space-y-6">
           <FormBuilder {saveForm} />
         </div>
 
-        <aside class="w-80 space-y-6 sticky top-24 self-start">
-          <div
-            class="bg-surface p-6 rounded-xl border border-slate-200 custom-shadow space-y-4"
-          >
-            <h3
-              class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2"
-            >
-              Form Settings
-            </h3>
-
-            <ThemesModal />
-
-            <!-- Background Settings -->
-            <button
-              class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
-              on:click={() => {
-                // Placeholder for now, moving background logic inside here might require UI refactor for the popover/modal
-                // For now, let's keep the existing logic but style it better if possible, or just keep it as a button that triggers a modal?
-                // The previous implementation had inline controls. Let's create a "BackgroundSettings" component or inline the controls in a nicer way.
-                // For this specific design, it looks like these are buttons that open sub-menus.
-              }}
-            >
-              <div class="flex flex-col gap-2 w-full">
-                <div class="flex items-center justify-between w-full group">
-                  <div class="flex items-center gap-3">
-                    <span
-                      class="fas fa-image text-secondary group-hover:scale-110 transition-transform"
-                    ></span>
-                    <span class="text-sm font-medium">Background Image</span>
-                  </div>
-                  <span class="fas fa-chevron-right text-slate-300 text-sm"
-                  ></span>
-                </div>
-
-                <!-- Inline Quick Settings for Background (Simplified from previous version) -->
-                <div class="pl-8 pt-2 space-y-2">
-                  {#if currentFormData?.backgroundType === "color"}
-                    <div class="flex gap-2">
-                      <input
-                        type="color"
-                        value={currentFormData?.backgroundColor || "#1e293b"}
-                        on:input={(e) =>
-                          updateBackgroundColor(e.currentTarget.value)}
-                        class="w-8 h-8 rounded cursor-pointer border border-gray-200"
-                      />
-                      <span class="text-xs text-slate-500 self-center"
-                        >{currentFormData?.backgroundColor}</span
-                      >
-                    </div>
-                  {:else}
-                    <div class="text-xs text-slate-500">Image selected</div>
-                  {/if}
-                  <label
-                    class="text-xs text-primary cursor-pointer hover:underline"
-                  >
-                    {currentFormData?.backgroundImage
-                      ? "Change Image"
-                      : "Upload Image"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      on:change={handleBackgroundImageUpload}
-                      class="hidden"
-                    />
-                  </label>
-                  {#if currentFormData?.backgroundImage}
-                    <button
-                      on:click={removeBackgroundImage}
-                      class="text-xs text-red-500 block hover:underline"
-                      >Remove Image</button
-                    >
-                  {/if}
-                </div>
-              </div>
-            </button>
-
-            <button
-              on:click={toggleFormStatus}
-              class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
-            >
-              {#if currentFormData?.closed}
-                <div class="flex items-center gap-3 text-orange-600">
-                  <span
-                    class="fas fa-lock group-hover:scale-110 transition-transform"
-                  ></span>
-                  <span class="text-sm font-medium">Form is Closed</span>
-                </div>
-              {:else}
-                <div class="flex items-center gap-3 text-emerald-600">
-                  <span
-                    class="fas fa-lock-open group-hover:scale-110 transition-transform"
-                  ></span>
-                  <span class="text-sm font-medium">Form is Open</span>
-                </div>
-              {/if}
-              <span class="fas fa-chevron-right text-slate-300 text-sm"></span>
-            </button>
-            <button
-              on:click={saveForm}
-              class="w-full flex items-center justify-center gap-2 p-3 text-sm font-medium bg-black text-white rounded-xl hover:opacity-90 transition-all mt-4"
-            >
-              <span class="fas fa-save text-sm"></span>
-              Save Changes
-            </button>
-          </div>
-
-          {#if shareLink && currentFormData?.published}
-            <div
-              class="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 space-y-3"
-            >
-              <h3
-                class="text-xs font-bold text-primary uppercase tracking-widest"
-              >
-                Share Link
-              </h3>
-              <div class="flex gap-2">
-                <input
-                  class="flex-1 text-xs bg-white border-indigo-100 rounded-lg py-2 px-3 focus:ring-primary outline-none"
-                  readonly
-                  type="text"
-                  value={shareLink}
-                />
-                <button
-                  on:click={copyToClipboard}
-                  class="bg-primary text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-600 transition-colors"
-                  >Copy</button
-                >
-              </div>
-              <p class="text-[10px] text-slate-500 leading-relaxed italic">
-                Share this link to let others fill out your form. Responses will
-                appear in the tab above.
-              </p>
-            </div>
-          {/if}
-
-          <div class="space-y-3">
-            <h3
-              class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1"
-            >
-              Quick Links
-            </h3>
-            <div class="grid grid-cols-2 gap-2">
-              {#if shareLink && currentFormData?.published}
-                <a
-                  href={shareLink}
-                  target="_blank"
-                  class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface hover:border-primary transition-colors text-center no-underline"
-                >
-                  <span class="fas fa-eye text-slate-400"></span>
-                  <span class="text-[10px] font-semibold text-slate-600"
-                    >Public Preview</span
-                  >
-                </a>
-              {:else}
-                <button
-                  class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface opacity-50 cursor-not-allowed"
-                >
-                  <span class="fas fa-eye-slash text-slate-400"></span>
-                  <span class="text-[10px] font-semibold text-slate-600"
-                    >Not Published</span
-                  >
-                </button>
-              {/if}
-              <button
-                class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface hover:border-primary transition-colors"
-              >
-                <span class="fas fa-cog text-slate-400"></span>
-                <span class="text-[10px] font-semibold text-slate-600"
-                  >Advanced Settings</span
-                >
-              </button>
-            </div>
-          </div>
+        <!-- Desktop Sidebar -->
+        <aside class="hidden lg:block w-80 space-y-6 sticky top-24 self-start">
+          <FormBuilderSettings
+            {currentFormData}
+            {shareLink}
+            {saveForm}
+            {toggleFormStatus}
+            {updateBackgroundColor}
+            {updateGlobalTextColor}
+            {handleBackgroundImageUpload}
+            {removeBackgroundImage}
+            {copyToClipboard}
+          />
         </aside>
       </main>
+
+      <!-- Mobile Settings Drawer -->
+      {#if isSettingsOpen}
+        <div class="fixed inset-0 z-[60] lg:hidden">
+          <!-- Backdrop -->
+          <div
+            class="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            on:click={() => (isSettingsOpen = false)}
+          ></div>
+
+          <!-- Drawer -->
+          <div
+            class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
+          >
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-lg font-bold text-slate-900">Settings</h2>
+              <button
+                on:click={() => (isSettingsOpen = false)}
+                class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+              >
+                <span class="fas fa-times text-slate-500 text-xl"></span>
+              </button>
+            </div>
+
+            <div class="space-y-6">
+              <FormBuilderSettings
+                {currentFormData}
+                {shareLink}
+                {saveForm}
+                {toggleFormStatus}
+                {updateBackgroundColor}
+                {updateGlobalTextColor}
+                {handleBackgroundImageUpload}
+                {removeBackgroundImage}
+                {copyToClipboard}
+              />
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      <!-- Mobile Bottom Navigation -->
+      {#if !loading && view}
+        <div
+          class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-2 z-50 flex justify-around items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
+        >
+          <button
+            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+            'edit'
+              ? 'text-primary'
+              : 'text-slate-400 hover:text-slate-600'}"
+            on:click={() => (view = "edit")}
+          >
+            <span class="fas fa-edit text-xl"></span>
+            <span class="text-[10px] font-medium">Edit</span>
+          </button>
+          <button
+            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+            'preview'
+              ? 'text-primary'
+              : 'text-slate-400 hover:text-slate-600'}"
+            on:click={() => (view = "preview")}
+          >
+            <span class="fas fa-eye text-xl"></span>
+            <span class="text-[10px] font-medium">Preview</span>
+          </button>
+          <button
+            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+            'responses'
+              ? 'text-primary'
+              : 'text-slate-400 hover:text-slate-600'}"
+            on:click={() => (view = "responses")}
+          >
+            <span class="fas fa-chart-bar text-xl"></span>
+            <span class="text-[10px] font-medium">Responses</span>
+          </button>
+        </div>
+      {/if}
     {/if}
   </div>
 </div>

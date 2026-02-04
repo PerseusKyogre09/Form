@@ -168,7 +168,7 @@
       </div>
     {/if}
 
-    <div class="flex items-center gap-4 pt-4">
+    <div class="flex flex-wrap items-center gap-4 pt-4">
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           class="flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-200 active:scale-95"

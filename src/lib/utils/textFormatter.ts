@@ -20,8 +20,8 @@ export function formatText(text: string, accentColor: string = 'indigo-600'): st
     formatted = formatted.replace(/__([^_]+)__/g, '<u class="underline decoration-2 underline-offset-2">$1</u>');
 
     // Bold: *text* -> <strong>text</strong>
-    // Use dynamic text primary color if available, otherwise fallback
-    formatted = formatted.replace(/\*([^*]+)\*/g, '<strong class="font-bold" style="color: var(--form-text-primary, #0f172a)">$1</strong>');
+    // Allow inheritance of parent color (which might be custom textColor)
+    formatted = formatted.replace(/\*([^*]+)\*/g, '<strong class="font-bold">$1</strong>');
 
     // Italic: _text_ -> <em>text</em>
     formatted = formatted.replace(/_([^_]+)_/g, '<em>$1</em>');
@@ -39,8 +39,9 @@ export function formatText(text: string, accentColor: string = 'indigo-600'): st
     });
 
     // Auto-apply accent color to italics AND keep them italic
-    // The accent color is now guaranteed high-contrast by colorExtractor
-    formatted = formatted.replace(/<em>([^<]+)<\/em>/g, `<em class="italic font-bold" style="color: var(--form-accent, ${accentColor})">$1</em>`);
+    // Prioritize specific accentColor if provided (and not the default 'indigo-600'), otherwise use theme accent
+    const colorStyle = (accentColor && accentColor !== 'indigo-600') ? accentColor : 'var(--form-accent)';
+    formatted = formatted.replace(/<em>([^<]+)<\/em>/g, `<em class="italic font-bold" style="color: ${colorStyle}">$1</em>`);
 
     return formatted;
 }
@@ -64,13 +65,13 @@ export function stripFormatting(text: string): string {
  */
 export function getTextSizeClass(size: string = 'xl'): string {
     const sizeMap: Record<string, string> = {
-        'sm': 'text-sm',
-        'base': 'text-base',
-        'lg': 'text-lg',
-        'xl': 'text-xl',
-        '2xl': 'text-2xl',
-        '3xl': 'text-3xl',
-        '4xl': 'text-4xl',
+        'sm': 'text-xs md:text-sm',
+        'base': 'text-sm md:text-base',
+        'lg': 'text-base md:text-lg',
+        'xl': 'text-base md:text-xl',
+        '2xl': 'text-lg md:text-2xl',
+        '3xl': 'text-xl md:text-3xl',
+        '4xl': 'text-2xl md:text-4xl',
     };
 
     return sizeMap[size] || sizeMap['xl'];

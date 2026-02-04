@@ -48,6 +48,7 @@
   export let backgroundType: "color" | "image" = "color";
   export let backgroundColor: string = "#f8fafc";
   export let backgroundImage: string = "";
+  export let globalTextColor: string = ""; // Global text color override
   export let theme: Theme | undefined = undefined;
 
   let currentQuestionIndex = 0;
@@ -1540,7 +1541,7 @@
       {:else if questions.length > 0}
         <!-- Progress Bar (fixed at top) -->
         <div
-          class="fixed top-0 left-0 right-0 h-1 z-50"
+          class="hidden md:block fixed top-0 left-0 right-0 h-1 z-50"
           style="background: rgba(var(--form-text-primary-rgb), 0.1);"
         >
           <div
@@ -1551,22 +1552,25 @@
         </div>
 
         <!-- Question Container -->
-        <div class="min-h-screen flex items-center justify-center px-6 py-20">
+        <!-- Question Container -->
+        <div
+          class="min-h-screen flex flex-col justify-center px-6 py-20 md:px-6 md:py-20 safe-area-pb"
+        >
           <div
             bind:this={container}
-            class="w-full max-w-3xl rounded-3xl shadow-2xl p-12 backdrop-blur-md"
-            style="background: var(--form-card-bg); border: 1px solid {colorPalette?.isDark
-              ? 'rgba(255,255,255,0.15)'
-              : 'rgba(0,0,0,0.08)'};"
+            class="w-full max-w-3xl md:p-12 transition-all duration-300"
+            style="background: transparent; border: none;"
           >
             {#if currentElement}
               <div>
-                <div class="mb-10">
+                <div class="mb-6 md:mb-10">
                   <!-- Question Label (e.g., "QUESTION 01 — 05") -->
                   {#if currentQuestion && currentQuestion.questionLabel}
                     <div
                       class="text-xs font-bold tracking-wider uppercase mb-2"
-                      style="color: var(--form-text-secondary); text-shadow: {colorPalette?.isDark
+                      style="color: {currentQuestion.textColor ||
+                        globalTextColor ||
+                        'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
                         ? '0 1px 2px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2)'
                         : 'none'};"
                     >
@@ -1585,13 +1589,15 @@
                       : 'font-serif'} {currentQuestion
                       ? getTextAlignClass(currentQuestion.textAlign)
                       : 'text-left'} font-medium leading-tight"
-                    style="color: var(--form-text-primary); text-shadow: {colorPalette?.isDark
+                    style="color: {currentElement?.textColor ||
+                      globalTextColor ||
+                      'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
                       ? '0 1px 2px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(0,0,0,0.2)'
                       : 'none'};"
                   >
                     {@html formatText(
                       currentElement.title,
-                      currentQuestion?.accentColor || "indigo-600",
+                      currentQuestion?.accentColor,
                     )}{#if currentQuestion?.required}<span
                         class="text-red-500 ml-1">*</span
                       >{/if}
@@ -1601,7 +1607,9 @@
                   {#if currentQuestion && currentQuestion.helperText}
                     <p
                       class="text-base mt-3"
-                      style="color: var(--form-text-secondary); text-shadow: {colorPalette?.isDark
+                      style="color: {currentQuestion.textColor ||
+                        globalTextColor ||
+                        'var(--form-text-secondary)'}; text-shadow: {colorPalette?.isDark
                         ? '0 1px 2px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2)'
                         : 'none'};"
                     >
@@ -1624,7 +1632,9 @@
                       >
                         <h4
                           class="text-lg font-semibold"
-                          style="color: var(--form-text-primary);"
+                          style="color: {currentElement.textColor ||
+                            globalTextColor ||
+                            'var(--form-text-primary)'};"
                         >
                           {currentElement.headerText}
                         </h4>
@@ -1646,14 +1656,16 @@
                       {#if currentElement.text}
                         <p
                           class="text-base leading-relaxed"
-                          style="color: {currentElement.backgroundColor ===
-                            'transparent' || !currentElement.backgroundColor
-                            ? 'var(--form-text-primary)'
-                            : calculateLuminance(
-                                  currentElement.backgroundColor,
-                                ) > 0.5
-                              ? '#111827'
-                              : '#ffffff'};"
+                          style="color: {currentElement.textColor ||
+                            globalTextColor ||
+                            (currentElement.backgroundColor === 'transparent' ||
+                            !currentElement.backgroundColor
+                              ? 'var(--form-text-primary)'
+                              : calculateLuminance(
+                                    currentElement.backgroundColor,
+                                  ) > 0.5
+                                ? '#111827'
+                                : '#ffffff')};"
                         >
                           {currentElement.text}
                         </p>
@@ -1667,14 +1679,16 @@
                       >
                         <p
                           class="text-sm opacity-70"
-                          style="color: {currentElement.backgroundColor ===
-                            'transparent' || !currentElement.backgroundColor
-                            ? 'var(--form-text-secondary)'
-                            : calculateLuminance(
-                                  currentElement.backgroundColor,
-                                ) > 0.5
-                              ? '#374151'
-                              : '#e5e7eb'};"
+                          style="color: {currentElement.textColor ||
+                            globalTextColor ||
+                            (currentElement.backgroundColor === 'transparent' ||
+                            !currentElement.backgroundColor
+                              ? 'var(--form-text-secondary)'
+                              : calculateLuminance(
+                                    currentElement.backgroundColor,
+                                  ) > 0.5
+                                ? '#374151'
+                                : '#e5e7eb')};"
                         >
                           {currentElement.footerText}
                         </p>
@@ -1690,10 +1704,12 @@
                             bind:value={answers[currentQuestion.id]}
                             placeholder={currentQuestion.placeholder ||
                               "Type your answer here..."}
-                            class="w-full text-lg placeholder-slate-400 border-2 {validationError
+                            class="w-full text-2xl md:text-3xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
-                              : 'border-[rgba(var(--form-text-primary-rgb),0.2)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                            style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.08);"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none py-4 bg-transparent transition-all duration-200"
+                            style="color: {currentQuestion?.textColor ||
+                              globalTextColor ||
+                              'var(--form-text-primary)'};"
                             on:keydown={handleEnter}
                             on:input={validateCurrentQuestion}
                           />
@@ -1725,7 +1741,9 @@
                             class="w-full text-lg placeholder-slate-400 border-2 {validationError
                               ? 'border-red-400'
                               : 'border-[rgba(var(--form-text-primary-rgb),0.2)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 resize-none backdrop-blur-sm"
-                            style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.08);"
+                            style="color: {currentQuestion?.textColor ||
+                              globalTextColor ||
+                              'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.08);"
                             on:keydown={(e) => {
                               if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
@@ -1763,7 +1781,9 @@
                             class="w-full text-lg placeholder-slate-400 border-2 {validationError
                               ? 'border-red-400'
                               : 'border-[rgba(var(--form-text-primary-rgb),0.2)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                            style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.08);"
+                            style="color: {currentQuestion?.textColor ||
+                              globalTextColor ||
+                              'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.08);"
                             on:keydown={handleEnter}
                             on:input={validateCurrentQuestion}
                           />
@@ -1794,7 +1814,9 @@
                             class="w-full text-lg border-2 {validationError
                               ? 'border-red-400'
                               : 'border-[rgba(var(--form-text-primary-rgb),0.3)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm placeholder-[rgba(var(--form-text-primary-rgb),0.4)]"
-                            style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.12);"
+                            style="color: {currentQuestion?.textColor ||
+                              globalTextColor ||
+                              'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.12);"
                             on:keydown={handleEnter}
                             on:input={validateCurrentQuestion}
                           />
@@ -1833,7 +1855,9 @@
                                 class="text-lg outline-none border-2 focus:border-[var(--form-accent)] focus:outline-none px-4 py-4 rounded-2xl transition-all duration-200 min-w-max backdrop-blur-sm {validationError
                                   ? 'border-red-400'
                                   : 'border-[rgba(var(--form-text-primary-rgb),0.2)]'}"
-                                style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.08);"
+                                style="color: {currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.08);"
                               >
                                 {#if phoneCountries[currentQuestion.id]}
                                   {countryOptions.find(
@@ -1920,7 +1944,9 @@
                                 class="w-full text-lg border-2 {validationError
                                   ? 'border-red-400'
                                   : 'border-[rgba(var(--form-text-primary-rgb),0.3)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm placeholder-[rgba(var(--form-text-primary-rgb),0.4)]"
-                                style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.12);"
+                                style="color: {currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.12);"
                                 on:keydown={handleEnter}
                                 on:input={validateCurrentQuestion}
                               />
@@ -1967,10 +1993,23 @@
                         <div class="space-y-3">
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
-                              style="background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1);"
+                              class="flex items-center px-6 py-4 border-2 rounded-full cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
+                              style="background: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? 'var(--form-accent)'
+                                : 'rgba(var(--form-text-primary-rgb), 0.05)'}; border-color: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? 'var(--form-accent)'
+                                : 'rgba(var(--form-text-primary-rgb), 0.1)'}; color: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? '#ffffff'
+                                : currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'};"
                             >
-                              >
                               <div
                                 class="relative flex items-center justify-center"
                               >
@@ -1995,7 +2034,9 @@
                               </div>
                               <span
                                 class="ml-4 font-medium transition-colors"
-                                style="color: var(--form-text-primary); text-shadow: {colorPalette?.isDark
+                                style="color: {currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
                                   ? '0 1px 2px rgba(0,0,0,0.3), 0 0 10px rgba(0,0,0,0.1)'
                                   : 'none'};">{option}</span
                               >
@@ -2066,7 +2107,9 @@
                               </div>
                               <span
                                 class="ml-4 font-medium transition-colors"
-                                style="color: var(--form-text-primary); text-shadow: {colorPalette?.isDark
+                                style="color: {currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
                                   ? '0 1px 2px rgba(0,0,0,0.3), 0 0 10px rgba(0,0,0,0.1)'
                                   : 'none'};">{option}</span
                               >
@@ -2074,7 +2117,7 @@
                           {/each}
                         </div>
                       {:else if currentQuestion.type === "yes-no"}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {#each ["Yes", "No"] as option}
                             <label
                               class="flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
@@ -2100,7 +2143,9 @@
                                 style="color: {answers[currentQuestion.id] ===
                                 option
                                   ? 'var(--form-accent)'
-                                  : 'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
+                                  : currentQuestion?.textColor ||
+                                    globalTextColor ||
+                                    'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
                                   ? '0 1px 2px rgba(0,0,0,0.3), 0 0 8px rgba(0,0,0,0.1)'
                                   : 'none'};">{option}</span
                               >
@@ -2111,11 +2156,13 @@
                         <div class="flex gap-6 justify-center py-6">
                           {#each [1, 2, 3, 4, 5] as rating}
                             <button
+                              type="button"
+                              aria-label="Rate {rating} out of 5 stars"
                               on:click={() => {
                                 answers[currentQuestion.id] = rating;
                                 validateCurrentQuestion();
                               }}
-                              class="transition-all duration-200 cursor-pointer text-5xl {answers[
+                              class="transition-all duration-200 cursor-pointer text-3xl md:text-5xl {answers[
                                 currentQuestion.id
                               ] >= rating
                                 ? 'scale-125 drop-shadow-lg'
@@ -2123,7 +2170,9 @@
                               style="color: {answers[currentQuestion.id] >=
                               rating
                                 ? 'var(--form-accent)'
-                                : 'var(--form-text-primary)'};"
+                                : currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'};"
                             >
                               <i class="fas fa-star"></i>
                             </button>
@@ -2138,8 +2187,10 @@
           </div>
         </div>
 
-        <!-- Navigation - Premium Style -->
-        <div class="fixed bottom-8 right-8 flex items-center gap-4 z-40">
+        <!-- Desktop Navigation -->
+        <div
+          class="hidden md:flex fixed bottom-8 right-8 items-center gap-4 z-40"
+        >
           <!-- Up/Down Navigation Arrows -->
           <div class="flex flex-col gap-2">
             <button
@@ -2192,6 +2243,57 @@
               {/if}
             </button>
           {/if}
+        </div>
+
+        <!-- Mobile Navigation Bar -->
+        <!-- Mobile Navigation Bar -->
+        <div
+          class="md:hidden fixed bottom-0 left-0 right-0 py-4 px-6 z-50 flex items-center justify-between backdrop-blur-xl border-t border-white/5 safe-area-pb bg-white/80 dark:bg-black/80"
+        >
+          <!-- Navigation Arrows -->
+          <div class="flex items-center gap-2">
+            <button
+              on:click={prevQuestion}
+              disabled={currentQuestionIndex === 0}
+              class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 text-slate-700 dark:text-slate-200"
+            >
+              <i class="fas fa-chevron-up text-lg"></i>
+            </button>
+            <button
+              on:click={nextQuestion}
+              disabled={!canAdvanceValue ||
+                currentQuestionIndex === questions.length - 1}
+              class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 text-slate-700 dark:text-slate-200"
+            >
+              <i class="fas fa-chevron-down text-lg"></i>
+            </button>
+          </div>
+
+          <!-- Progress Bar (Center) -->
+          <div class="flex-1 px-4 flex items-center">
+            <div
+              class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+            >
+              <div
+                class="h-full bg-[var(--form-accent)] transition-all duration-300 rounded-full"
+                style="width: {progress}%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Main Action Button -->
+          <button
+            on:click={nextQuestion}
+            disabled={!canAdvanceValue}
+            class="px-6 h-12 rounded-xl font-bold text-base shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none text-white"
+            style="background: var(--form-button-bg);"
+          >
+            {#if currentQuestionIndex < questions.length - 1}
+              NEXT <i class="fas fa-arrow-right"></i>
+            {:else}
+              SUBMIT <i class="fas fa-check"></i>
+            {/if}
+          </button>
         </div>
       {:else}
         <div class="text-center py-12">

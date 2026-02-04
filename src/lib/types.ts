@@ -25,6 +25,7 @@ export interface Question {
   questionLabel?: string; // e.g., "QUESTION 01 — 05"
   helperText?: string; // Subtitle/description below title
   accentColor?: string; // For highlighted words in title
+  textColor?: string; // Override default text color
 }
 
 export type AnimationType = 'fade' | 'slide' | 'pulse' | 'bounce' | 'zoom' | 'flip' | 'rotate' | 'slideLeft' | 'slideRight' | 'wobble' | 'heartbeat' | 'swing' | 'tada' | 'jello' | 'blink';
@@ -39,6 +40,7 @@ export interface BlockElement {
   headerText?: string; // Optional header
   footerText?: string; // Optional footer
   backgroundColor?: string; // hex color for background
+  textColor?: string; // Override default text color
   entryAnimation?: AnimationType; // animation when block enters
   exitAnimation?: AnimationType; // animation when block exits
   enableAutoAdvance?: boolean; // auto-advance to next after delay
@@ -76,6 +78,8 @@ export interface Form {
   background_type?: 'color' | 'image'; // 'color' or 'image'
   background_color?: string; // hex color for background
   background_image?: string; // URL or base64 for background image
+  global_text_color?: string; // Global text color override (database)
+  globalTextColor?: string; // Global text color override (camelCase)
   // Support both camelCase and snake_case for compatibility
   backgroundType?: 'color' | 'image';
   backgroundColor?: string;

@@ -77,7 +77,7 @@
 </script>
 
 <div
-  class="bg-surface-light bg-surface p-8 rounded-xl border border-slate-200  custom-shadow group transition-all duration-200"
+  class="bg-surface-light bg-surface p-8 rounded-xl border border-slate-200 custom-shadow group transition-all duration-200"
 >
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
@@ -95,7 +95,7 @@
       >
         <span class="fas fa-grip-vertical"></span>
       </div>
-      <div class="flex items-center gap-2 text-slate-500 ">
+      <div class="flex items-center gap-2 text-slate-500">
         <span class="fas fa-newspaper text-lg"></span>
         <span class="text-sm font-semibold uppercase tracking-wide"
           >Content Block</span
@@ -128,7 +128,7 @@
       <div class="space-y-2">
         <label
           for="headerText"
-          class="text-xs font-semibold text-slate-500  uppercase tracking-wide"
+          class="text-xs font-semibold text-slate-500 uppercase tracking-wide"
           >Header Text</label
         >
         <input
@@ -137,7 +137,7 @@
           bind:value={block.headerText}
           on:change={updateBlock}
           placeholder="Optional header text"
-          class="w-full text-sm border border-slate-300  rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900  placeholder:text-slate-400"
+          class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400"
         />
       </div>
 
@@ -145,7 +145,7 @@
       <div class="space-y-2">
         <label
           for="mainText"
-          class="text-xs font-semibold text-slate-500  uppercase tracking-wide"
+          class="text-xs font-semibold text-slate-500 uppercase tracking-wide"
           >Main Text</label
         >
         <textarea
@@ -154,7 +154,7 @@
           on:change={updateBlock}
           placeholder="Main content for the block"
           rows="4"
-          class="w-full text-sm border border-slate-300  rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900  placeholder:text-slate-400 resize-none"
+          class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400 resize-none"
         ></textarea>
       </div>
 
@@ -162,7 +162,7 @@
       <div class="space-y-2">
         <label
           for="footerText"
-          class="text-xs font-semibold text-slate-500  uppercase tracking-wide"
+          class="text-xs font-semibold text-slate-500 uppercase tracking-wide"
           >Footer Text</label
         >
         <input
@@ -171,7 +171,7 @@
           bind:value={block.footerText}
           on:change={updateBlock}
           placeholder="Optional footer text"
-          class="w-full text-sm border border-slate-300  rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900  placeholder:text-slate-400"
+          class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400"
         />
       </div>
     </div>
@@ -233,6 +233,44 @@
                 placeholder="#ffffff or transparent"
                 class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-gray-50"
               />
+            </div>
+            <div class="mt-2 text-right">
+              <button
+                type="button"
+                on:click={() => {
+                  block.backgroundColor = "transparent";
+                  updateBlock();
+                }}
+                class="text-xs text-slate-500 hover:text-slate-800 underline transition-colors"
+              >
+                Set to Transparent
+              </button>
+            </div>
+          </div>
+
+          <!-- Text Color Override -->
+          <div class="space-y-2">
+            <label
+              class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+              >Text Color (Override)</label
+            >
+            <div class="flex gap-2">
+              <input
+                type="color"
+                bind:value={block.textColor}
+                on:change={updateBlock}
+                class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+              />
+              <button
+                type="button"
+                on:click={() => {
+                  block.textColor = undefined;
+                  updateBlock();
+                }}
+                class="text-xs text-slate-400 hover:text-red-500 underline"
+              >
+                Reset
+              </button>
             </div>
           </div>
 
@@ -357,4 +395,3 @@
     word-break: break-word;
   }
 </style>
-
