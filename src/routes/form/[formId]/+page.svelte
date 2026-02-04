@@ -71,16 +71,7 @@
   }
 </script>
 
-<div
-  class="min-h-screen"
-  style="background-color: {formData?.backgroundType === 'image' &&
-  formData?.backgroundImage
-    ? 'transparent'
-    : formData?.backgroundColor || '#1e293b'}; {formData?.backgroundType ===
-    'image' && formData?.backgroundImage
-    ? `background-image: url('${formData.backgroundImage}'); background-size: cover; background-position: center;`
-    : ''}"
->
+<div class="min-h-screen bg-[#1e293b]">
   {#if loading}
     <div class="min-h-screen flex items-center justify-center">
       <div class="text-center">
@@ -96,19 +87,17 @@
       </div>
     </div>
   {:else if formData}
-    <div class="min-h-screen flex items-center justify-center">
-      <div class="w-full max-w-2xl">
-        <FormPreview
-          questions={formData.questions || []}
-          formId={formData.id}
-          isClosed={formData.closed || false}
-          backgroundType={formData.backgroundType || "color"}
-          backgroundColor={formData.backgroundColor || "#1e293b"}
-          backgroundImage={formData.backgroundImage || ""}
-          theme={formData.theme}
-          {onSubmit}
-        />
-      </div>
+    <div class="min-h-screen">
+      <FormPreview
+        questions={formData.questions || []}
+        formId={formData.id}
+        isClosed={formData.closed || false}
+        backgroundType={formData.backgroundType || "color"}
+        backgroundColor={formData.backgroundColor || "#1e293b"}
+        backgroundImage={formData.backgroundImage || ""}
+        theme={formData.theme}
+        {onSubmit}
+      />
     </div>
   {/if}
 </div>

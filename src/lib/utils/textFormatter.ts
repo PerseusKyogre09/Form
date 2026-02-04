@@ -20,21 +20,27 @@ export function formatText(text: string, accentColor: string = 'indigo-600'): st
     formatted = formatted.replace(/__([^_]+)__/g, '<u class="underline decoration-2 underline-offset-2">$1</u>');
 
     // Bold: *text* -> <strong>text</strong>
-    formatted = formatted.replace(/\*([^*]+)\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+    // Use dynamic text primary color if available, otherwise fallback
+    formatted = formatted.replace(/\*([^*]+)\*/g, '<strong class="font-bold" style="color: var(--form-text-primary, #0f172a)">$1</strong>');
 
     // Italic: _text_ -> <em>text</em>
     formatted = formatted.replace(/_([^_]+)_/g, '<em>$1</em>');
 
     // Strikethrough: ~text~ -> <s>text</s>
-    formatted = formatted.replace(/~([^~]+)~/g, '<s class="line-through decoration-slate-400">$1</s>');
+    // Use a slightly more visible opacity than 60
+    formatted = formatted.replace(/~([^~]+)~/g, '<s class="line-through decoration-current opacity-80">$1</s>');
 
     // Color highlighting: {color:text} -> <span class="text-color">text</span>
     formatted = formatted.replace(/\{([^:}]+):([^}]+)\}/g, (match, color, content) => {
+        if (color === 'accent') {
+            return `<span style="color: var(--form-accent)" class="font-medium">${content}</span>`;
+        }
         return `<span class="text-${color}-600 font-medium">${content}</span>`;
     });
 
     // Auto-apply accent color to italics AND keep them italic
-    formatted = formatted.replace(/<em>([^<]+)<\/em>/g, `<em class="text-${accentColor} italic font-medium">$1</em>`);
+    // The accent color is now guaranteed high-contrast by colorExtractor
+    formatted = formatted.replace(/<em>([^<]+)<\/em>/g, `<em class="italic font-bold" style="color: var(--form-accent, ${accentColor})">$1</em>`);
 
     return formatted;
 }

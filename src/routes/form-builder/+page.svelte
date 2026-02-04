@@ -366,18 +366,8 @@
   <div class="max-w-6xl mx-auto px-6 py-8">
     {#if view === "preview"}
       <!-- Full preview screen -->
-      <div
-        class="min-h-screen flex items-center justify-center"
-        style="background-color: {currentFormData.backgroundType === 'image' &&
-        currentFormData.backgroundImage
-          ? 'transparent'
-          : currentFormData.backgroundColor ||
-            '#1e293b'}; {currentFormData.backgroundType === 'image' &&
-        currentFormData.backgroundImage
-          ? `background-image: url('${currentFormData.backgroundImage}'); background-size: cover; background-position: center;`
-          : ''}"
-      >
-        <div class="w-full max-w-2xl">
+      <div class="min-h-screen bg-slate-900 overflow-hidden">
+        <div class="w-full h-full">
           <FormPreview
             questions={currentFormData.questions}
             formId={currentFormData.id}
