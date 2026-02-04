@@ -423,13 +423,13 @@
             </Tabs.Trigger>
             <Tabs.Trigger
               value="preview"
-              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:dark:bg-slate-700 data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:dark:text-slate-400 data-[state=inactive]:hover:text-slate-900 data-[state=inactive]:dark:hover:text-white"
+              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
             >
               Preview
             </Tabs.Trigger>
             <Tabs.Trigger
               value="responses"
-              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:dark:bg-slate-700 data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:dark:text-slate-400 data-[state=inactive]:hover:text-slate-900 data-[state=inactive]:dark:hover:text-white"
+              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
             >
               Responses
             </Tabs.Trigger>
@@ -575,7 +575,7 @@
 
             <button
               on:click={toggleFormStatus}
-              class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 group transition-all"
+              class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
             >
               {#if currentFormData?.closed}
                 <div class="flex items-center gap-3 text-orange-600">
