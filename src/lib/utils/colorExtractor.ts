@@ -188,7 +188,7 @@ export function generateContrastPalette(dominantColors: string[]): ColorPalette 
         : adjustHsl(primaryBgColor, { l: 0.98, s: 0.1 }); // Light, desaturated tint
 
     // For the glass effect, we use standard black/white with opacity roughly
-    const cardBgGlass = isDark ? 'rgba(20, 20, 30, 0.6)' : 'rgba(255, 255, 255, 0.85)';
+    const cardBgGlass = isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.75)';
 
     return {
         textPrimary,
