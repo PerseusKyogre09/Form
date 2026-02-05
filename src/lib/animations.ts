@@ -11,14 +11,14 @@ export function animateIn(element: HTMLElement, delay = 0) {
   gsap.fromTo(
     element,
     { opacity: 0, scale: 0.85, y: 30, rotationZ: -2 },
-    { 
-      opacity: 1, 
-      scale: 1, 
-      y: 0, 
+    {
+      opacity: 1,
+      scale: 1,
+      y: 0,
       rotationZ: 0,
-      duration: 0.6, 
+      duration: 0.6,
       ease: 'elastic.out(1, 0.5)',
-      delay 
+      delay
     }
   );
 }
@@ -31,8 +31,8 @@ export function animateOut(element: HTMLElement, duration = 0.4) {
   return new Promise<void>((resolve) => {
     gsap.to(
       element,
-      { 
-        opacity: 0, 
+      {
+        opacity: 0,
         y: -30,
         scale: 0.9,
         rotationZ: -2,
@@ -49,16 +49,19 @@ export function animateOut(element: HTMLElement, duration = 0.4) {
  */
 export function slideQuestion(element: HTMLElement, direction: 'next' | 'prev', duration = 0.5) {
   if (!element) return;
-  
+
   const fromX = direction === 'next' ? 80 : -80;
-  
+
   gsap.fromTo(
     element,
-    { opacity: 0, x: fromX, rotationY: direction === 'next' ? -10 : 10 },
-    { 
-      opacity: 1, 
-      x: 0, 
+    { opacity: 0, x: fromX, rotationY: direction === 'next' ? -10 : 10, rotationZ: 0, rotation: 0, scale: 1 },
+    {
+      opacity: 1,
+      x: 0,
       rotationY: 0,
+      rotationZ: 0,
+      rotation: 0,
+      scale: 1,
       duration,
       ease: 'cubic.out',
       perspective: 1200
@@ -73,8 +76,8 @@ export function animateProgress(element: HTMLElement, progress: number, duration
   if (!element) return;
   gsap.to(
     element,
-    { 
-      width: `${progress}%`, 
+    {
+      width: `${progress}%`,
       duration,
       ease: 'power3.out'
     }
@@ -87,12 +90,12 @@ export function animateProgress(element: HTMLElement, progress: number, duration
 export function shakeElement(element: HTMLElement) {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   timeline
     .fromTo(
       element,
       { x: 0, backgroundColor: 'rgba(255, 59, 48, 0)' },
-      { 
+      {
         backgroundColor: 'rgba(255, 59, 48, 0.1)',
         duration: 0.1
       },
@@ -156,9 +159,9 @@ export function blurInputField(element: HTMLElement) {
 export function pressButton(element: HTMLElement) {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   timeline
-    .to(element, 
+    .to(element,
       {
         scale: 0.92,
         duration: 0.1,
@@ -220,7 +223,7 @@ export function slideDropdownOut(element: HTMLElement) {
 export function animateCheckmark(element: HTMLElement) {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   timeline
     .fromTo(
       element,
@@ -241,7 +244,7 @@ export function animateCheckmark(element: HTMLElement) {
 export function bounceError(element: HTMLElement) {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   timeline
     .fromTo(
       element,
@@ -293,10 +296,10 @@ export function staggerElements(elements: HTMLElement[], duration = 0.5, stagger
 export function colorPulse(element: HTMLElement, color: string = '#3b82f6') {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   const rgb = hexToRgb(color);
   const rgbString = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
-  
+
   timeline
     .to(
       element,
@@ -324,7 +327,7 @@ export function colorPulse(element: HTMLElement, color: string = '#3b82f6') {
 export function pageTransition(currentElement: HTMLElement, nextElement: HTMLElement) {
   return new Promise<void>((resolve) => {
     const timeline = gsap.timeline();
-    
+
     timeline
       .to(currentElement, {
         opacity: 0,
@@ -583,7 +586,7 @@ export function flipIn(element: HTMLElement, duration = 0.6) {
 export function wobble(element: HTMLElement) {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   timeline
     .to(element, { rotationZ: 3, duration: 0.1 })
     .to(element, { rotationZ: -3, duration: 0.1 })
@@ -598,7 +601,7 @@ export function wobble(element: HTMLElement) {
 export function heartbeat(element: HTMLElement) {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   timeline
     .to(element, { scale: 1.1, duration: 0.1 })
     .to(element, { scale: 1, duration: 0.1 })
@@ -627,7 +630,7 @@ export function swing(element: HTMLElement) {
 export function tada(element: HTMLElement) {
   if (!element) return;
   const timeline = gsap.timeline();
-  
+
   timeline
     .to(element, {
       rotationZ: -3,

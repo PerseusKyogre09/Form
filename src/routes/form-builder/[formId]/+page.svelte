@@ -41,7 +41,7 @@
         const formData = {
           ...data,
           backgroundType: data.background_type || "color",
-          backgroundColor: data.background_color || "#1e293b",
+          backgroundColor: data.background_color || "#ffffff",
           backgroundImage: data.background_image || "",
           globalTextColor: data.global_text_color || "",
           theme: data.theme || undefined,
@@ -107,7 +107,7 @@
         ...currentFormData,
         user_id: user.id,
         background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#1e293b",
+        background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
         // Remove camelCase versions
@@ -181,7 +181,7 @@
         user_id: user.id,
         published: true,
         background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#1e293b",
+        background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
       };
@@ -222,7 +222,7 @@
         user_id: user.id,
         published: false,
         background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#1e293b",
+        background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
       };
@@ -266,7 +266,7 @@
         published: currentFormData.published,
         closed: newStatus,
         background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#1e293b",
+        background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
       };
@@ -503,7 +503,7 @@
               formId={currentFormData.id}
               isClosed={currentFormData.closed || false}
               backgroundType={currentFormData.backgroundType || "color"}
-              backgroundColor={currentFormData.backgroundColor || "#1e293b"}
+              backgroundColor={currentFormData.backgroundColor || "#ffffff"}
               backgroundImage={currentFormData.backgroundImage || ""}
               globalTextColor={currentFormData?.globalTextColor || ""}
               theme={currentFormData.theme}

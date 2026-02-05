@@ -46,7 +46,7 @@
   export let onSubmit: (answers: Record<string, any>) => void;
   export let isClosed: boolean = false;
   export let backgroundType: "color" | "image" = "color";
-  export let backgroundColor: string = "#f8fafc";
+  export let backgroundColor: string = "#ffffff";
   export let backgroundImage: string = "";
   export let globalTextColor: string = ""; // Global text color override
   export let theme: Theme | undefined = undefined;
@@ -1149,6 +1149,13 @@
           // Reset all transforms
           gsap.set(container, {
             clearProps: "all",
+            rotation: 0,
+            rotationX: 0,
+            rotationY: 0,
+            scale: 1,
+            x: 0,
+            y: 0,
+            opacity: 1,
           });
           currentQuestionIndex = targetIndex;
           gsap.fromTo(
@@ -1167,6 +1174,13 @@
         onComplete: () => {
           gsap.set(container, {
             clearProps: "all",
+            rotation: 0,
+            rotationX: 0,
+            rotationY: 0,
+            scale: 1,
+            x: 0,
+            y: 0,
+            opacity: 1,
           });
           currentQuestionIndex = targetIndex;
           gsap.fromTo(
@@ -1195,6 +1209,13 @@
           onComplete: () => {
             gsap.set(container, {
               clearProps: "all",
+              rotation: 0,
+              rotationX: 0,
+              rotationY: 0,
+              scale: 1,
+              x: 0,
+              y: 0,
+              opacity: 1,
             });
             currentQuestionIndex = targetIndex;
             slideQuestion(container, direction, 0.4);
@@ -1212,6 +1233,13 @@
           onComplete: () => {
             gsap.set(container, {
               clearProps: "all",
+              rotation: 0,
+              rotationX: 0,
+              rotationY: 0,
+              scale: 1,
+              x: 0,
+              y: 0,
+              opacity: 1,
             });
             currentQuestionIndex = targetIndex;
             slideQuestion(container, direction, 0.4);
@@ -1418,6 +1446,16 @@
           y: -30,
           duration: 0.3,
           onComplete: () => {
+            gsap.set(container, {
+              clearProps: "all",
+              rotation: 0,
+              rotationX: 0,
+              rotationY: 0,
+              scale: 1,
+              x: 0,
+              y: 0,
+              opacity: 1,
+            });
             onSubmit(answers);
           },
         });
@@ -1425,9 +1463,10 @@
         validationError = "Failed to submit form. Please try again.";
         isSubmitting = false;
       }
+      isSubmitting = false;
     } catch (error) {
       console.error("Submission error:", error);
-      validationError = "Error submitting form. Please try again.";
+      validationError = "Error submitting form. Please try again later.";
       isSubmitting = false;
     }
   }
@@ -1472,7 +1511,7 @@
   <!-- Loading Screen while extracting colors -->
   <div
     class="min-h-screen flex items-center justify-center relative overflow-hidden"
-    style="background-color: #1e293b;"
+    style="background-color: #ffffff;"
   >
     <div
       class="absolute inset-0"
@@ -1490,7 +1529,7 @@
     class="min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500"
     style="background-color: {backgroundType === 'color'
       ? backgroundColor
-      : '#1e293b'};
+      : '#ffffff'};
       --form-text-primary: {colorPalette?.textPrimary || '#1e293b'};
       --form-text-primary-rgb: {colorPalette?.textPrimaryRGB || '30, 41, 59'};
       --form-text-secondary: {colorPalette?.textSecondary || '#64748b'};
@@ -1563,60 +1602,62 @@
           >
             {#if currentElement}
               <div>
-                <div class="mb-6 md:mb-10">
-                  <!-- Question Label (e.g., "QUESTION 01 — 05") -->
-                  {#if currentQuestion && currentQuestion.questionLabel}
-                    <div
-                      class="text-xs font-bold tracking-wider uppercase mb-2"
-                      style="color: {currentQuestion.textColor ||
+                {#if !isBlockElement(currentElement)}
+                  <div class="mb-6 md:mb-10">
+                    <!-- Question Label (e.g., "QUESTION 01 — 05") -->
+                    {#if currentQuestion && currentQuestion.questionLabel}
+                      <div
+                        class="text-xs font-bold tracking-wider uppercase mb-2"
+                        style="color: {currentQuestion.textColor ||
+                          globalTextColor ||
+                          'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
+                          ? '0 1px 2px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2)'
+                          : 'none'};"
+                      >
+                        {currentQuestion.questionLabel}
+                      </div>
+                    {/if}
+
+                    <!-- Question Title with Formatting -->
+                    <h3
+                      class="{currentQuestion
+                        ? getTextSizeClass(currentQuestion.fontSize || '4xl')
+                        : 'text-3xl md:text-4xl'} {currentQuestion
+                        ? getFontFamilyClass(
+                            currentQuestion.fontFamily || 'serif',
+                          )
+                        : 'font-serif'} {currentQuestion
+                        ? getTextAlignClass(currentQuestion.textAlign)
+                        : 'text-left'} font-medium leading-tight"
+                      style="color: {currentElement?.textColor ||
                         globalTextColor ||
                         'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
-                        ? '0 1px 2px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2)'
+                        ? '0 1px 2px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(0,0,0,0.2)'
                         : 'none'};"
                     >
-                      {currentQuestion.questionLabel}
-                    </div>
-                  {/if}
+                      {@html formatText(
+                        currentElement.title,
+                        currentQuestion?.accentColor,
+                      )}{#if currentQuestion?.required}<span
+                          class="text-red-500 ml-1">*</span
+                        >{/if}
+                    </h3>
 
-                  <!-- Question Title with Formatting -->
-                  <h3
-                    class="{currentQuestion
-                      ? getTextSizeClass(currentQuestion.fontSize || '4xl')
-                      : 'text-3xl md:text-4xl'} {currentQuestion
-                      ? getFontFamilyClass(
-                          currentQuestion.fontFamily || 'serif',
-                        )
-                      : 'font-serif'} {currentQuestion
-                      ? getTextAlignClass(currentQuestion.textAlign)
-                      : 'text-left'} font-medium leading-tight"
-                    style="color: {currentElement?.textColor ||
-                      globalTextColor ||
-                      'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
-                      ? '0 1px 2px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.3), 0 0 20px rgba(0,0,0,0.2)'
-                      : 'none'};"
-                  >
-                    {@html formatText(
-                      currentElement.title,
-                      currentQuestion?.accentColor,
-                    )}{#if currentQuestion?.required}<span
-                        class="text-red-500 ml-1">*</span
-                      >{/if}
-                  </h3>
-
-                  <!-- Helper Text -->
-                  {#if currentQuestion && currentQuestion.helperText}
-                    <p
-                      class="text-base mt-3"
-                      style="color: {currentQuestion.textColor ||
-                        globalTextColor ||
-                        'var(--form-text-secondary)'}; text-shadow: {colorPalette?.isDark
-                        ? '0 1px 2px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2)'
-                        : 'none'};"
-                    >
-                      {currentQuestion.helperText}
-                    </p>
-                  {/if}
-                </div>
+                    <!-- Helper Text -->
+                    {#if currentQuestion && currentQuestion.helperText}
+                      <p
+                        class="text-base mt-3"
+                        style="color: {currentQuestion.textColor ||
+                          globalTextColor ||
+                          'var(--form-text-secondary)'}; text-shadow: {colorPalette?.isDark
+                          ? '0 1px 2px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2)'
+                          : 'none'};"
+                      >
+                        {currentQuestion.helperText}
+                      </p>
+                    {/if}
+                  </div>
+                {/if}
 
                 {#if isBlockElement(currentElement)}
                   <!-- Block Rendering -->
@@ -1706,7 +1747,7 @@
                               "Type your answer here..."}
                             class="w-full text-2xl md:text-3xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
-                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none py-4 bg-transparent transition-all duration-200"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 bg-transparent transition-all duration-200"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
@@ -1738,12 +1779,12 @@
                             placeholder={currentQuestion.placeholder ||
                               "Type your answer here..."}
                             rows="5"
-                            class="w-full text-lg placeholder-slate-400 border-2 {validationError
+                            class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
-                              : 'border-[rgba(var(--form-text-primary-rgb),0.2)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 resize-none backdrop-blur-sm"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 resize-none bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
-                              'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.08);"
+                              'var(--form-text-primary)'};"
                             on:keydown={(e) => {
                               if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
@@ -1778,12 +1819,12 @@
                             max={currentQuestion.max}
                             placeholder={currentQuestion.placeholder ||
                               "Enter a number..."}
-                            class="w-full text-lg placeholder-slate-400 border-2 {validationError
+                            class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
-                              : 'border-[rgba(var(--form-text-primary-rgb),0.2)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
-                              'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.08);"
+                              'var(--form-text-primary)'};"
                             on:keydown={handleEnter}
                             on:input={validateCurrentQuestion}
                           />
@@ -1811,12 +1852,12 @@
                             bind:value={answers[currentQuestion.id]}
                             placeholder={currentQuestion.placeholder ||
                               "Enter your email..."}
-                            class="w-full text-lg border-2 {validationError
+                            class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
-                              : 'border-[rgba(var(--form-text-primary-rgb),0.3)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm placeholder-[rgba(var(--form-text-primary-rgb),0.4)]"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
-                              'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.12);"
+                              'var(--form-text-primary)'};"
                             on:keydown={handleEnter}
                             on:input={validateCurrentQuestion}
                           />
@@ -1839,7 +1880,7 @@
                         </div>
                       {:else if currentQuestion.type === "phone"}
                         <div>
-                          <div class="flex gap-3 items-end">
+                          <div class="flex gap-3 items-end w-full">
                             <!-- Country Selector Button -->
                             <div class="flex-shrink-0 relative">
                               <button
@@ -1852,12 +1893,12 @@
                                   countrySearchQuery = "";
                                   highlightedCountryIndex = 0;
                                 }}
-                                class="text-lg outline-none border-2 focus:border-[var(--form-accent)] focus:outline-none px-4 py-4 rounded-2xl transition-all duration-200 min-w-max backdrop-blur-sm {validationError
+                                class="text-lg outline-none border-b-2 border-t-0 border-l-0 border-r-0 focus:border-[var(--form-accent)] focus:outline-none focus:ring-0 px-0 py-4 transition-all duration-200 min-w-max bg-transparent {validationError
                                   ? 'border-red-400'
-                                  : 'border-[rgba(var(--form-text-primary-rgb),0.2)]'}"
+                                  : 'border-slate-300'}"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
-                                  'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.08);"
+                                  'var(--form-text-primary)'};"
                               >
                                 {#if phoneCountries[currentQuestion.id]}
                                   {countryOptions.find(
@@ -1941,12 +1982,12 @@
                                 bind:value={answers[currentQuestion.id]}
                                 placeholder={currentQuestion.placeholder ||
                                   "Enter your phone number..."}
-                                class="w-full text-lg border-2 {validationError
+                                class="w-full min-w-0 text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                                   ? 'border-red-400'
-                                  : 'border-[rgba(var(--form-text-primary-rgb),0.3)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm placeholder-[rgba(var(--form-text-primary-rgb),0.4)]"
+                                  : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
-                                  'var(--form-text-primary)'}; background: rgba(var(--form-text-primary-rgb), 0.12);"
+                                  'var(--form-text-primary)'};"
                                 on:keydown={handleEnter}
                                 on:input={validateCurrentQuestion}
                               />
@@ -1974,10 +2015,10 @@
                           <input
                             type="date"
                             bind:value={answers[currentQuestion.id]}
-                            class="w-full text-lg border-2 {validationError
+                            class="w-full text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
-                              : 'border-[rgba(var(--form-text-primary-rgb),0.2)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm"
-                            style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.08);"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
+                            style="color: var(--form-text-primary);"
                           />
                           {#if validationError}
                             <p
@@ -1993,7 +2034,7 @@
                         <div class="space-y-3">
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex items-center px-6 py-4 border-2 rounded-full cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
+                              class="flex items-center px-4 py-4 md:px-6 md:py-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
                               style="background: {answers[
                                 currentQuestion.id
                               ] === option
@@ -2011,7 +2052,7 @@
                                   'var(--form-text-primary)'};"
                             >
                               <div
-                                class="relative flex items-center justify-center"
+                                class="relative flex items-center justify-center flex-shrink-0"
                               >
                                 <input
                                   type="radio"
@@ -2033,7 +2074,7 @@
                                 {/if}
                               </div>
                               <span
-                                class="ml-4 font-medium transition-colors"
+                                class="ml-4 font-medium transition-colors whitespace-normal break-words text-left"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
                                   'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
@@ -2047,21 +2088,23 @@
                         <div>
                           <select
                             bind:value={answers[currentQuestion.id]}
-                            class="w-full text-lg border-2 {validationError
+                            class="w-full appearance-none text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
-                              : 'border-[rgba(var(--form-text-primary-rgb),0.3)] focus:border-[var(--form-accent)]'} focus:outline-none py-4 px-4 rounded-2xl transition-all duration-200 backdrop-blur-sm placeholder-[rgba(var(--form-text-primary-rgb),0.4)]"
-                            style="color: var(--form-text-primary); background: rgba(var(--form-text-primary-rgb), 0.12);"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 pl-0 pr-10 transition-all duration-200 bg-transparent placeholder-slate-300/50"
+                            style="color: var(--form-text-primary); color-scheme: light; background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
                             on:change={validateCurrentQuestion}
                           >
                             <option
                               value=""
                               disabled
                               selected
-                              class="bg-slate-800">Select an option...</option
+                              class="text-slate-900 bg-white"
+                              >Select an option...</option
                             >
                             {#each currentQuestion.options || [] as option}
-                              <option value={option} class="bg-slate-800"
-                                >{option}</option
+                              <option
+                                value={option}
+                                class="text-slate-900 bg-white">{option}</option
                               >
                             {/each}
                           </select>
@@ -2083,7 +2126,7 @@
                               style="background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1);"
                             >
                               <div
-                                class="relative flex items-center justify-center"
+                                class="relative flex items-center justify-center flex-shrink-0"
                               >
                                 <input
                                   type="checkbox"
@@ -2106,7 +2149,7 @@
                                 </div>
                               </div>
                               <span
-                                class="ml-4 font-medium transition-colors"
+                                class="ml-4 font-medium transition-colors whitespace-normal break-words text-left"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
                                   'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
@@ -2245,6 +2288,19 @@
           {/if}
         </div>
 
+        {#if validationError && !isSubmitting}
+          <div
+            class="hidden md:flex fixed bottom-28 right-8 justify-end z-40 max-w-sm"
+          >
+            <div
+              class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-lg"
+              role="alert"
+            >
+              <span class="block sm:inline">{validationError}</span>
+            </div>
+          </div>
+        {/if}
+
         <!-- Mobile Navigation Bar -->
         <!-- Mobile Navigation Bar -->
         <div
@@ -2282,19 +2338,43 @@
           </div>
 
           <!-- Main Action Button -->
-          <button
-            on:click={nextQuestion}
-            disabled={!canAdvanceValue}
-            class="px-6 h-12 rounded-xl font-bold text-base shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none text-white"
-            style="background: var(--form-button-bg);"
-          >
-            {#if currentQuestionIndex < questions.length - 1}
+          {#if currentQuestionIndex < questions.length - 1}
+            <button
+              on:click={nextQuestion}
+              disabled={!canAdvanceValue}
+              class="px-6 h-12 rounded-xl font-bold text-base shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none text-white"
+              style="background: var(--form-button-bg);"
+            >
               NEXT <i class="fas fa-arrow-right"></i>
-            {:else}
-              SUBMIT <i class="fas fa-check"></i>
-            {/if}
-          </button>
+            </button>
+          {:else}
+            <button
+              on:click={submitForm}
+              disabled={!canAdvanceValue || isSubmitting}
+              class="px-6 h-12 rounded-xl font-bold text-base shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none text-white"
+              style="background: var(--form-button-bg);"
+            >
+              {#if isSubmitting}
+                <i class="fas fa-spinner fa-spin"></i>
+              {:else}
+                SUBMIT <i class="fas fa-check"></i>
+              {/if}
+            </button>
+          {/if}
         </div>
+
+        {#if validationError && !isSubmitting}
+          <div
+            class="md:hidden fixed bottom-24 left-0 right-0 px-6 z-50 flex justify-center"
+          >
+            <div
+              class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-lg w-full text-center"
+              role="alert"
+            >
+              <span class="block sm:inline">{validationError}</span>
+            </div>
+          </div>
+        {/if}
       {:else}
         <div class="text-center py-12">
           <p class="text-slate-400">Add questions to preview your form</p>

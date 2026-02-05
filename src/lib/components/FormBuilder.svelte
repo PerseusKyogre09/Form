@@ -179,7 +179,9 @@
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             class="bg-white border border-slate-200 rounded-xl shadow-xl w-64 py-2 z-50 max-h-[80vh] overflow-y-auto"
+            side="bottom"
             sideOffset={12}
+            align="start"
           >
             <div
               class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider"

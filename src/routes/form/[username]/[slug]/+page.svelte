@@ -57,7 +57,7 @@
           published: data.published,
           closed: data.closed || false,
           backgroundType: data.background_type || "color",
-          backgroundColor: data.background_color || "#1e293b",
+          backgroundColor: data.background_color || "#ffffff",
           backgroundImage: data.background_image || "",
           globalTextColor: data.global_text_color || "",
           theme: data.theme || undefined,
@@ -79,7 +79,7 @@
   }
 </script>
 
-<div class="min-h-screen bg-[#1e293b]">
+<div class="min-h-screen bg-[#ffffff]">
   {#if loading}
     <div class="min-h-screen flex items-center justify-center">
       <div class="text-center">

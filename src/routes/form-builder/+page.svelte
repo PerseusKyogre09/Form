@@ -26,7 +26,7 @@
       published: false,
       closed: false,
       backgroundType: "color",
-      backgroundColor: "#1e293b",
+      backgroundColor: "#ffffff",
       backgroundImage: "",
     };
     currentForm.set(newForm);
@@ -74,7 +74,7 @@
         ...currentFormData,
         user_id: user.id,
         background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#1e293b",
+        background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         // Remove camelCase versions
         backgroundType: undefined,
@@ -373,7 +373,7 @@
             formId={currentFormData.id}
             isClosed={currentFormData.closed || false}
             backgroundType={currentFormData.backgroundType || "color"}
-            backgroundColor={currentFormData.backgroundColor || "#1e293b"}
+            backgroundColor={currentFormData.backgroundColor || "#ffffff"}
             backgroundImage={currentFormData.backgroundImage || ""}
             theme={currentFormData.theme}
             {onSubmit}
@@ -413,7 +413,7 @@
                 <button
                   on:click={() =>
                     updateBackgroundColor(
-                      currentFormData.backgroundColor || "#1e293b",
+                      currentFormData.backgroundColor || "#ffffff",
                     )}
                   class="flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors {currentFormData.backgroundType ===
                   'color'
@@ -447,24 +447,24 @@
                   <div class="flex gap-2">
                     <input
                       type="color"
-                      value={currentFormData.backgroundColor || "#1e293b"}
+                      value={currentFormData.backgroundColor || "#ffffff"}
                       on:input={(e) =>
                         updateBackgroundColor(e.currentTarget.value)}
                       class="w-12 h-10 rounded cursor-pointer border border-gray-200"
                     />
                     <input
                       type="text"
-                      value={currentFormData.backgroundColor || "#1e293b"}
+                      value={currentFormData.backgroundColor || "#ffffff"}
                       on:input={(e) =>
                         updateBackgroundColor(e.currentTarget.value)}
                       class="flex-1 px-2 py-1 text-xs border border-gray-200 rounded font-mono"
-                      placeholder="#1e293b"
+                      placeholder="#ffffff"
                     />
                   </div>
 
                   <!-- Preset Colors -->
                   <div class="grid grid-cols-4 gap-2 mt-2">
-                    {#each ["#1e293b", "#0f172a", "#1f2937", "#111827", "#7c3aed", "#3b82f6", "#06b6d4", "#10b981"] as color}
+                    {#each ["#ffffff", "#f8fafc", "#f1f5f9", "#e2e8f0", "#1e293b", "#0f172a", "#7c3aed", "#3b82f6"] as color}
                       <button
                         on:click={() => updateBackgroundColor(color)}
                         class="w-full h-8 rounded border-2 transition-transform hover:scale-110 {currentFormData.backgroundColor ===

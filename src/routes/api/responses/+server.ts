@@ -22,15 +22,20 @@ export const POST: RequestHandler = async ({ request }) => {
       });
 
     if (error) {
-      console.error('Supabase error saving response:', error);
+      console.error('Supabase error saving response:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       return json({
         error: error.message,
         details: error.details,
-        hint: error.hint
+        code: error.code
       }, { status: 500 });
     }
 
-    console.log('Successfully saved response');
+    console.log('Successfully saved response for form:', formId);
     return json({ success: true });
   } catch (error: any) {
     console.error('Unexpected error in response API:', error);
