@@ -12,6 +12,7 @@
     Theme,
   } from "../types";
   import { isBlockElement } from "../types";
+  import IdleBlockRenderer from "./IdleBlockRenderer.svelte";
   import {
     formatText,
     getTextSizeClass,
@@ -1526,7 +1527,7 @@
   </div>
 {:else}
   <div
-    class="min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500"
+    class="{theme && theme.id === 'ide-dark' ? 'min-h-screen px-4 relative overflow-hidden transition-opacity duration-500' : 'min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500'}"
     style="background-color: {theme?.colors?.background || (backgroundType === 'color'
       ? backgroundColor
       : '#ffffff')};
@@ -1593,11 +1594,11 @@
         <!-- Question Container -->
         <!-- Question Container -->
         <div
-          class="min-h-screen flex flex-col justify-center px-6 py-20 md:px-6 md:py-20 safe-area-pb"
+          class="{theme && theme.id === 'ide-dark' ? 'fixed inset-0' : 'min-h-screen flex flex-col justify-center px-6 py-20 md:px-6 md:py-20 safe-area-pb'}"
         >
           <div
             bind:this={container}
-            class="w-full max-w-3xl md:p-12 transition-all duration-300"
+            class="{theme && theme.id === 'ide-dark' ? 'w-full h-full' : 'w-full max-w-3xl md:p-12'} transition-all duration-300"
             style="background: transparent; border: none;"
           >
             {#if currentElement}
@@ -1660,12 +1661,79 @@
                 {/if}
 
                 {#if isBlockElement(currentElement)}
-                  <!-- Block Rendering -->
-                  <div
-                    class="rounded-2xl overflow-hidden"
-                    style="background-color: {currentElement.backgroundColor ||
-                      '#ffffff'};"
-                  >
+                  <!-- Block Rendering with IDE Theme Support -->
+                  {#if theme && theme.id === 'ide-dark' && currentElement.showCard !== true}
+                    <!-- IDE Dark Theme Block - Floating Content with Code Styling (no card) -->
+                    <IdleBlockRenderer
+                      element={currentElement}
+                      {colorPalette}
+                      {globalTextColor}
+                    />
+                  {:else if theme && theme.id === 'ide-dark' && currentElement.showCard === true}
+                    <!-- IDE Dark Theme Block - Card Styled (with borders) -->
+                    <div
+                      class="rounded-2xl overflow-hidden border border-[rgba(20,184,166,0.2)]"
+                      style="background-color: #252526;"
+                    >
+                      <!-- Header -->
+                      {#if currentElement.headerText}
+                        <div
+                          class="p-4 border-b border-[rgba(20,184,166,0.15)] font-mono"
+                        >
+                          <h4
+                            class="text-lg font-semibold"
+                            style="color: #14b8a6;"
+                          >
+                            {currentElement.headerText}
+                          </h4>
+                        </div>
+                      {/if}
+
+                      <!-- Content -->
+                      <div class="p-6 space-y-4">
+                        <!-- Image -->
+                        {#if currentElement.imageUrl}
+                          <div class="flex justify-center opacity-40">
+                            <img
+                              src={currentElement.imageUrl}
+                              alt={currentElement.title || "Block image"}
+                              class="max-h-48 max-w-full object-contain rounded-lg"
+                            />
+                          </div>
+                        {/if}
+
+                        <!-- Text Content -->
+                        {#if currentElement.text}
+                          <p
+                            class="text-base leading-relaxed font-mono"
+                            style="color: #e0e0e0;"
+                          >
+                            {currentElement.text}
+                          </p>
+                        {/if}
+                      </div>
+
+                      <!-- Footer -->
+                      {#if currentElement.footerText}
+                        <div
+                          class="p-4 border-t border-[rgba(20,184,166,0.15)] font-mono"
+                        >
+                          <p
+                            class="text-sm"
+                            style="color: #808080;"
+                          >
+                            // {currentElement.footerText}
+                          </p>
+                        </div>
+                      {/if}
+                    </div>
+                  {:else}
+                    <!-- Standard Card-Based Block (Non-IDE Theme) -->
+                    <div
+                      class="rounded-2xl overflow-hidden"
+                      style="background-color: {currentElement.backgroundColor ||
+                        '#ffffff'};"
+                    >
                     <!-- Header -->
                     {#if currentElement.headerText}
                       <div
@@ -1736,6 +1804,7 @@
                       </div>
                     {/if}
                   </div>
+                  {/if}
                 {:else if currentQuestion}
                   <div>
                     <div class="space-y-10">

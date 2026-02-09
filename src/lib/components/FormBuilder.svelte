@@ -51,6 +51,7 @@
       exitAnimation: undefined,
       enableAutoAdvance: false,
       autoAdvanceDelay: 3,
+      showCard: true, // Default to showing card; set to false for IDE theme floating style
     };
   }
 

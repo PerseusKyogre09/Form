@@ -45,6 +45,7 @@ export interface BlockElement {
   exitAnimation?: AnimationType; // animation when block exits
   enableAutoAdvance?: boolean; // auto-advance to next after delay
   autoAdvanceDelay?: number; // delay in seconds before auto-advance
+  showCard?: boolean; // whether to show card styling (default true, false removes card)
 }
 
 export type FormElement = Question | BlockElement;

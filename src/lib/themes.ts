@@ -57,13 +57,43 @@ export const IDE_DARK_THEME: Theme = {
       --ide-grid-line: rgba(255, 255, 255, 0.05);
     }
     
-    /* Background with subtle grid pattern */
+    /* Background with subtle grid pattern and circuit traces */
     [style*="min-h-screen"] {
       background-color: var(--ide-dark-bg) !important;
       background-image: 
+        /* Dot grid pattern */
+        radial-gradient(circle, rgba(20, 184, 166, 0.15) 0.5px, transparent 0.5px),
+        /* Horizontal grid lines */
         linear-gradient(0deg, transparent 24%, var(--ide-grid-line) 25%, var(--ide-grid-line) 26%, transparent 27%, transparent 74%, var(--ide-grid-line) 75%, var(--ide-grid-line) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, var(--ide-grid-line) 25%, var(--ide-grid-line) 26%, transparent 27%, transparent 74%, var(--ide-grid-line) 75%, var(--ide-grid-line) 76%, transparent 77%, transparent);
-      background-size: 40px 40px;
+        /* Vertical grid lines */
+        linear-gradient(90deg, transparent 24%, var(--ide-grid-line) 25%, var(--ide-grid-line) 26%, transparent 27%, transparent 74%, var(--ide-grid-line) 75%, var(--ide-grid-line) 76%, transparent 77%, transparent),
+        /* Circuit trace lines - diagonal paths connecting dots */
+        linear-gradient(45deg, transparent 48%, rgba(20, 184, 166, 0.08) 49%, rgba(20, 184, 166, 0.08) 51%, transparent 52%),
+        linear-gradient(-45deg, transparent 48%, rgba(20, 184, 166, 0.08) 49%, rgba(20, 184, 166, 0.08) 51%, transparent 52%);
+      background-size: 
+        40px 40px,
+        40px 40px,
+        40px 40px,
+        80px 80px,
+        80px 80px;
+      background-position:
+        0 0,
+        0 0,
+        0 0,
+        0 0,
+        0 40px;
+      animation: circuitPulse 6s ease-in-out infinite;
+      position: relative;
+    }
+    
+    /* Optional: Add glowing animation to circuit lines */
+    @keyframes circuitPulse {
+      0%, 100% {
+        background-color: var(--ide-dark-bg);
+      }
+      50% {
+        background-color: #1f2329;
+      }
     }
     
     /* Text colors */

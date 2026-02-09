@@ -141,6 +141,24 @@
         />
       </div>
 
+      <!-- Show Card Toggle -->
+      <div class="space-y-2">
+        <label
+          class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wide cursor-pointer"
+        >
+          <input
+            type="checkbox"
+            bind:checked={block.showCard}
+            on:change={updateBlock}
+            class="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer accent-blue-600"
+          />
+          Show Card Styling
+        </label>
+        <p class="text-xs text-slate-400 ml-6">
+          Uncheck for IDE theme floating style (no card container)
+        </p>
+      </div>
+
       <!-- Main Text -->
       <div class="space-y-2">
         <label
@@ -352,40 +370,78 @@
     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
       Preview
     </p>
-    <div
-      class="block-preview rounded-lg border border-gray-200 p-4 min-h-[120px] flex flex-col"
-      style="background-color: {block.backgroundColor || '#ffffff'};"
-    >
-      {#if block.headerText}
-        <div
-          class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2"
-        >
-          {block.headerText}
-        </div>
-      {/if}
+    {#if block.showCard === false}
+      <!-- IDE Theme Preview (no card - floating) -->
+      <div
+        class="rounded-lg border border-gray-600 p-4 min-h-[120px] flex flex-col bg-gray-900"
+      >
+        {#if block.headerText}
+          <div
+            class="text-sm md:text-base font-mono text-teal-400 mb-2"
+          >
+            {block.headerText}
+          </div>
+        {/if}
 
-      {#if block.imageUrl}
-        <div class="mb-3 flex-1 overflow-hidden rounded">
-          <img
-            src={block.imageUrl}
-            alt="Block preview"
-            class="max-h-24 max-w-full object-contain"
-          />
-        </div>
-      {/if}
+        {#if block.imageUrl}
+          <div class="mb-3 flex-1 overflow-hidden rounded opacity-20">
+            <img
+              src={block.imageUrl}
+              alt="Block preview"
+              class="max-h-20 max-w-full object-contain"
+            />
+          </div>
+        {/if}
 
-      {#if block.text}
-        <div class="text-sm text-gray-700 flex-1 mb-2 line-clamp-2">
-          {block.text}
-        </div>
-      {/if}
+        {#if block.text}
+          <div class="text-xs md:text-sm text-white font-mono flex-1 mb-2 line-clamp-2">
+            {block.text}<span class="inline-block w-1 h-4 ml-2 bg-white align-middle"></span>
+          </div>
+        {/if}
 
-      {#if block.footerText}
-        <div class="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-300">
-          {block.footerText}
-        </div>
-      {/if}
-    </div>
+        {#if block.footerText}
+          <div class="text-xs text-gray-500 font-mono mt-2 pt-2 border-t border-gray-700">
+            // {block.footerText}
+          </div>
+        {/if}
+      </div>
+    {:else}
+      <!-- Card Style Preview (with or without IDE theme) -->
+      <div
+        class="block-preview rounded-lg border {block.showCard === false ? 'border-gray-600' : 'border-gray-200'} p-4 min-h-[120px] flex flex-col"
+        style="background-color: {block.backgroundColor || '#ffffff'};"
+      >
+        {#if block.headerText}
+          <div
+            class="text-xs font-bold {block.backgroundColor === '#252526' ? 'font-mono text-teal-400' : 'text-gray-500'} uppercase tracking-wide mb-2"
+          >
+            {block.headerText}
+          </div>
+        {/if}
+
+        {#if block.imageUrl}
+          <div class="mb-3 flex-1 overflow-hidden rounded">
+            <img
+              src={block.imageUrl}
+              alt="Block preview"
+              class="max-h-24 max-w-full object-contain"
+            />
+          </div>
+        {/if}
+
+        {#if block.text}
+          <div class="text-sm {block.backgroundColor === '#252526' ? 'text-gray-300 font-mono' : 'text-gray-700'} flex-1 mb-2 line-clamp-2">
+            {block.text}
+          </div>
+        {/if}
+
+        {#if block.footerText}
+          <div class="text-xs {block.backgroundColor === '#252526' ? 'text-gray-500 font-mono' : 'text-gray-500'} mt-2 pt-2 {block.backgroundColor === '#252526' ? 'border-gray-700' : 'border-gray-300'} border-t">
+            {block.backgroundColor === '#252526' ? '// ' : ''}{block.footerText}
+          </div>
+        {/if}
+      </div>
+    {/if}
   </div>
 </div>
 
