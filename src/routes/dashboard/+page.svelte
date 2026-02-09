@@ -86,6 +86,30 @@
     }
   }
 
+  async function deleteForm(formId: string, formTitle: string) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${formTitle}"? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from("forms")
+        .delete()
+        .eq("id", formId);
+
+      if (error) throw error;
+
+      // Remove from UI
+      allForms = allForms.filter((f) => f.id !== formId);
+    } catch (error) {
+      console.error("Error deleting form:", error);
+      alert("Failed to delete form. Please try again.");
+    }
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     goto("/login");
@@ -194,21 +218,45 @@
             on:keydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
           >
             <!-- Status badge -->
-            <div class="absolute top-4 right-4 flex gap-2">
-              {#if form.published}
-                <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                  <i class="fas fa-check-circle"></i> Published
-                </span>
-              {/if}
-              {#if form.closed}
-                <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                  <i class="fas fa-lock"></i> Closed
-                </span>
-              {/if}
+            <div class="absolute top-4 right-4 flex gap-2 items-start">
+              <div class="flex gap-2">
+                {#if form.published}
+                  <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                    <i class="fas fa-check-circle"></i> Published
+                  </span>
+                {/if}
+                {#if form.closed}
+                  <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                    <i class="fas fa-lock"></i> Closed
+                  </span>
+                {/if}
+              </div>
+              <!-- Three-dot menu -->
+              <div class="relative group/menu">
+                <button
+                  on:click={(e) => { e.stopPropagation(); }}
+                  class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
+                  title="More options"
+                >
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <!-- Dropdown menu -->
+                <div class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 z-10">
+                  <button
+                    on:click={(e) => {
+                      e.stopPropagation();
+                      deleteForm(form.id, form.title);
+                    }}
+                    class="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium text-sm rounded-lg hover:rounded-none hover:rounded-b-lg first:hover:rounded-t-lg"
+                  >
+                    <i class="fas fa-trash"></i> Delete Form
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- Content -->
-            <div class="mb-6 pr-24">
+            <div class="mb-6 pr-20">
               <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">{form.title}</h3>
               <div class="flex items-center gap-4 text-sm text-gray-600">
                 <span class="flex items-center gap-1">

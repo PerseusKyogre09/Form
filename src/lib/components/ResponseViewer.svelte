@@ -169,6 +169,32 @@
     document.body.removeChild(link);
   }
 
+  async function deleteAllResponses() {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete all ${totalCount} response(s)? This action cannot be undone and will free up storage space.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from("form_responses")
+        .delete()
+        .eq("form_id", formId);
+
+      if (error) throw error;
+
+      // Refresh responses list
+      responses = [];
+      totalCount = 0;
+      currentPage = 1;
+      await fetchResponses();
+    } catch (error) {
+      console.error("Error deleting responses:", error);
+      alert("Failed to delete responses. Please try again.");
+    }
+  }
+
   function togglePopover(id: string) {
     if (openPopoverId === id) {
       openPopoverId = null;
@@ -187,13 +213,22 @@
       </p>
     </div>
     {#if responses.length > 0 || Object.keys(filters).length > 0}
-      <button
-        on:click={downloadCSV}
-        class="inline-flex items-center px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-      >
-        <span class="fas fa-download mr-2"></span>
-        Download CSV
-      </button>
+      <div class="flex gap-3">
+        <button
+          on:click={downloadCSV}
+          class="inline-flex items-center px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+        >
+          <span class="fas fa-download mr-2"></span>
+          Download CSV
+        </button>
+        <button
+          on:click={deleteAllResponses}
+          class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          <span class="fas fa-trash mr-2"></span>
+          Delete All
+        </button>
+      </div>
     {/if}
   </div>
 
