@@ -12,12 +12,49 @@
   });
 
   function selectTheme(theme: Theme) {
-    // Update the form with the selected theme
-    // Theme will be applied within FormPreview component only
-    currentForm.update((form) => ({
-      ...form,
-      theme: theme,
-    }));
+    // Update the form with the selected theme and apply theme colors as customization template
+    currentForm.update((form) => {
+      const updatedForm: Form = {
+        ...form,
+        theme: theme,
+      };
+
+      // Apply theme colors to form customization options if theme has colors defined
+      if (theme.colors) {
+        if (theme.colors.background) {
+          updatedForm.backgroundColor = theme.colors.background;
+          updatedForm.backgroundType = 'color';
+        }
+        if (theme.colors.text) {
+          updatedForm.globalTextColor = theme.colors.text;
+        }
+      }
+
+      // Apply theme colors to all questions and blocks
+      if (updatedForm.questions && theme.colors) {
+        updatedForm.questions = updatedForm.questions.map((element) => {
+          const isBlock = (element as any).kind === 'block';
+          
+          if (isBlock) {
+            // For content blocks, update background and text color
+            return {
+              ...element,
+              backgroundColor: theme.colors?.background || element.backgroundColor,
+              textColor: theme.colors?.text || element.textColor,
+            };
+          } else {
+            // For questions, update accent and text colors
+            return {
+              ...element,
+              accentColor: theme.colors?.accent || element.accentColor,
+              textColor: theme.colors?.text || element.textColor,
+            };
+          }
+        });
+      }
+
+      return updatedForm;
+    });
 
     closeModal();
   }

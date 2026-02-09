@@ -1527,9 +1527,9 @@
 {:else}
   <div
     class="min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500"
-    style="background-color: {backgroundType === 'color'
+    style="background-color: {theme?.colors?.background || (backgroundType === 'color'
       ? backgroundColor
-      : '#ffffff'};
+      : '#ffffff')};
       --form-text-primary: {colorPalette?.textPrimary || '#1e293b'};
       --form-text-primary-rgb: {colorPalette?.textPrimaryRGB || '30, 41, 59'};
       --form-text-secondary: {colorPalette?.textSecondary || '#64748b'};
