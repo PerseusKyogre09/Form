@@ -45,26 +45,49 @@ export function animateOut(element: HTMLElement, duration = 0.4) {
 }
 
 /**
- * Premium slide question transition with stagger effect
+ * Horizontal Staggered Slide-Through Animation
+ * Smooth horizontal slide with cascading opacity for premium feel
  */
 export function slideQuestion(element: HTMLElement, direction: 'next' | 'prev', duration = 0.5) {
   if (!element) return;
 
-  const fromX = direction === 'next' ? 80 : -80;
+  const fromX = direction === 'next' ? 100 : -100;
 
+  // Animate the container as a smooth block
   gsap.fromTo(
     element,
-    { opacity: 0, x: fromX, rotationY: direction === 'next' ? -10 : 10, rotationZ: 0, rotation: 0, scale: 1 },
+    { opacity: 0, x: fromX },
     {
       opacity: 1,
       x: 0,
-      rotationY: 0,
-      rotationZ: 0,
-      rotation: 0,
-      scale: 1,
       duration,
+      ease: 'cubic.out'
+    }
+  );
+
+  // Get the main content div for opacity cascade effect
+  const mainContent = element.querySelector(':scope > div') as HTMLElement;
+  if (!mainContent) return;
+
+  // Get direct children for cascading opacity (just visual, no position change)
+  const contentChildren = Array.from(mainContent.children).filter(child => 
+    child instanceof HTMLElement && 
+    child.tagName !== 'SCRIPT' && 
+    child.tagName !== 'STYLE'
+  ) as HTMLElement[];
+
+  if (contentChildren.length === 0) return;
+
+  // Apply opacity cascade without position changes to avoid layout shifts
+  gsap.fromTo(
+    contentChildren,
+    { opacity: 0 },
+    {
+      opacity: 1,
+      duration: duration * 0.6,
       ease: 'cubic.out',
-      perspective: 1200
+      stagger: 0.05,
+      delay: duration * 0.2
     }
   );
 }

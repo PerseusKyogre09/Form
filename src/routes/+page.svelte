@@ -46,14 +46,11 @@
 
       <div class="flex items-center gap-4">
         {#if user}
-          <Button.Root
+          <a
             href="/dashboard"
-            class="rounded-xl bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+            class="text-sm font-semibold text-gray-900 hover:text-black transition-colors px-4"
+            >Dashboard</a
           >
-            Go to Dashboard
-          </Button.Root>
         {:else}
           <a
             href="/login"
@@ -62,8 +59,8 @@
           >
           <Button.Root
             href="/signup"
-            class="rounded-xl bg-dark text-background shadow-mini hover:bg-dark/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
+            class="rounded-xl bg-black text-white shadow-sm hover:bg-gray-900 inline-flex
+	h-10 items-center justify-center px-6 text-sm
 	font-semibold active:scale-[0.98] active:transition-all"
           >
             Get Started

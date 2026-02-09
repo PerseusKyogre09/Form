@@ -1224,12 +1224,12 @@
           delay: exitDuration,
         });
       } else {
-        // Use default slide transition
-        const x = direction === "next" ? 50 : -50;
+        // Use horizontal slide exit animation
+        const exitX = direction === "next" ? -100 : 100;
         gsap.to(container, {
           opacity: 0,
-          x,
-          duration: 0.4,
+          x: exitX,
+          duration: 0.3,
           ease: "power2.in",
           onComplete: () => {
             gsap.set(container, {
@@ -1990,7 +1990,9 @@
                               {#if openCountryDropdown === currentQuestion.id}
                                 <div
                                   class="absolute bottom-full left-0 mb-2 border rounded-2xl shadow-2xl z-50 w-72 max-h-72 overflow-y-auto backdrop-blur-xl"
-                                  style="background: var(--form-card-bg-solid); border-color: rgba(var(--form-text-primary-rgb), 0.1);"
+                                  style="{theme && theme.id === 'ide-dark' 
+                                    ? 'background-color: #252526; border-color: rgba(20,184,166,0.15);'
+                                    : 'background: var(--form-card-bg-solid); border-color: rgba(var(--form-text-primary-rgb), 0.1);'}"
                                 >
                                   <input
                                     type="text"
@@ -2002,7 +2004,9 @@
                                         currentQuestion.id,
                                       )}
                                     class="w-full px-4 py-3 border-b text-sm outline-none focus:ring-0 sticky top-0 rounded-t-2xl placeholder-slate-400"
-                                    style="background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1); color: var(--form-text-primary);"
+                                    style="{theme && theme.id === 'ide-dark'
+                                      ? 'background-color: #1e1e1e; border-color: rgba(20,184,166,0.1); color: #e0e0e0;'
+                                      : 'background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1); color: var(--form-text-primary);'}"
                                   />
                                   {#each getFilteredCountries(countrySearchQuery) as country, idx}
                                     <button
@@ -2014,9 +2018,11 @@
                                         )}
                                       class="w-full text-left px-4 py-3 text-sm transition-colors {idx ===
                                       highlightedCountryIndex
-                                        ? 'bg-[var(--form-accent)] !text-[var(--form-accent-text)]'
-                                        : 'hover:bg-[rgba(var(--form-accent-rgb),0.1)]'} border-b last:border-b-0"
-                                      style="color: var(--form-text-primary); border-color: rgba(var(--form-text-primary-rgb), 0.05);"
+                                        ? theme && theme.id === 'ide-dark' ? 'bg-[#14b8a6] text-white' : 'bg-[var(--form-accent)] !text-[var(--form-accent-text)]'
+                                        : theme && theme.id === 'ide-dark' ? 'hover:bg-[rgba(20,184,166,0.1)]' : 'hover:bg-[rgba(var(--form-accent-rgb),0.1)]'} border-b last:border-b-0"
+                                      style="{theme && theme.id === 'ide-dark'
+                                        ? 'color: #e0e0e0; border-color: rgba(20,184,166,0.1);'
+                                        : 'color: var(--form-text-primary); border-color: rgba(var(--form-text-primary-rgb), 0.05);'}"
                                     >
                                       <span class="text-lg mr-2"
                                         >{country.flag}</span
@@ -2024,17 +2030,18 @@
                                       <span class="font-medium"
                                         >{country.code}</span
                                       >
-                                      <span class="text-slate-300 ml-2"
+                                      <span class="{theme && theme.id === 'ide-dark' ? 'text-[#a0a0a0]' : 'text-slate-300'} ml-2"
                                         >{country.name}</span
                                       >
-                                      <span class="text-slate-400 ml-1"
+                                      <span class="{theme && theme.id === 'ide-dark' ? 'text-[#808080]' : 'text-slate-400'} ml-1"
                                         >{country.dialCode}</span
                                       >
                                     </button>
                                   {/each}
                                   {#if getFilteredCountries(countrySearchQuery).length === 0}
                                     <div
-                                      class="px-4 py-6 text-sm text-slate-400 text-center"
+                                      class="px-4 py-6 text-sm text-center"
+                                      style="color: {theme && theme.id === 'ide-dark' ? '#808080' : '#9ca3af'};"
                                     >
                                       <i class="fas fa-search mb-2"></i>
                                       <p>No countries found</p>
@@ -2160,20 +2167,20 @@
                             class="w-full appearance-none text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-red-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 pl-0 pr-10 transition-all duration-200 bg-transparent placeholder-slate-300/50"
-                            style="color: var(--form-text-primary); color-scheme: light; background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
+                            style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : 'var(--form-text-primary)'}; color-scheme: {theme && theme.id === 'ide-dark' ? 'dark' : 'light'}; background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='{theme && theme.id === 'ide-dark' ? '%23a0a0a0' : '%236b7280'}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
                             on:change={validateCurrentQuestion}
                           >
                             <option
                               value=""
                               disabled
                               selected
-                              class="text-slate-900 bg-white"
+                              style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : '#1f2937'}; background-color: {theme && theme.id === 'ide-dark' ? '#252526' : '#ffffff'};"
                               >Select an option...</option
                             >
                             {#each currentQuestion.options || [] as option}
                               <option
                                 value={option}
-                                class="text-slate-900 bg-white">{option}</option
+                                style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : '#1f2937'}; background-color: {theme && theme.id === 'ide-dark' ? '#252526' : '#ffffff'};">{option}</option
                               >
                             {/each}
                           </select>
