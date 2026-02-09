@@ -1594,11 +1594,11 @@
         <!-- Question Container -->
         <!-- Question Container -->
         <div
-          class="{theme && theme.id === 'ide-dark' ? 'fixed inset-0' : 'min-h-screen flex flex-col justify-center px-6 py-20 md:px-6 md:py-20 safe-area-pb'}"
+          class="{theme && theme.id === 'ide-dark' ? 'fixed inset-0 flex flex-col justify-center items-center' : 'min-h-screen flex flex-col justify-center items-center px-6 py-20 md:px-6 md:py-20 safe-area-pb'}"
         >
           <div
             bind:this={container}
-            class="{theme && theme.id === 'ide-dark' ? 'w-full h-full' : 'w-full max-w-3xl md:p-12'} transition-all duration-300"
+            class="{theme && theme.id === 'ide-dark' ? 'max-w-3xl md:p-12' : 'max-w-3xl md:p-12'} transition-all duration-300"
             style="background: transparent; border: none;"
           >
             {#if currentElement}
