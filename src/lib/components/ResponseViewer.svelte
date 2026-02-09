@@ -204,28 +204,28 @@
   }
 </script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="mb-8 flex items-center justify-between">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="mb-6 flex items-center justify-between">
     <div>
-      <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Responses</h2>
-      <p class="text-sm text-gray-500 mt-1">
+      <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Responses</h2>
+      <p class="text-xs text-gray-500 mt-1">
         {totalCount} total response{totalCount !== 1 ? "s" : ""}
       </p>
     </div>
     {#if responses.length > 0 || Object.keys(filters).length > 0}
-      <div class="flex gap-3">
+      <div class="flex gap-2">
         <button
           on:click={downloadCSV}
-          class="inline-flex items-center px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+          class="inline-flex items-center px-3 py-2 bg-black text-white text-xs font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
         >
-          <span class="fas fa-download mr-2"></span>
+          <span class="fas fa-download mr-1.5"></span>
           Download CSV
         </button>
         <button
           on:click={deleteAllResponses}
-          class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          class="inline-flex items-center px-3 py-2 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
-          <span class="fas fa-trash mr-2"></span>
+          <span class="fas fa-trash mr-1.5"></span>
           Delete All
         </button>
       </div>
@@ -233,26 +233,26 @@
   </div>
 
   <div
-    class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[400px]"
+    class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[300px]"
   >
     {#if loading && responses.length === 0}
-      <div class="flex-1 flex flex-col items-center justify-center p-12">
+      <div class="flex-1 flex flex-col items-center justify-center p-8">
         <div
-          class="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin mb-4"
+          class="w-6 h-6 border-4 border-gray-200 border-t-black rounded-full animate-spin mb-2"
         ></div>
-        <p class="text-gray-500">Loading responses...</p>
+        <p class="text-xs text-gray-500">Loading responses...</p>
       </div>
     {:else if responses.length === 0 && Object.values(filters).every((f) => !f)}
       <div
-        class="flex-1 flex flex-col items-center justify-center p-12 text-center"
+        class="flex-1 flex flex-col items-center justify-center p-8 text-center"
       >
         <div
-          class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4"
+          class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3"
         >
-          <span class="fas fa-inbox text-gray-300 text-2xl"></span>
+          <span class="fas fa-inbox text-gray-300 text-lg"></span>
         </div>
-        <h3 class="text-lg font-medium text-gray-900">No responses yet</h3>
-        <p class="text-gray-500 mt-1">
+        <h3 class="text-sm font-medium text-gray-900">No responses yet</h3>
+        <p class="text-xs text-gray-500 mt-0.5">
           Share your form link to start collecting responses.
         </p>
       </div>
@@ -263,7 +263,7 @@
             <tr class="bg-gray-50/50 border-b border-gray-200">
               <!-- Timestamp Header -->
               <th
-                class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[200px]"
+                class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[140px]"
               >
                 <div class="flex items-center justify-between group">
                   <span class="flex items-center gap-2">
@@ -289,7 +289,7 @@
               <!-- Question Headers -->
               {#each questionList as question}
                 <th
-                  class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[250px]"
+                  class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[150px]"
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span class="truncate" title={question.title}
@@ -363,7 +363,7 @@
                   </div>
                   {#if filters[question.id]}
                     <div
-                      class="mt-1 text-[10px] text-indigo-600 font-medium truncate max-w-[200px]"
+                      class="mt-0.5 text-[9px] text-indigo-600 font-medium truncate max-w-[140px]"
                     >
                       Contains: "{filters[question.id]}"
                     </div>
@@ -375,26 +375,20 @@
           <tbody class="divide-y divide-gray-200">
             {#each responses as response}
               <tr class="hover:bg-gray-50/50 transition-colors bg-white">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium text-gray-900"
-                      >{formatDate(response.timestamp)}</span
-                    >
-                    <span
-                      class="text-xs text-gray-400 font-mono mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >{response.id.slice(0, 8)}...</span
-                    >
-                  </div>
+                <td class="px-3 py-2 whitespace-nowrap">
+                  <span class="text-xs font-medium text-gray-900"
+                    >{formatDate(response.timestamp)}</span
+                  >
                 </td>
                 {#each questionList as question}
-                  <td class="px-6 py-4 text-sm text-gray-700">
+                  <td class="px-3 py-2 text-xs text-gray-700">
                     {#if response.answers[question.id] === undefined || response.answers[question.id] === null || response.answers[question.id] === ""}
                       <span class="text-gray-300">—</span>
                     {:else if Array.isArray(response.answers[question.id])}
-                      <div class="flex flex-wrap gap-1">
+                      <div class="flex flex-wrap gap-0.5">
                         {#each response.answers[question.id] as item}
                           <span
-                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                            class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
                           >
                             {item}
                           </span>
@@ -402,7 +396,7 @@
                       </div>
                     {:else}
                       <span
-                        class="line-clamp-2"
+                        class="line-clamp-1 text-xs"
                         title={String(response.answers[question.id] ?? "")}
                       >
                         {String(response.answers[question.id] ?? "")}
@@ -418,9 +412,9 @@
 
       <!-- Pagination -->
       <div
-        class="bg-white border-t border-gray-200 px-6 py-4 flex items-center justify-between"
+        class="bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between"
       >
-        <div class="text-sm text-gray-500">
+        <div class="text-xs text-gray-500">
           Showing <span class="font-medium"
             >{(currentPage - 1) * PAGE_SIZE + 1}</span
           >
@@ -434,14 +428,14 @@
           <button
             on:click={prevPage}
             disabled={currentPage === 1}
-            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
           <button
             on:click={nextPage}
             disabled={currentPage === totalPages}
-            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>
