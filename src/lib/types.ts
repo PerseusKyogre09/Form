@@ -71,6 +71,37 @@ export interface Theme {
     background?: string;
     text?: string;
   };
+  thankYouTemplate?: Partial<ThankYouPage>; // Template for thank you page customization
+}
+
+export interface ThankYouButton {
+  id: string;
+  label: string;
+  url: string;
+  variant: 'primary' | 'secondary';
+}
+
+export interface ThankYouSocialLink {
+  platform: 'instagram' | 'twitter' | 'facebook' | 'linkedin' | 'youtube' | 'tiktok';
+  url: string;
+}
+
+export interface ThankYouPage {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  backgroundType: 'color' | 'image';
+  backgroundColor: string;
+  backgroundImage?: string;
+  textColor?: string; // Overall text color
+  titleColor?: string; // Title-specific color
+  subtitleColor?: string; // Subtitle-specific color
+  buttons: ThankYouButton[];
+  socialLinks: ThankYouSocialLink[];
+  showSuccessIcon: boolean;
+  showFormInfo: boolean;
+  successIconColor?: string; // Icon color
+  theme?: string; // Optional theme applied to this page
 }
 
 export interface Form {
@@ -93,6 +124,7 @@ export interface Form {
   backgroundColor?: string;
   backgroundImage?: string;
   theme?: Theme; // Optional theme configuration
+  thankYouPage?: ThankYouPage; // Optional custom thank you page configuration
 }
 
 export interface FormResponse {

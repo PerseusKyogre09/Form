@@ -22,7 +22,7 @@ export async function load({ params }) {
       // Get the form by user_id and slug
       const { data: formData } = await supabase
         .from('forms')
-        .select('background_color, theme')
+        .select('background_color, theme, thank_you_page')
         .eq('user_id', profileData.id)
         .eq('slug', slug)
         .single();
@@ -30,20 +30,29 @@ export async function load({ params }) {
       if (formData) {
         return {
           theme: formData.theme || null,
-          backgroundColor: formData.background_color || '#ffffff'
+          backgroundColor: formData.background_color || '#ffffff',
+          thankYouPage: formData.thank_you_page || null,
+          username,
+          slug
         };
       }
     }
 
     return {
       theme: null,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      thankYouPage: null,
+      username,
+      slug
     };
   } catch (error) {
     console.error('Error loading theme:', error);
     return {
       theme: null,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      thankYouPage: null,
+      username: params.username,
+      slug: params.slug
     };
   }
 }

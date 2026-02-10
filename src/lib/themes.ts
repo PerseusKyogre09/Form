@@ -11,6 +11,20 @@ export const DEFAULT_THEME: Theme = {
     background: '#ffffff',
     text: '#000000',
   },
+  thankYouTemplate: {
+    enabled: true,
+    title: 'Thank You!',
+    subtitle: 'Your response has been recorded successfully.',
+    backgroundColor: '#ffffff',
+    backgroundType: 'color',
+    textColor: '#000000',
+    titleColor: '#1e293b',
+    subtitleColor: '#64748b',
+    showSuccessIcon: true,
+    buttons: [],
+    socialLinks: [],
+    showFormInfo: false,
+  },
 };
 
 export const NES_THEME: Theme = {
@@ -26,6 +40,20 @@ export const NES_THEME: Theme = {
     background: '#ffffff',
     text: '#000000',
   },
+  thankYouTemplate: {
+    enabled: true,
+    title: 'Mission Accomplished!',
+    subtitle: 'Your response has been recorded successfully.',
+    backgroundColor: '#ffffff',
+    backgroundType: 'color',
+    textColor: '#000000',
+    titleColor: '#000000',
+    subtitleColor: '#000000',
+    showSuccessIcon: true,
+    buttons: [],
+    socialLinks: [],
+    showFormInfo: false,
+  },
 };
 
 export const IDE_DARK_THEME: Theme = {
@@ -39,6 +67,21 @@ export const IDE_DARK_THEME: Theme = {
     accent: '#14b8a6', // Teal
     background: '#1e1e1e',
     text: '#e0e0e0',
+  },
+  thankYouTemplate: {
+    enabled: true,
+    title: 'Success Compiled',
+    subtitle: 'Your response has been recorded successfully.',
+    backgroundColor: '#1e1e1e',
+    backgroundType: 'color',
+    textColor: '#e0e0e0',
+    titleColor: '#14b8a6',
+    subtitleColor: '#a0a0a0',
+    successIconColor: '#14b8a6',
+    showSuccessIcon: true,
+    buttons: [],
+    socialLinks: [],
+    showFormInfo: false,
   },
   customCss: `
     /* IDE Dark Mode Theme - Code Editor Inspired */

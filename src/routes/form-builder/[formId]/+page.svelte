@@ -6,6 +6,8 @@
   import FormBuilder from "../../../lib/components/FormBuilder.svelte";
   import FormPreview from "../../../lib/components/FormPreview.svelte";
   import ResponseViewer from "../../../lib/components/ResponseViewer.svelte";
+  import ThankYouPageEditor from "../../../lib/components/ThankYouPageEditor.svelte";
+  import ThankYouPagePreview from "../../../lib/components/ThankYouPagePreview.svelte";
   import type { Form } from "../../../lib/types";
   import { onMount } from "svelte";
   import { supabase } from "$lib/supabaseClient";
@@ -224,11 +226,13 @@
         background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
+        thank_you_page: currentFormData.thankYouPage || null,
         // Remove camelCase versions
         backgroundType: undefined,
         backgroundColor: undefined,
         backgroundImage: undefined,
         globalTextColor: undefined,
+        thankYouPage: undefined,
       };
 
       // Use upsert directly with Supabase and select() to confirm save
@@ -298,6 +302,7 @@
         background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
+        thank_you_page: currentFormData.thankYouPage || null,
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -339,6 +344,7 @@
         background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
+        thank_you_page: currentFormData.thankYouPage || null,
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -383,6 +389,7 @@
         background_color: currentFormData.backgroundColor || "#ffffff",
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
+        thank_you_page: currentFormData.thankYouPage || null,
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -563,6 +570,12 @@
               Preview
             </Tabs.Trigger>
             <Tabs.Trigger
+              value="thankYou"
+              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
+            >
+              Thank You
+            </Tabs.Trigger>
+            <Tabs.Trigger
               value="responses"
               class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
             >
@@ -722,6 +735,19 @@
           </div>
         {/if}
       </div>
+    {:else if view === "thankYou"}
+      <!-- Thank You Page Editor -->
+      {#if currentFormData}
+        <div class="space-y-6">
+          <ThankYouPageEditor
+            thankYouPage={currentFormData.thankYouPage}
+            onUpdate={(config) => {
+              currentForm.update(f => ({...f, thankYouPage: config}));
+            }}
+            {saveForm}
+          />
+        </div>
+      {/if}
     {:else if view === "responses"}
       <!-- Responses viewer -->
       {#if currentFormData}
@@ -817,6 +843,16 @@
           >
             <span class="fas fa-eye text-xl"></span>
             <span class="text-[10px] font-medium">Preview</span>
+          </button>
+          <button
+            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+            'thankYou'
+              ? 'text-primary'
+              : 'text-slate-400 hover:text-slate-600'}"
+            on:click={() => (view = "thankYou")}
+          >
+            <span class="fas fa-heart text-xl"></span>
+            <span class="text-[10px] font-medium">Thank You</span>
           </button>
           <button
             class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===

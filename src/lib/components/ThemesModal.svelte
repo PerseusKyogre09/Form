@@ -53,6 +53,15 @@
         });
       }
 
+      // Apply thank you page template if available
+      if (theme.thankYouTemplate) {
+        updatedForm.thankYouPage = {
+          ...updatedForm.thankYouPage,
+          ...theme.thankYouTemplate,
+          theme: theme.id,
+        };
+      }
+
       return updatedForm;
     });
 
