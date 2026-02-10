@@ -7,6 +7,12 @@ export interface Constraint {
   value: any; // Using any for flexibility with complex objects like {min, max} or {pattern, description}
 }
 
+export interface QuestionCondition {
+  questionId: string;
+  operator: 'equals' | 'not_equals' | 'contains';
+  value: string;
+}
+
 export interface Question {
   id: string;
   type: 'text' | 'long-text' | 'number' | 'email' | 'phone' | 'date' | 'multiple-choice' | 'dropdown' | 'checkboxes' | 'yes-no' | 'rating';
@@ -26,6 +32,7 @@ export interface Question {
   helperText?: string; // Subtitle/description below title
   accentColor?: string; // For highlighted words in title
   textColor?: string; // Override default text color
+  condition?: QuestionCondition; // Show this question only if condition is met
 }
 
 export type AnimationType = 'fade' | 'slide' | 'pulse' | 'bounce' | 'zoom' | 'flip' | 'rotate' | 'slideLeft' | 'slideRight' | 'wobble' | 'heartbeat' | 'swing' | 'tada' | 'jello' | 'blink';

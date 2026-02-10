@@ -642,6 +642,42 @@
     return false;
   }
 
+  // Evaluate if a question's condition is met
+  function evaluateCondition(question: Question): boolean {
+    if (!question.condition) return true;
+
+    const { questionId, operator, value } = question.condition;
+    const conditionQuestion = questions.find(
+      (q) => !isBlockElement(q) && (q as Question).id === questionId,
+    ) as Question | undefined;
+
+    if (!conditionQuestion) return true;
+
+    const conditionAnswer = answers[questionId];
+
+    // Handle array answers (checkboxes, multi-select)
+    if (Array.isArray(conditionAnswer)) {
+      if (operator === "equals") {
+        return conditionAnswer.includes(value);
+      } else if (operator === "not_equals") {
+        return !conditionAnswer.includes(value);
+      } else if (operator === "contains") {
+        return conditionAnswer.some((item) => String(item).includes(value));
+      }
+    }
+
+    // Handle single value answers
+    if (operator === "equals") {
+      return conditionAnswer === value;
+    } else if (operator === "not_equals") {
+      return conditionAnswer !== value;
+    } else if (operator === "contains") {
+      return String(conditionAnswer || "").includes(value);
+    }
+
+    return true;
+  }
+
   function getValidationError(question: Question): string {
     const answer = answers[question.id];
 
@@ -993,8 +1029,38 @@
   }
 
   function transitionStep(direction: "next" | "prev") {
-    const delta = direction === "next" ? 1 : -1;
-    const targetIndex = currentQuestionIndex + delta;
+    // Find next visible question or block
+    let targetIndex = currentQuestionIndex + (direction === "next" ? 1 : -1);
+    
+    // Loop to find next visible element (skip hidden questions based on conditions)
+    if (direction === "next") {
+      while (targetIndex < questions.length) {
+        const elem = questions[targetIndex];
+        if (isBlockElement(elem)) {
+          // Blocks are always shown
+          break;
+        }
+        if (evaluateCondition(elem as Question)) {
+          // Question is visible
+          break;
+        }
+        targetIndex++;
+      }
+    } else {
+      while (targetIndex >= 0) {
+        const elem = questions[targetIndex];
+        if (isBlockElement(elem)) {
+          // Blocks are always shown
+          break;
+        }
+        if (evaluateCondition(elem as Question)) {
+          // Question is visible
+          break;
+        }
+        targetIndex--;
+      }
+    }
+
     if (targetIndex < 0 || targetIndex >= questions.length) return;
 
     // Kill draggable during transition
@@ -1357,9 +1423,15 @@
   }
 
   async function submitForm() {
-    // Check if all required questions are answered
+    // Check if all required VISIBLE questions are answered
     for (const element of questions.filter((el) => !isBlockElement(el))) {
       const question = element as Question;
+      
+      // Skip hidden questions
+      if (!evaluateCondition(question)) {
+        continue;
+      }
+      
       if (question.required && !isAnswered(question)) {
         validationError = `Please answer: ${question.title}`;
         return;
@@ -1484,11 +1556,16 @@
       ? currentElement
       : undefined;
 
-  // Calculate only actual questions for numbering (exclude blocks)
-  $: questionList = questions.filter((q) => !isBlockElement(q));
+  // Calculate only actual questions for numbering (exclude blocks and hidden questions)
+  $: visibleQuestions = questions.filter(
+    (q) =>
+      !isBlockElement(q) &&
+      evaluateCondition(q as Question),
+  );
+  $: questionList = visibleQuestions;
   $: currentQuestionNumber =
     currentElement && !isBlockElement(currentElement)
-      ? questionList.findIndex((q) => q.id === currentElement.id) + 1
+      ? visibleQuestions.findIndex((q) => q.id === currentElement.id) + 1
       : 0;
 
   $: progress = questionList.length
@@ -1502,6 +1579,24 @@
             ? isAnswered(currentQuestion)
             : true) && !validationError
       : false;
+
+  // Check if there's a next visible question we can navigate to
+  $: hasNextVisibleQuestion = (() => {
+    // Make answers a reactive dependency
+    void answers;
+    
+    if (!currentElement || currentQuestionIndex >= questions.length - 1) {
+      return false;
+    }
+    // Look ahead to find next visible question
+    for (let i = currentQuestionIndex + 1; i < questions.length; i++) {
+      const elem = questions[i];
+      if (!isBlockElement(elem) && evaluateCondition(elem as Question)) {
+        return true;
+      }
+    }
+    return false;
+  })();
 
   // Animate progress bar when progress changes
   $: if (progressBar) {
@@ -2324,7 +2419,7 @@
             >
               <i class="fas fa-chevron-up"></i>
             </button>
-            {#if currentQuestionIndex < questions.length - 1}
+            {#if hasNextVisibleQuestion}
               <button
                 on:click={nextQuestion}
                 disabled={!canAdvanceValue}
@@ -2340,7 +2435,7 @@
           </div>
 
           <!-- NEXT / Submit Button -->
-          {#if currentQuestionIndex < questions.length - 1}
+          {#if hasNextVisibleQuestion}
             <button
               on:click={nextQuestion}
               disabled={!canAdvanceValue}
@@ -2381,8 +2476,7 @@
             </button>
             <button
               on:click={nextQuestion}
-              disabled={!canAdvanceValue ||
-                currentQuestionIndex === questions.length - 1}
+              disabled={!canAdvanceValue || !hasNextVisibleQuestion}
               class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 text-slate-700 dark:text-slate-200"
             >
               <i class="fas fa-chevron-down text-lg"></i>
@@ -2402,7 +2496,7 @@
           </div>
 
           <!-- Main Action Button -->
-          {#if currentQuestionIndex < questions.length - 1}
+          {#if hasNextVisibleQuestion}
             <button
               on:click={nextQuestion}
               disabled={!canAdvanceValue}

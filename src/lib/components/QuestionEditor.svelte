@@ -1,10 +1,11 @@
 <!-- src/lib/components/QuestionEditor.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import type { Question, Constraint, AnimationType } from "../types";
+  import type { Question, Constraint, AnimationType, QuestionCondition } from "../types";
 
   export let question: Question;
   export let questionNumber: number;
+  export let allQuestions: Question[] = []; // For condition UI
 
   const dispatch = createEventDispatcher();
   let showConstraintDropdown = false;
@@ -162,6 +163,53 @@
         t.value === "custom-regex" ||
         !(question.constraints || []).some((c) => c.type === t.value),
     );
+  }
+
+  // Get available questions that can be used as condition sources
+  // Exclude current question and questions of non-choice types
+  function getConditionalQuestions() {
+    return allQuestions.filter(
+      (q) =>
+        q.id !== question.id &&
+        ['multiple-choice', 'dropdown', 'checkboxes', 'yes-no', 'rating'].includes(
+          q.type,
+        ),
+    );
+  }
+
+  // Get available options for a given question
+  function getOptionsForQuestion(questionId: string) {
+    const q = allQuestions.find((x) => x.id === questionId);
+    if (!q) return [];
+    
+    if (q.type === 'yes-no') {
+      return ['Yes', 'No'];
+    }
+
+    if (q.type === 'rating') {
+      const max = q.max || 5;
+      return Array.from({ length: max }, (_, i) => String(i + 1));
+    }
+
+    return q.options || [];
+  }
+
+  function setCondition(
+    questionId: string,
+    operator: 'equals' | 'not_equals' | 'contains',
+    value: string,
+  ) {
+    question.condition = {
+      questionId,
+      operator,
+      value,
+    };
+    updateQuestion();
+  }
+
+  function clearCondition() {
+    question.condition = undefined;
+    updateQuestion();
   }
 </script>
 
@@ -521,6 +569,106 @@
           placeholder="Edit placeholder text (optional)..."
           type="text"
         />
+      </div>
+    {/if}
+
+    <!-- Conditional Logic -->
+    {#if getConditionalQuestions().length > 0}
+      <div class="bg-emerald-50/50 rounded-lg p-4 border border-emerald-100 mt-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold text-emerald-600 uppercase tracking-wide">
+            Show if
+          </span>
+          <button
+            on:click={clearCondition}
+            class="text-emerald-300 hover:text-emerald-500 text-xs"
+            disabled={!question.condition}
+          >
+            <span class="fas fa-times text-sm"></span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <!-- Question Selector -->
+          <select
+            value={question.condition?.questionId || ""}
+            on:change={(e) => {
+              const qId = e.target.value;
+              if (qId) {
+                const options = getOptionsForQuestion(qId);
+                setCondition(qId, "equals", options[0] || "");
+              }
+            }}
+            class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
+          >
+            <option value="">Select question...</option>
+            {#each getConditionalQuestions() as q}
+              <option value={q.id}>
+                Q{allQuestions.findIndex((x) => x.id === q.id) + 1}
+              </option>
+            {/each}
+          </select>
+
+          <!-- Operator Selector -->
+          <select
+            value={question.condition?.operator || "equals"}
+            on:change={(e) => {
+              if (question.condition) {
+                setCondition(
+                  question.condition.questionId,
+                  e.target.value as any,
+                  question.condition.value,
+                );
+              }
+            }}
+            class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
+            disabled={!question.condition?.questionId}
+          >
+            <option value="equals">equals</option>
+            <option value="not_equals">not equals</option>
+            <option value="contains">contains</option>
+          </select>
+
+          <!-- Value Selector -->
+          {#if question.condition?.questionId}
+            {@const options = getOptionsForQuestion(question.condition.questionId)}
+            {#if options.length > 0}
+              <select
+                value={question.condition?.value || ""}
+                on:change={(e) => {
+                  if (question.condition) {
+                    setCondition(
+                      question.condition.questionId,
+                      question.condition.operator,
+                      e.target.value,
+                    );
+                  }
+                }}
+                class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
+              >
+                {#each options as option}
+                  <option value={option}>{option}</option>
+                {/each}
+              </select>
+            {:else}
+              <input
+                type="text"
+                value={question.condition?.value || ""}
+                on:blur={(e) => {
+                  if (question.condition) {
+                    setCondition(
+                      question.condition.questionId,
+                      question.condition.operator,
+                      e.target.value,
+                    );
+                  }
+                }}
+                placeholder="Enter value..."
+                class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
+              />
+            {/if}
+          {/if}
+        </div>
       </div>
     {/if}
 

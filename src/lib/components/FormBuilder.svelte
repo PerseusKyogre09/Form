@@ -142,6 +142,7 @@
           <QuestionEditor
             question={element}
             questionNumber={getQuestionNumber(idx)}
+            allQuestions={form.questions.filter((q) => !('kind' in q))}
             on:update={updateForm}
             on:delete={() => deleteElement(element.id)}
             on:dragstart={(e) => handleDragStart(e.detail, idx)}

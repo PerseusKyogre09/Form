@@ -1,6 +1,7 @@
 <!-- src/routes/form-builder/[formId]/+page.svelte -->
 <script lang="ts">
   import { page } from "$app/stores";
+  import { browser } from "$app/environment";
   import { currentForm } from "../../../lib/stores";
   import FormBuilder from "../../../lib/components/FormBuilder.svelte";
   import FormPreview from "../../../lib/components/FormPreview.svelte";
@@ -91,8 +92,10 @@
     resizeStartY = e.clientY;
     resizeStartW = customWidth;
     resizeStartH = customHeight;
-    window.addEventListener("mousemove", onResizeMove);
-    window.addEventListener("mouseup", onResizeEnd);
+    if (browser) {
+      window.addEventListener("mousemove", onResizeMove);
+      window.addEventListener("mouseup", onResizeEnd);
+    }
   }
 
   function onResizeMove(e: MouseEvent) {
@@ -110,13 +113,17 @@
 
   function onResizeEnd() {
     isResizing = false;
-    window.removeEventListener("mousemove", onResizeMove);
-    window.removeEventListener("mouseup", onResizeEnd);
+    if (browser) {
+      window.removeEventListener("mousemove", onResizeMove);
+      window.removeEventListener("mouseup", onResizeEnd);
+    }
   }
 
   onDestroy(() => {
-    window.removeEventListener("mousemove", onResizeMove);
-    window.removeEventListener("mouseup", onResizeEnd);
+    if (browser) {
+      window.removeEventListener("mousemove", onResizeMove);
+      window.removeEventListener("mouseup", onResizeEnd);
+    }
   });
 
   // Recalculate scale when view changes to preview
