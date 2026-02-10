@@ -11,6 +11,7 @@
   import { Button, Tabs } from "bits-ui";
   import { notifications } from "../../../lib/stores/notifications";
   import FormBuilderSettings from "../../../lib/components/FormBuilderSettings.svelte";
+  import { onDestroy } from "svelte";
 
   let view: string = "edit";
   let currentFormData: Form | undefined;
@@ -19,6 +20,112 @@
   let loading = true;
   let username: string = "";
   let isSettingsOpen = false;
+
+  // Device preview presets
+  type DevicePreset = {
+    name: string;
+    icon: string;
+    width: number | null; // null = responsive (fill container)
+    height: number | null;
+  };
+
+  const devicePresets: DevicePreset[] = [
+    { name: "Responsive", icon: "fa-expand", width: null, height: null },
+    { name: "Mobile", icon: "fa-mobile-alt", width: 375, height: 667 },
+    { name: "iPhone 14", icon: "fa-mobile-alt", width: 390, height: 844 },
+    { name: "iPad", icon: "fa-tablet-alt", width: 768, height: 1024 },
+    { name: "MacBook", icon: "fa-laptop", width: 1280, height: 800 },
+    { name: "Desktop", icon: "fa-desktop", width: 1440, height: 900 },
+  ];
+
+  let selectedPreset: string = "Responsive";
+  let customWidth: number = 0;
+  let customHeight: number = 0;
+  let previewContainerEl: HTMLElement;
+  let isResizing = false;
+  let previewScale = 1;
+
+  function selectPreset(preset: DevicePreset) {
+    selectedPreset = preset.name;
+    if (preset.width && preset.height) {
+      customWidth = preset.width;
+      customHeight = preset.height;
+    }
+    recalcScale();
+  }
+
+  function recalcScale() {
+    if (!previewContainerEl) return;
+    const preset = devicePresets.find((p) => p.name === selectedPreset);
+    if (selectedPreset === "Custom") {
+      // Custom mode - scale based on customWidth/customHeight
+      const containerRect = previewContainerEl.getBoundingClientRect();
+      const availW = containerRect.width - 32;
+      const availH = containerRect.height - 32;
+      previewScale = Math.min(availW / customWidth, availH / customHeight, 1);
+      return;
+    }
+    if (!preset || !preset.width || !preset.height) {
+      previewScale = 1;
+      return;
+    }
+    const containerRect = previewContainerEl.getBoundingClientRect();
+    const availW = containerRect.width - 32; // padding
+    const availH = containerRect.height - 32;
+    const w = customWidth || preset.width;
+    const h = customHeight || preset.height;
+    previewScale = Math.min(availW / w, availH / h, 1);
+  }
+
+  // Resize handle drag
+  let resizeStartX = 0;
+  let resizeStartY = 0;
+  let resizeStartW = 0;
+  let resizeStartH = 0;
+
+  function onResizeStart(e: MouseEvent) {
+    e.preventDefault();
+    isResizing = true;
+    selectedPreset = "Custom";
+    resizeStartX = e.clientX;
+    resizeStartY = e.clientY;
+    resizeStartW = customWidth;
+    resizeStartH = customHeight;
+    window.addEventListener("mousemove", onResizeMove);
+    window.addEventListener("mouseup", onResizeEnd);
+  }
+
+  function onResizeMove(e: MouseEvent) {
+    if (!isResizing) return;
+    customWidth = Math.max(
+      280,
+      resizeStartW + (e.clientX - resizeStartX) * (1 / previewScale),
+    );
+    customHeight = Math.max(
+      400,
+      resizeStartH + (e.clientY - resizeStartY) * (1 / previewScale),
+    );
+    recalcScale();
+  }
+
+  function onResizeEnd() {
+    isResizing = false;
+    window.removeEventListener("mousemove", onResizeMove);
+    window.removeEventListener("mouseup", onResizeEnd);
+  }
+
+  onDestroy(() => {
+    window.removeEventListener("mousemove", onResizeMove);
+    window.removeEventListener("mouseup", onResizeEnd);
+  });
+
+  // Recalculate scale when view changes to preview
+  $: if (view === "preview") {
+    setTimeout(recalcScale, 50);
+  }
+
+  // Reactive: is the current mode a fixed-size device?
+  $: isFixedDevice = selectedPreset !== "Responsive";
 
   currentForm.subscribe((value) => {
     currentFormData = { closed: false, ...value };
@@ -492,25 +599,121 @@
         <p class="text-gray-500">Loading form...</p>
       </div>
     {:else if view === "preview"}
-      <!-- Full preview screen -->
-      <div
-        class="min-h-[80vh] flex items-center justify-center rounded-xl overflow-hidden border border-slate-200 bg-slate-900"
-      >
-        <div class="w-full h-full">
-          {#if currentFormData}
-            <FormPreview
-              questions={currentFormData.questions}
-              formId={currentFormData.id}
-              isClosed={currentFormData.closed || false}
-              backgroundType={currentFormData.backgroundType || "color"}
-              backgroundColor={currentFormData.backgroundColor || "#ffffff"}
-              backgroundImage={currentFormData.backgroundImage || ""}
-              globalTextColor={currentFormData?.globalTextColor || ""}
-              theme={currentFormData.theme}
-              {onSubmit}
-            />
+      <!-- Device Preset Toolbar -->
+      <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <div
+          class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap"
+        >
+          {#each devicePresets as preset}
+            <button
+              on:click={() => selectPreset(preset)}
+              class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap
+                {selectedPreset === preset.name
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}"
+            >
+              <i class="fas {preset.icon} text-[10px]"></i>
+              {preset.name}
+            </button>
+          {/each}
+          {#if selectedPreset === "Custom"}
+            <span
+              class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white text-primary shadow-sm flex items-center gap-1.5"
+            >
+              <i class="fas fa-arrows-alt text-[10px]"></i>
+              Custom
+            </span>
           {/if}
         </div>
+        <div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
+          {#if isFixedDevice || selectedPreset === "Custom"}
+            <span class="bg-slate-100 px-2 py-1 rounded">
+              {Math.round(customWidth)} × {Math.round(customHeight)}
+            </span>
+            {#if previewScale < 1}
+              <span class="bg-slate-100 px-2 py-1 rounded">
+                {Math.round(previewScale * 100)}%
+              </span>
+            {/if}
+          {:else}
+            <span class="bg-slate-100 px-2 py-1 rounded">Responsive</span>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Preview Container -->
+      <div
+        bind:this={previewContainerEl}
+        class="relative bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden"
+        style="height: calc(80vh - 60px);"
+      >
+        <!-- Dotted background pattern -->
+        <div
+          class="absolute inset-0 opacity-[0.03]"
+          style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 16px 16px;"
+        ></div>
+
+        {#if isFixedDevice || selectedPreset === "Custom"}
+          <!-- Fixed device frame -->
+          <div
+            class="relative bg-white rounded-lg shadow-2xl overflow-hidden"
+            style="width: {customWidth}px; height: {customHeight}px; transform: scale({previewScale}); transform-origin: center center;"
+          >
+            {#if currentFormData}
+              <FormPreview
+                questions={currentFormData.questions}
+                formId={currentFormData.id}
+                isClosed={currentFormData.closed || false}
+                backgroundType={currentFormData.backgroundType || "color"}
+                backgroundColor={currentFormData.backgroundColor || "#ffffff"}
+                backgroundImage={currentFormData.backgroundImage || ""}
+                globalTextColor={currentFormData?.globalTextColor || ""}
+                theme={currentFormData.theme}
+                isEmbedded={true}
+                {onSubmit}
+              />
+            {/if}
+
+            <!-- Resize Handle -->
+            <button
+              on:mousedown={onResizeStart}
+              class="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize z-[60] group p-0 bg-transparent border-none"
+              aria-label="Drag to resize preview"
+            >
+              <svg
+                class="w-full h-full text-slate-400 group-hover:text-primary transition-colors"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M14.5 17.5L17.5 14.5M9.5 17.5L17.5 9.5M4.5 17.5L17.5 4.5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  fill="none"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        {:else}
+          <!-- Responsive: fill entire container -->
+          <div class="absolute inset-0 overflow-hidden">
+            {#if currentFormData}
+              <FormPreview
+                questions={currentFormData.questions}
+                formId={currentFormData.id}
+                isClosed={currentFormData.closed || false}
+                backgroundType={currentFormData.backgroundType || "color"}
+                backgroundColor={currentFormData.backgroundColor || "#ffffff"}
+                backgroundImage={currentFormData.backgroundImage || ""}
+                globalTextColor={currentFormData?.globalTextColor || ""}
+                theme={currentFormData.theme}
+                isEmbedded={true}
+                {onSubmit}
+              />
+            {/if}
+          </div>
+        {/if}
       </div>
     {:else if view === "responses"}
       <!-- Responses viewer -->

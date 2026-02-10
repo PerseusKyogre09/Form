@@ -4,6 +4,7 @@
   import { gsap } from "gsap";
   import { Draggable } from "gsap/dist/Draggable";
   import { isValidPhoneNumber } from "libphonenumber-js";
+  import { notifications } from "../stores/notifications";
   import type {
     Question,
     Constraint,
@@ -1461,13 +1462,13 @@
           },
         });
       } else {
-        validationError = "Failed to submit form. Please try again.";
+        notifications.add("Failed to submit form. Please try again.", "error");
         isSubmitting = false;
       }
       isSubmitting = false;
     } catch (error) {
       console.error("Submission error:", error);
-      validationError = "Error submitting form. Please try again later.";
+      notifications.add("Error submitting form. Please try again later.", "error");
       isSubmitting = false;
     }
   }
@@ -1815,18 +1816,18 @@
                             placeholder={currentQuestion.placeholder ||
                               "Type your answer here..."}
                             class="w-full text-2xl md:text-3xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
-                              ? 'border-red-400'
+                              ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 bg-transparent transition-all duration-200"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
                             on:keydown={handleEnter}
-                            on:input={validateCurrentQuestion}
+                            on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
                             <p
                               bind:this={validationElement}
-                              class="text-red-400 text-sm mt-3 flex items-center gap-2"
+                              class="text-orange-600 text-sm mt-3 flex items-center gap-2"
                             >
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
@@ -1849,7 +1850,7 @@
                               "Type your answer here..."}
                             rows="5"
                             class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
-                              ? 'border-red-400'
+                              ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 resize-none bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
@@ -1860,12 +1861,12 @@
                                 nextQuestion();
                               }
                             }}
-                            on:input={validateCurrentQuestion}
+                            on:blur={validateCurrentQuestion}
                           ></textarea>
                           {#if validationError}
                             <p
                               bind:this={validationElement}
-                              class="text-red-400 text-sm mt-3 flex items-center gap-2"
+                              class="text-orange-600 text-sm mt-3 flex items-center gap-2"
                             >
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
@@ -1889,18 +1890,18 @@
                             placeholder={currentQuestion.placeholder ||
                               "Enter a number..."}
                             class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
-                              ? 'border-red-400'
+                              ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
                             on:keydown={handleEnter}
-                            on:input={validateCurrentQuestion}
+                            on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
                             <p
                               bind:this={validationElement}
-                              class="text-red-400 text-sm mt-3 flex items-center gap-2"
+                              class="text-orange-600 text-sm mt-3 flex items-center gap-2"
                             >
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
@@ -1922,18 +1923,18 @@
                             placeholder={currentQuestion.placeholder ||
                               "Enter your email..."}
                             class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
-                              ? 'border-red-400'
+                              ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
                             on:keydown={handleEnter}
-                            on:input={validateCurrentQuestion}
+                            on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
                             <p
                               bind:this={validationElement}
-                              class="text-red-400 text-sm mt-3 flex items-center gap-2"
+                              class="text-orange-600 text-sm mt-3 flex items-center gap-2"
                             >
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
@@ -1963,7 +1964,7 @@
                                   highlightedCountryIndex = 0;
                                 }}
                                 class="text-lg outline-none border-b-2 border-t-0 border-l-0 border-r-0 focus:border-[var(--form-accent)] focus:outline-none focus:ring-0 px-0 py-4 transition-all duration-200 min-w-max bg-transparent {validationError
-                                  ? 'border-red-400'
+                                  ? 'border-orange-400'
                                   : 'border-slate-300'}"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
@@ -2059,20 +2060,20 @@
                                 placeholder={currentQuestion.placeholder ||
                                   "Enter your phone number..."}
                                 class="w-full min-w-0 text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
-                                  ? 'border-red-400'
+                                  ? 'border-orange-400'
                                   : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
                                   'var(--form-text-primary)'};"
                                 on:keydown={handleEnter}
-                                on:input={validateCurrentQuestion}
+                                on:blur={validateCurrentQuestion}
                               />
                             </div>
                           </div>
                           {#if validationError}
                             <p
                               bind:this={validationElement}
-                              class="text-red-400 text-sm mt-3 flex items-center gap-2"
+                              class="text-orange-600 text-sm mt-3 flex items-center gap-2"
                             >
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
@@ -2092,14 +2093,14 @@
                             type="date"
                             bind:value={answers[currentQuestion.id]}
                             class="w-full text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
-                              ? 'border-red-400'
+                              ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: var(--form-text-primary);"
                           />
                           {#if validationError}
                             <p
                               bind:this={validationElement}
-                              class="text-red-400 text-sm mt-3 flex items-center gap-2"
+                              class="text-orange-600 text-sm mt-3 flex items-center gap-2"
                             >
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
@@ -2165,7 +2166,7 @@
                           <select
                             bind:value={answers[currentQuestion.id]}
                             class="w-full appearance-none text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
-                              ? 'border-red-400'
+                              ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 pl-0 pr-10 transition-all duration-200 bg-transparent placeholder-slate-300/50"
                             style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : 'var(--form-text-primary)'}; color-scheme: {theme && theme.id === 'ide-dark' ? 'dark' : 'light'}; background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='{theme && theme.id === 'ide-dark' ? '%23a0a0a0' : '%236b7280'}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
                             on:change={validateCurrentQuestion}
@@ -2187,7 +2188,7 @@
                           {#if validationError}
                             <p
                               bind:this={validationElement}
-                              class="text-red-400 text-sm mt-3 flex items-center gap-2"
+                              class="text-orange-600 text-sm mt-3 flex items-center gap-2"
                             >
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
@@ -2364,19 +2365,6 @@
           {/if}
         </div>
 
-        {#if validationError && !isSubmitting}
-          <div
-            class="hidden md:flex fixed bottom-28 right-8 justify-end z-40 max-w-sm"
-          >
-            <div
-              class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-lg"
-              role="alert"
-            >
-              <span class="block sm:inline">{validationError}</span>
-            </div>
-          </div>
-        {/if}
-
         <!-- Mobile Navigation Bar -->
         <!-- Mobile Navigation Bar -->
         <div
@@ -2439,18 +2427,7 @@
           {/if}
         </div>
 
-        {#if validationError && !isSubmitting}
-          <div
-            class="md:hidden fixed bottom-24 left-0 right-0 px-6 z-50 flex justify-center"
-          >
-            <div
-              class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-lg w-full text-center"
-              role="alert"
-            >
-              <span class="block sm:inline">{validationError}</span>
-            </div>
-          </div>
-        {/if}
+
       {:else}
         <div class="text-center py-12">
           <p class="text-slate-400">Add questions to preview your form</p>
