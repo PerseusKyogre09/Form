@@ -1410,6 +1410,104 @@
     }
   }
 
+  // Special handler for date inputs (don't interfere with native date picker arrow keys)
+  function handleDateKeyboard(e: KeyboardEvent, questionId: string) {
+    // Enter key - move to next question
+    if (e.key === "Enter") {
+      e.preventDefault();
+      nextQuestion();
+    }
+    // Backspace on empty - go to previous question
+    else if (e.key === "Backspace") {
+      if (isInputEmpty(questionId)) {
+        e.preventDefault();
+        prevQuestion();
+      }
+    }
+    // Note: Arrow Up/Down are handled by native date picker, we don't override
+  }
+
+  // Special handler for radio/checkbox/select - simplified
+  function handleSelectionKeyboard(e: KeyboardEvent) {
+    // Enter key - move to next question
+    if (e.key === "Enter") {
+      e.preventDefault();
+      nextQuestion();
+    }
+    // Arrow Up - navigate to previous question
+    else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      prevQuestion();
+    }
+    // Arrow Down - navigate to next question
+    else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      nextQuestion();
+    }
+  }
+
+  // Helper function to check if input is empty
+  function isInputEmpty(questionId: string): boolean {
+    const answer = answers[questionId];
+    if (answer === null || answer === undefined) return true;
+    if (typeof answer === "string") return answer.trim() === "";
+    return false;
+  }
+
+  // Comprehensive keyboard handler for text inputs
+  function handleKeyboardFlow(e: KeyboardEvent, questionId: string) {
+    // Enter key - move to next question
+    if (e.key === "Enter") {
+      e.preventDefault();
+      nextQuestion();
+    }
+    // Backspace on empty - go to previous question
+    else if (e.key === "Backspace") {
+      if (isInputEmpty(questionId)) {
+        e.preventDefault();
+        prevQuestion();
+      }
+    }
+    // Arrow Up - navigate to previous question
+    else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      prevQuestion();
+    }
+    // Arrow Down - navigate to next question
+    else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      nextQuestion();
+    }
+  }
+
+  // Special handler for long-text that allows Shift+Enter for new lines
+  function handleLongTextKeyboard(e: KeyboardEvent, questionId: string) {
+    // Enter key without Shift - move to next question
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      nextQuestion();
+    }
+    // Shift+Enter allows natural new lines (default behavior)
+    // Backspace on empty - go to previous question
+    else if (e.key === "Backspace") {
+      if (isInputEmpty(questionId)) {
+        e.preventDefault();
+        prevQuestion();
+      }
+    }
+    // Arrow Up - navigate to previous question
+    else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      prevQuestion();
+    }
+    // Arrow Down - navigate to next question
+    else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      nextQuestion();
+    }
+  }
+
+  // Simplified handler for inputs - Enter moves to next
   function handleEnter(e: KeyboardEvent) {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -1916,7 +2014,7 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={handleEnter}
+                            on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
@@ -1932,8 +2030,7 @@
                               class="text-xs mt-3"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                              continue
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -1950,12 +2047,7 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                nextQuestion();
-                              }
-                            }}
+                            on:keydown={(e) => handleLongTextKeyboard(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           ></textarea>
                           {#if validationError}
@@ -1970,8 +2062,7 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                              continue, Shift+Enter for new line
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Shift+Enter for new line • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -1990,7 +2081,7 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={handleEnter}
+                            on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
@@ -2005,8 +2096,7 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                              continue
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2023,7 +2113,7 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={handleEnter}
+                            on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
@@ -2038,8 +2128,7 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                              continue
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2160,7 +2249,7 @@
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
                                   'var(--form-text-primary)'};"
-                                on:keydown={handleEnter}
+                                on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
                                 on:blur={validateCurrentQuestion}
                               />
                             </div>
@@ -2177,8 +2266,7 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter to
-                              continue
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2191,6 +2279,7 @@
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: var(--form-text-primary);"
+                            on:keydown={(e) => handleDateKeyboard(e, currentQuestion.id)}
                           />
                           {#if validationError}
                             <p
@@ -2200,10 +2289,16 @@
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
                             </p>
+                          {:else}
+                            <p
+                              style="color: var(--form-text-secondary); opacity: 0.6;"
+                            >
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter to continue • Use arrows to change date
+                            </p>
                           {/if}
                         </div>
                       {:else if currentQuestion.type === "multiple-choice"}
-                        <div class="space-y-3">
+                        <div class="space-y-3" on:keydown={handleSelectionKeyboard}>
                           {#each currentQuestion.options || [] as option}
                             <label
                               class="flex items-center px-4 py-4 md:px-6 md:py-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
@@ -2255,6 +2350,12 @@
                               >
                             </label>
                           {/each}
+                          <p
+                            style="color: var(--form-text-secondary); opacity: 0.6;"
+                            class="text-xs mt-4"
+                          >
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                          </p>
                         </div>
                       {:else if currentQuestion.type === "dropdown"}
                         <div>
@@ -2265,6 +2366,7 @@
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 pl-0 pr-10 transition-all duration-200 bg-transparent placeholder-slate-300/50"
                             style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : 'var(--form-text-primary)'}; color-scheme: {theme && theme.id === 'ide-dark' ? 'dark' : 'light'}; background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='{theme && theme.id === 'ide-dark' ? '%23a0a0a0' : '%236b7280'}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
                             on:change={validateCurrentQuestion}
+                            on:keydown={handleSelectionKeyboard}
                           >
                             <option
                               value=""
@@ -2288,10 +2390,16 @@
                               <i class="fas fa-exclamation-circle"></i>
                               {validationError}
                             </p>
+                          {:else}
+                            <p
+                              style="color: var(--form-text-secondary); opacity: 0.6;"
+                            >
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                            </p>
                           {/if}
                         </div>
                       {:else if currentQuestion.type === "checkboxes"}
-                        <div class="space-y-3">
+                        <div class="space-y-3" on:keydown={handleSelectionKeyboard}>
                           {#each currentQuestion.options || [] as option}
                             <label
                               class="flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
@@ -2330,9 +2438,15 @@
                               >
                             </label>
                           {/each}
+                          <p
+                            style="color: var(--form-text-secondary); opacity: 0.6;"
+                            class="text-xs mt-4"
+                          >
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                          </p>
                         </div>
                       {:else if currentQuestion.type === "yes-no"}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" on:keydown={handleSelectionKeyboard}>
                           {#each ["Yes", "No"] as option}
                             <label
                               class="flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
@@ -2367,31 +2481,45 @@
                             </label>
                           {/each}
                         </div>
+                        <p
+                          style="color: var(--form-text-secondary); opacity: 0.6;"
+                          class="text-xs mt-4 text-center"
+                        >
+                          <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                        </p>
                       {:else if currentQuestion.type === "rating"}
-                        <div class="flex gap-6 justify-center py-6">
-                          {#each [1, 2, 3, 4, 5] as rating}
-                            <button
-                              type="button"
-                              aria-label="Rate {rating} out of 5 stars"
-                              on:click={() => {
-                                answers[currentQuestion.id] = rating;
-                                validateCurrentQuestion();
-                              }}
-                              class="transition-all duration-200 cursor-pointer text-3xl md:text-5xl {answers[
-                                currentQuestion.id
-                              ] >= rating
-                                ? 'scale-125 drop-shadow-lg'
-                                : 'opacity-40 hover:opacity-100 scale-100 hover:scale-110'}"
-                              style="color: {answers[currentQuestion.id] >=
-                              rating
-                                ? 'var(--form-accent)'
-                                : currentQuestion?.textColor ||
-                                  globalTextColor ||
-                                  'var(--form-text-primary)'};"
-                            >
-                              <i class="fas fa-star"></i>
-                            </button>
-                          {/each}
+                        <div class="flex flex-col gap-6">
+                          <div class="flex gap-6 justify-center py-6" on:keydown={handleSelectionKeyboard}>
+                            {#each [1, 2, 3, 4, 5] as rating}
+                              <button
+                                type="button"
+                                aria-label="Rate {rating} out of 5 stars"
+                                on:click={() => {
+                                  answers[currentQuestion.id] = rating;
+                                  validateCurrentQuestion();
+                                }}
+                                class="transition-all duration-200 cursor-pointer text-3xl md:text-5xl {answers[
+                                  currentQuestion.id
+                                ] >= rating
+                                  ? 'scale-125 drop-shadow-lg'
+                                  : 'opacity-40 hover:opacity-100 scale-100 hover:scale-110'}"
+                                style="color: {answers[currentQuestion.id] >=
+                                rating
+                                  ? 'var(--form-accent)'
+                                  : currentQuestion?.textColor ||
+                                    globalTextColor ||
+                                    'var(--form-text-primary)'};"
+                              >
+                                <i class="fas fa-star"></i>
+                              </button>
+                            {/each}
+                          </div>
+                          <p
+                            style="color: var(--form-text-secondary); opacity: 0.6;"
+                            class="text-xs text-center"
+                          >
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                          </p>
                         </div>
                       {/if}
                     </div>
