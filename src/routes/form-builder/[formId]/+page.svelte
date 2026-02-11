@@ -145,7 +145,7 @@
     try {
       const { data, error } = await supabase
         .from("forms")
-        .select("*")
+        .select("id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page")
         .eq("id", $page.params.formId)
         .single();
 
@@ -153,6 +153,14 @@
         console.error("Error loading form:", error);
       } else if (data) {
         console.log("Form loaded:", data.id);
+        
+        // Fetch questions from the questions table
+        const { data: questionsData } = await supabase
+          .from("questions")
+          .select("data")
+          .eq("form_id", data.id)
+          .order("order_index", { ascending: true });
+        
         // Convert snake_case to camelCase for consistency in the app
         const formData = {
           ...data,
@@ -161,6 +169,7 @@
           backgroundImage: data.background_image || "",
           globalTextColor: data.global_text_color || "",
           theme: data.theme || undefined,
+          questions: questionsData?.map(q => q.data) || [],
         };
         currentForm.set(formData);
       }
@@ -227,19 +236,20 @@
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
         thank_you_page: currentFormData.thankYouPage || null,
-        // Remove camelCase versions
+        // Remove camelCase versions and questions
         backgroundType: undefined,
         backgroundColor: undefined,
         backgroundImage: undefined,
         globalTextColor: undefined,
         thankYouPage: undefined,
+        questions: undefined, // Don't save questions to forms table
       };
 
       // Use upsert directly with Supabase and select() to confirm save
       const { data, error } = await supabase
         .from("forms")
         .upsert(formToSave)
-        .select();
+        .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page');
 
       if (error) {
         console.error("Supabase error:", error);
@@ -247,6 +257,46 @@
       }
 
       console.log("Form saved successfully:", data);
+
+      // Always save questions via API if they exist (don't rely on form save success)
+      if (currentFormData.questions && currentFormData.questions.length > 0) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+          if (token) {
+            const apiResponse = await fetch('/api/forms', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                id: currentFormData.id,
+                title: currentFormData.title,
+                slug: currentFormData.slug,
+                questions: currentFormData.questions,
+                published: currentFormData.published,
+                closed: currentFormData.closed,
+                background_type: currentFormData.backgroundType,
+                background_color: currentFormData.backgroundColor,
+                background_image: currentFormData.backgroundImage,
+                theme: currentFormData.theme,
+                global_text_color: currentFormData.globalTextColor,
+                thank_you_page: currentFormData.thankYouPage,
+                user_id: user.id
+              })
+            });
+            if (!apiResponse.ok) {
+              const errorText = await apiResponse.text();
+              console.error("API error saving questions:", errorText);
+            }
+          } else {
+            console.warn("No auth token available to save questions");
+          }
+        } catch (apiErr) {
+          console.error("Error calling API to save questions:", apiErr);
+        }
+      }
 
       if (!data || data.length === 0) {
         console.warn(

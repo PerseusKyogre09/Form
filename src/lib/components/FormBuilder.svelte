@@ -16,7 +16,7 @@
   let draggedIndex: number | null = null;
 
   currentForm.subscribe((value) => {
-    form = { ...value };
+    form = { ...value, questions: value.questions || [] };
   });
 
   function addQuestion(type: Question["type"]) {

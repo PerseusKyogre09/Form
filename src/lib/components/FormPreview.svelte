@@ -205,6 +205,9 @@
   let themeElements: HTMLElement[] = [];
 
   function applyFormTheme() {
+    // Skip on server-side rendering
+    if (typeof document === 'undefined') return;
+
     // Remove any previously injected theme elements for this form
     cleanupTheme();
 
@@ -241,6 +244,9 @@
   }
 
   function cleanupTheme() {
+    // Skip on server-side rendering
+    if (typeof document === 'undefined') return;
+
     // Remove all theme elements for this form
     themeElements.forEach((el) => el.remove());
     themeElements = [];
@@ -2572,6 +2578,11 @@
           <p class="text-slate-400">Add questions to preview your form</p>
         </div>
       {/if}
+    </div>
+
+    <!-- Beta notice -->
+    <div class="fixed bottom-4 left-4 text-xs text-gray-500 opacity-70 z-50">
+      This form is in beta. Report errors to Pradeepto Pal
     </div>
   </div>
 {/if}

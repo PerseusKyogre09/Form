@@ -1,76 +1,12 @@
 <!-- src/routes/form/[username]/[slug]/+page.svelte -->
 <script lang="ts">
   import { page } from "$app/stores";
-  import { onMount } from "svelte";
   import FormPreview from "../../../../lib/components/FormPreview.svelte";
   import type { Form } from "../../../../lib/types";
-  import { supabase } from "$lib/supabaseClient";
 
-  let formData: Form | undefined;
-  let notFound = false;
-  let loading = true;
+  export let data;
 
-  onMount(async () => {
-    await loadForm();
-  });
-
-  async function loadForm() {
-    try {
-      const username = $page.params.username as string;
-      const slug = $page.params.slug as string;
-
-      console.log("Loading form with username:", username, "slug:", slug);
-
-      // Get user by username first
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("username", username)
-        .single();
-
-      if (profileError || !profileData) {
-        console.error("User not found:", profileError);
-        notFound = true;
-        return;
-      }
-
-      // Then get the form by user_id and slug
-      const { data, error } = await supabase
-        .from("forms")
-        .select(
-          "id, slug, title, questions, published, closed, background_type, background_color, background_image, theme, global_text_color",
-        )
-        .eq("user_id", profileData.id)
-        .eq("slug", slug)
-        .eq("published", true)
-        .single();
-
-      if (error || !data) {
-        console.error("Form not found:", error);
-        notFound = true;
-      } else {
-        formData = {
-          id: data.id,
-          slug: data.slug,
-          title: data.title,
-          questions: data.questions || [],
-          published: data.published,
-          closed: data.closed || false,
-          backgroundType: data.background_type || "color",
-          backgroundColor: data.background_color || "#ffffff",
-          backgroundImage: data.background_image || "",
-          globalTextColor: data.global_text_color || "",
-          theme: data.theme || undefined,
-        };
-        notFound = false;
-      }
-    } catch (error) {
-      console.error("Error loading form:", error);
-      notFound = true;
-    } finally {
-      loading = false;
-    }
-  }
+  const formData: Form = data.form;
 
   function onSubmit(answers: Record<string, any>) {
     const username = $page.params.username;
@@ -80,23 +16,7 @@
 </script>
 
 <div class="min-h-screen bg-[#ffffff]">
-  {#if loading}
-    <div class="min-h-screen flex items-center justify-center">
-      <div class="flex flex-row gap-2">
-        <div class="w-4 h-4 rounded-full bg-blue-700 animate-bounce"></div>
-        <div class="w-4 h-4 rounded-full bg-blue-700 animate-bounce [animation-delay:-.3s]"></div>
-        <div class="w-4 h-4 rounded-full bg-blue-700 animate-bounce [animation-delay:-.5s]"></div>
-      </div>
-    </div>
-  {:else if notFound}
-    <div class="min-h-screen flex items-center justify-center">
-      <div class="text-center px-6">
-        <p class="text-slate-300 text-lg">
-          Form not found. Please check the link and try again.
-        </p>
-      </div>
-    </div>
-  {:else if formData}
+  {#if formData}
     <div class="min-h-screen">
       <FormPreview
         questions={formData.questions || []}

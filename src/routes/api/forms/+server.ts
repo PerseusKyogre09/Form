@@ -43,27 +43,60 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         .replace(/^-|-$/g, '');
     }
 
+    // Extract questions from payload
+    const questions = data.questions || [];
+    const { questions: _, ...formPayload } = data; // Exclude questions from form
+
     // Ensure form has correct user_id
-    const formPayload = {
-      ...data,
+    const finalFormPayload = {
+      ...formPayload,
       user_id: user.id,
       slug: slug,
       updated_at: new Date().toISOString(),
     };
 
-    console.log('POST /api/forms - Upserting form:', { id: formPayload.id, user_id: formPayload.user_id });
+    console.log('POST /api/forms - Upserting form:', { id: finalFormPayload.id, user_id: finalFormPayload.user_id });
 
     // Use upsert to handle both create and update
-    const { error } = await supabase
+    const { error: formError } = await supabase
       .from('forms')
-      .upsert(formPayload);
+      .upsert(finalFormPayload);
 
-    if (error) {
-      console.error('Error upserting form:', error);
-      return json({ error: error.message }, { status: 500 });
+    if (formError) {
+      console.error('Error upserting form:', formError);
+      return json({ error: formError.message }, { status: 500 });
     }
 
-    console.log('POST /api/forms - Successfully saved form:', formPayload.id);
+    // Delete existing questions for this form
+    const { error: deleteError } = await supabase
+      .from('questions')
+      .delete()
+      .eq('form_id', data.id);
+
+    if (deleteError) {
+      console.error('Error deleting old questions:', deleteError);
+      // Don't fail the whole operation, just log it
+    }
+
+    // Insert new questions
+    if (questions.length > 0) {
+      const questionsData = questions.map((q: any, index: number) => ({
+        form_id: data.id,
+        data: q,
+        order_index: index
+      }));
+
+      const { error: insertError } = await supabase
+        .from('questions')
+        .insert(questionsData);
+
+      if (insertError) {
+        console.error('Error inserting questions:', insertError);
+        return json({ error: 'Form saved but failed to save questions: ' + insertError.message }, { status: 500 });
+      }
+    }
+
+    console.log('POST /api/forms - Successfully saved form and questions:', finalFormPayload.id);
     return json({ success: true, id: data.id });
   } catch (error) {
     console.error('Error saving form:', error);
@@ -111,7 +144,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
       const { data, error } = await supabase
         .from('forms')
-        .select('*')
+        .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
         .eq('slug', slug)
         .eq('user_id', user.id)
         .single();
@@ -121,12 +154,22 @@ export const GET: RequestHandler = async ({ url, request }) => {
         return json({ error: error.message }, { status: 404 });
       }
 
-      return json(data);
+      // Fetch questions for this form
+      const { data: questionsData } = await supabase
+        .from('questions')
+        .select('data')
+        .eq('form_id', data.id)
+        .order('order_index', { ascending: true });
+
+      return json({
+        ...data,
+        questions: questionsData?.map(q => q.data) || (data.questions || [])
+      });
     } else if (formId) {
       // Look up by form ID
       const { data, error } = await supabase
         .from('forms')
-        .select('*')
+        .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
         .eq('id', formId)
         .single();
 
@@ -135,7 +178,17 @@ export const GET: RequestHandler = async ({ url, request }) => {
         return json({ error: error.message }, { status: 404 });
       }
 
-      return json(data);
+      // Fetch questions for this form
+      const { data: questionsData } = await supabase
+        .from('questions')
+        .select('data')
+        .eq('form_id', data.id)
+        .order('order_index', { ascending: true });
+
+      return json({
+        ...data,
+        questions: questionsData?.map(q => q.data) || (data.questions || [])
+      });
     }
 
     // Return all forms for the current user
@@ -153,13 +206,43 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
     const { data: forms, error } = await supabase
       .from('forms')
-      .select('*')
+      .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching forms:', error);
       return json({ error: error.message }, { status: 500 });
+    }
+
+    // Fetch questions for all forms
+    if (forms && forms.length > 0) {
+      const formIds = forms.map(f => f.id);
+      const { data: allQuestions } = await supabase
+        .from('questions')
+        .select('form_id, data')
+        .in('form_id', formIds)
+        .order('form_id, order_index', { ascending: true });
+
+      // Map questions back to forms
+      const questionsMap: Record<string, any[]> = {};
+      allQuestions?.forEach(q => {
+        if (!questionsMap[q.form_id]) {
+          questionsMap[q.form_id] = [];
+        }
+        questionsMap[q.form_id].push(q.data);
+      });
+
+      forms = forms.map(f => ({
+        ...f,
+        questions: questionsMap[f.id] || []
+      }));
+    } else if (forms) {
+      // Ensure all forms have questions array even if no questions table entries
+      forms = forms.map(f => ({
+        ...f,
+        questions: f.questions || []
+      }));
     }
 
     return json(forms || []);
