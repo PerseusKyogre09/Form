@@ -1,8 +1,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { supabase } from '$lib/supabaseClient';
+import { createSupabaseServerClient } from '$lib/supabaseClient';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
+  const supabase = createSupabaseServerClient(cookies);
   try {
     const data = await request.json();
     console.log('POST /api/forms - received data:', { id: data.id, title: data.title });

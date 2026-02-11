@@ -1,13 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
-import { env } from '$env/dynamic/public';
+import { createSupabaseServerClient } from '$lib/supabaseClient';
 import { error } from '@sveltejs/kit';
 
-const supabase = createClient(
-  env.PUBLIC_SUPABASE_URL || '',
-  env.PUBLIC_SUPABASE_ANON_KEY || ''
-);
-
-export async function load({ params }) {
+export async function load({ params, cookies }) {
+  const supabase = createSupabaseServerClient(cookies);
+  const username = params.username as string;
+  const slug = params.slug as string;
   const username = params.username as string;
   const slug = params.slug as string;
 
