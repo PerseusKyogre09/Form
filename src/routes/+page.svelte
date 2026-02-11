@@ -5,10 +5,13 @@
   import favicon from "$lib/assets/favicon.svg";
   import quillScreenshot from "$lib/assets/demo/quill.png";
   import { Button } from "bits-ui";
+  import { browser } from "$app/environment";
   import gsap from "gsap";
   import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
-  gsap.registerPlugin(ScrollTrigger);
+  if (browser) {
+    gsap.registerPlugin(ScrollTrigger);
+  }
 
   let user: any = null;
 
@@ -59,9 +62,7 @@
 
 <div class="min-h-screen bg-white overflow-hidden text-black font-sans">
   <!-- Nav -->
-  <nav
-    class="fixed top-0 w-full z-50 bg-white border-b border-black/10"
-  >
+  <nav class="fixed top-0 w-full z-50 bg-white border-b border-black/10">
     <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <img src={favicon} alt="Quill" class="w-6 h-6" />
@@ -112,7 +113,9 @@
             in:fly={{ y: 20, duration: 800, delay: 150 }}
             class="max-w-xl text-lg md:text-xl text-black/70 mb-8 leading-relaxed font-medium"
           >
-            Quill makes forms that feel <span class="font-bold">fast</span>, <span class="font-bold">intentional</span>, and <span class="font-bold">actually enjoyable</span> to fill.
+            Quill makes forms that feel <span class="font-bold">fast</span>,
+            <span class="font-bold">intentional</span>, and
+            <span class="font-bold">actually enjoyable</span> to fill.
           </p>
 
           <div
@@ -143,9 +146,9 @@
           in:fly={{ y: 40, duration: 1000, delay: 400 }}
           class="relative hero-gif"
         >
-          <img 
-            src="https://via.placeholder.com/600x500/000000/ffffff?text=Form+Preview+GIF" 
-            alt="Form preview animation" 
+          <img
+            src="https://via.placeholder.com/600x500/000000/ffffff?text=Form+Preview+GIF"
+            alt="Form preview animation"
             class="w-full rounded-lg shadow-2xl border border-black/10"
           />
         </div>
@@ -167,26 +170,53 @@
         <!-- Google Forms style (cluttered) -->
         <div class="space-y-4 animate-on-scroll">
           <h3 class="text-lg font-bold text-black/70">The typical form</h3>
-          <div class="bg-gray-50 border border-black/10 rounded-lg p-8 space-y-4">
+          <div
+            class="bg-gray-50 border border-black/10 rounded-lg p-8 space-y-4"
+          >
             <div class="space-y-2">
               <label class="text-sm font-medium">What's your name?</label>
-              <input type="text" placeholder="Name" class="w-full border border-black/10 rounded px-3 py-2 text-sm" disabled />
+              <input
+                type="text"
+                placeholder="Name"
+                class="w-full border border-black/10 rounded px-3 py-2 text-sm"
+                disabled
+              />
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium">Email address</label>
-              <input type="email" placeholder="Email" class="w-full border border-black/10 rounded px-3 py-2 text-sm" disabled />
+              <input
+                type="email"
+                placeholder="Email"
+                class="w-full border border-black/10 rounded px-3 py-2 text-sm"
+                disabled
+              />
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium">Company</label>
-              <input type="text" placeholder="Company" class="w-full border border-black/10 rounded px-3 py-2 text-sm" disabled />
+              <input
+                type="text"
+                placeholder="Company"
+                class="w-full border border-black/10 rounded px-3 py-2 text-sm"
+                disabled
+              />
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium">Message</label>
-              <textarea placeholder="Type your message..." class="w-full border border-black/10 rounded px-3 py-2 text-sm h-20" disabled></textarea>
+              <textarea
+                placeholder="Type your message..."
+                class="w-full border border-black/10 rounded px-3 py-2 text-sm h-20"
+                disabled
+              ></textarea>
             </div>
             <div class="flex gap-2">
-              <button class="bg-black/20 text-black/50 px-4 py-2 rounded text-sm font-medium" disabled>Cancel</button>
-              <button class="bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium" disabled>Submit</button>
+              <button
+                class="bg-black/20 text-black/50 px-4 py-2 rounded text-sm font-medium"
+                disabled>Cancel</button
+              >
+              <button
+                class="bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium"
+                disabled>Submit</button
+              >
             </div>
           </div>
           <ul class="space-y-2 text-sm text-black/60">
@@ -199,9 +229,9 @@
         <!-- Quill (focused) - Image placeholder -->
         <div class="space-y-4 animate-on-scroll">
           <h3 class="text-lg font-bold">With Quill</h3>
-          <img 
+          <img
             src={quillScreenshot}
-            alt="Quill form experience" 
+            alt="Quill form experience"
             class="w-full rounded-lg shadow-lg border border-black/10"
           />
           <ul class="space-y-2 text-sm text-black/60">
@@ -225,31 +255,44 @@
 
       <div class="grid md:grid-cols-2 gap-12 features-grid">
         <!-- Username URLs -->
-        <div class="space-y-4 feature-item opacity-0" style="--tw-translate-x: 30px;">
+        <div
+          class="space-y-4 feature-item opacity-0"
+          style="--tw-translate-x: 30px;"
+        >
           <div class="text-5xl font-black text-black/10">→</div>
           <h3 class="text-2xl font-bold">Username-based URLs</h3>
           <p class="text-black/70">
             No random IDs. Just your name and the form slug. Share it anywhere.
           </p>
-          <code class="block bg-black/5 border border-black/10 rounded px-4 py-3 text-sm font-mono text-black/70">
+          <code
+            class="block bg-black/5 border border-black/10 rounded px-4 py-3 text-sm font-mono text-black/70"
+          >
             quill.com/user/feedback
           </code>
         </div>
 
         <!-- Keyboard first -->
-        <div class="space-y-4 feature-item opacity-0" style="--tw-translate-x: 30px;">
+        <div
+          class="space-y-4 feature-item opacity-0"
+          style="--tw-translate-x: 30px;"
+        >
           <div class="text-5xl font-black text-black/10">⌨</div>
           <h3 class="text-2xl font-bold">Keyboard-first navigation</h3>
           <p class="text-black/70">
             Tab through. Hit enter. No mouse needed. Fast and intentional.
           </p>
-          <div class="bg-black/5 border border-black/10 rounded px-4 py-3 text-sm text-black/60">
+          <div
+            class="bg-black/5 border border-black/10 rounded px-4 py-3 text-sm text-black/60"
+          >
             Tab ↹ Next • Enter ↵ Submit • Esc Back
           </div>
         </div>
 
         <!-- Clean transitions -->
-        <div class="space-y-4 feature-item opacity-0" style="--tw-translate-x: 30px;">
+        <div
+          class="space-y-4 feature-item opacity-0"
+          style="--tw-translate-x: 30px;"
+        >
           <div class="text-5xl font-black text-black/10">✨</div>
           <h3 class="text-2xl font-bold">Smooth question transitions</h3>
           <p class="text-black/70">
@@ -258,7 +301,10 @@
         </div>
 
         <!-- Anonymous friendly -->
-        <div class="space-y-4 feature-item opacity-0" style="--tw-translate-x: 30px;">
+        <div
+          class="space-y-4 feature-item opacity-0"
+          style="--tw-translate-x: 30px;"
+        >
           <div class="text-5xl font-black text-black/10">🔗</div>
           <h3 class="text-2xl font-bold">Share a link, collect responses</h3>
           <p class="text-black/70">
@@ -272,26 +318,38 @@
   <!-- Built For Section -->
   <section class="py-20 border-t border-black/10">
     <div class="max-w-7xl mx-auto px-6">
-      <h2 class="text-4xl md:text-5xl font-black tracking-tight mb-12 animate-on-scroll">
+      <h2
+        class="text-4xl md:text-5xl font-black tracking-tight mb-12 animate-on-scroll"
+      >
         Built for.
       </h2>
 
       <div class="grid md:grid-cols-2 gap-8">
-        <div class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default">
+        <div
+          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+        >
           <h3 class="text-xl font-bold mb-2">College clubs</h3>
           <p class="text-black/60">Sign-ups, feedback, event RSVPs.</p>
         </div>
-        <div class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default">
+        <div
+          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+        >
           <h3 class="text-xl font-bold mb-2">Hackathons</h3>
           <p class="text-black/60">Registration, idea voting, feedback.</p>
         </div>
-        <div class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default">
+        <div
+          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+        >
           <h3 class="text-xl font-bold mb-2">Recruiter pipelines</h3>
           <p class="text-black/60">Applications, referrals, surveys.</p>
         </div>
-        <div class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default">
+        <div
+          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+        >
           <h3 class="text-xl font-bold mb-2">Internal tools</h3>
-          <p class="text-black/60">Feedback, requests, quick data collection.</p>
+          <p class="text-black/60">
+            Feedback, requests, quick data collection.
+          </p>
         </div>
       </div>
     </div>
@@ -303,7 +361,9 @@
       <h2 class="text-4xl md:text-5xl font-black mb-6">
         Ready to build better forms?
       </h2>
-      <p class="text-xl text-white/70 mb-8">No credit card required. No features locked behind a paywall.</p>
+      <p class="text-xl text-white/70 mb-8">
+        No credit card required. No features locked behind a paywall.
+      </p>
       <Button.Root
         href={user ? "/dashboard" : "/signup"}
         class="rounded-lg bg-white text-black shadow-sm hover:bg-white/90 inline-flex
@@ -336,10 +396,14 @@
             <h4 class="font-bold text-white">Product</h4>
             <ul class="space-y-2 text-white/60">
               <li>
-                <a href="/" class="hover:text-white transition-colors">Features</a>
+                <a href="/" class="hover:text-white transition-colors"
+                  >Features</a
+                >
               </li>
               <li>
-                <a href="/" class="hover:text-white transition-colors">Resources</a>
+                <a href="/" class="hover:text-white transition-colors"
+                  >Resources</a
+                >
               </li>
             </ul>
           </div>
@@ -350,7 +414,9 @@
                 <a href="/" class="hover:text-white transition-colors">About</a>
               </li>
               <li>
-                <a href="/" class="hover:text-white transition-colors">Twitter</a>
+                <a href="/" class="hover:text-white transition-colors"
+                  >Twitter</a
+                >
               </li>
             </ul>
           </div>
@@ -358,7 +424,9 @@
             <h4 class="font-bold text-white">Legal</h4>
             <ul class="space-y-2 text-white/60">
               <li>
-                <a href="/" class="hover:text-white transition-colors">Privacy</a>
+                <a href="/" class="hover:text-white transition-colors"
+                  >Privacy</a
+                >
               </li>
               <li>
                 <a href="/" class="hover:text-white transition-colors">Terms</a>
@@ -368,9 +436,7 @@
         </div>
       </div>
 
-      <div
-        class="pt-8 border-t border-white/10 text-sm text-white/50"
-      >
+      <div class="pt-8 border-t border-white/10 text-sm text-white/50">
         <p>© 2026 Quill. All rights reserved.</p>
       </div>
     </div>

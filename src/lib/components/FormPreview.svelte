@@ -39,7 +39,11 @@
     animateCheckmark,
   } from "../animations";
 
-  gsap.registerPlugin(Draggable);
+  import { browser } from "$app/environment";
+
+  if (browser) {
+    gsap.registerPlugin(Draggable);
+  }
 
   export let questions: FormElement[] = [];
   export let formId: string;
@@ -206,7 +210,7 @@
 
   function applyFormTheme() {
     // Skip on server-side rendering
-    if (typeof document === 'undefined') return;
+    if (typeof document === "undefined") return;
 
     // Remove any previously injected theme elements for this form
     cleanupTheme();
@@ -245,7 +249,7 @@
 
   function cleanupTheme() {
     // Skip on server-side rendering
-    if (typeof document === 'undefined') return;
+    if (typeof document === "undefined") return;
 
     // Remove all theme elements for this form
     themeElements.forEach((el) => el.remove());

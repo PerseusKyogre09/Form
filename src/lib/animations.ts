@@ -1,7 +1,9 @@
 import { gsap } from 'gsap';
 import { Draggable } from 'gsap/dist/Draggable';
 
-gsap.registerPlugin(Draggable);
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(Draggable);
+}
 
 /**
  * Premium fade and scale entry animation with elastic easing
@@ -70,9 +72,9 @@ export function slideQuestion(element: HTMLElement, direction: 'next' | 'prev', 
   if (!mainContent) return;
 
   // Get direct children for cascading opacity (just visual, no position change)
-  const contentChildren = Array.from(mainContent.children).filter(child => 
-    child instanceof HTMLElement && 
-    child.tagName !== 'SCRIPT' && 
+  const contentChildren = Array.from(mainContent.children).filter(child =>
+    child instanceof HTMLElement &&
+    child.tagName !== 'SCRIPT' &&
     child.tagName !== 'STYLE'
   ) as HTMLElement[];
 
