@@ -37,169 +37,147 @@
 
     <!-- Background Settings -->
     <!-- Background Settings -->
-    <button
-        class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
-        on:click={() => (isBackgroundOpen = !isBackgroundOpen)}
-    >
-        <div class="flex flex-col gap-2 w-full">
-            <div class="flex items-center justify-between w-full group">
-                <div class="flex items-center gap-3">
-                    <span
-                        class="fas fa-image text-secondary group-hover:scale-110 transition-transform"
-                    ></span>
-                    <span class="text-sm font-medium">Background Image</span>
-                </div>
+    <div class="w-full rounded-lg border border-transparent transition-all">
+        <button
+            class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 group"
+            on:click={() => (isBackgroundOpen = !isBackgroundOpen)}
+        >
+            <div class="flex items-center gap-3">
                 <span
-                    class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isBackgroundOpen
-                        ? 'rotate-90'
-                        : ''}"
+                    class="fas fa-image text-secondary group-hover:scale-110 transition-transform"
                 ></span>
+                <span class="text-sm font-medium">Background Image</span>
             </div>
+            <span
+                class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isBackgroundOpen
+                    ? 'rotate-90'
+                    : ''}"
+            ></span>
+        </button>
 
-            <!-- Inline Quick Settings for Background -->
-            {#if isBackgroundOpen}
-                <div
-                    class="pl-8 pt-2 space-y-2 text-left"
-                    on:click|stopPropagation
-                    role="group"
-                >
-                    {#if currentFormData?.backgroundType === "color"}
-                        <div class="flex gap-2">
-                            <input
-                                type="color"
-                                value={currentFormData?.backgroundColor ||
-                                    "#ffffff"}
-                                on:input={(e) =>
-                                    updateBackgroundColor(
-                                        e.currentTarget.value,
-                                    )}
-                                class="w-8 h-8 rounded cursor-pointer border border-gray-200"
-                            />
-                            <span class="text-xs text-slate-500 self-center"
-                                >{currentFormData?.backgroundColor}</span
-                            >
-                        </div>
-                    {:else}
-                        <div class="text-xs text-slate-500">Image selected</div>
-                    {/if}
-                    <label
-                        class="text-xs text-primary cursor-pointer hover:underline"
-                    >
-                        {currentFormData?.backgroundImage
-                            ? "Change Image"
-                            : "Upload Image"}
-                        <input
-                            type="file"
-                            accept="image/*"
-                            on:change={handleBackgroundImageUpload}
-                            class="hidden"
-                        />
-                    </label>
-                    {#if currentFormData?.backgroundImage}
-                        <button
-                            on:click={removeBackgroundImage}
-                            class="text-xs text-red-500 block hover:underline"
-                            >Remove Image</button
-                        >
-                    {/if}
-                </div>
-            {/if}
-        </div>
-    </button>
-
-    <!-- Global Text Color Settings -->
-    <button
-        class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
-        on:click={() => (isTextColorOpen = !isTextColorOpen)}
-    >
-        <div class="flex flex-col gap-2 w-full">
-            <div class="flex items-center justify-between w-full group">
-                <div class="flex items-center gap-3">
-                    <span
-                        class="fas fa-font text-secondary group-hover:scale-110 transition-transform"
-                    ></span>
-                    <span class="text-sm font-medium">Global Text Color</span>
-                </div>
-                <span
-                    class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isTextColorOpen
-                        ? 'rotate-90'
-                        : ''}"
-                ></span>
-            </div>
-
-            <!-- Inline Quick Settings for Text Color -->
-            {#if isTextColorOpen}
-                <div
-                    class="pl-8 pt-2 text-left"
-                    on:click|stopPropagation
-                    role="group"
-                >
+        <!-- Inline Quick Settings for Background -->
+        {#if isBackgroundOpen}
+            <div class="pl-8 pb-3 space-y-2 text-left">
+                {#if currentFormData?.backgroundType === "color"}
                     <div class="flex gap-2">
                         <input
                             type="color"
-                            value={currentFormData?.globalTextColor ||
-                                "#000000"}
-                            on:input={(e) => {
-                                updateGlobalTextColor(e.currentTarget.value);
-                                saveForm();
-                            }}
+                            value={currentFormData?.backgroundColor ||
+                                "#ffffff"}
+                            on:input={(e) =>
+                                updateBackgroundColor(e.currentTarget.value)}
                             class="w-8 h-8 rounded cursor-pointer border border-gray-200"
                         />
                         <span class="text-xs text-slate-500 self-center"
-                            >{currentFormData?.globalTextColor ||
-                                "Default"}</span
+                            >{currentFormData?.backgroundColor}</span
                         >
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-1">
-                        Overrides dynamic text colors
-                    </p>
+                {:else}
+                    <div class="text-xs text-slate-500">Image selected</div>
+                {/if}
+                <label
+                    class="text-xs text-primary cursor-pointer hover:underline"
+                >
+                    {currentFormData?.backgroundImage
+                        ? "Change Image"
+                        : "Upload Image"}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        on:change={handleBackgroundImageUpload}
+                        class="hidden"
+                    />
+                </label>
+                {#if currentFormData?.backgroundImage}
+                    <button
+                        on:click={removeBackgroundImage}
+                        class="text-xs text-red-500 block hover:underline"
+                        >Remove Image</button
+                    >
+                {/if}
+            </div>
+        {/if}
+    </div>
+
+    <!-- Global Text Color Settings -->
+    <div class="w-full rounded-lg border border-transparent transition-all">
+        <button
+            class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 group"
+            on:click={() => (isTextColorOpen = !isTextColorOpen)}
+        >
+            <div class="flex items-center gap-3">
+                <span
+                    class="fas fa-font text-secondary group-hover:scale-110 transition-transform"
+                ></span>
+                <span class="text-sm font-medium">Global Text Color</span>
+            </div>
+            <span
+                class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isTextColorOpen
+                    ? 'rotate-90'
+                    : ''}"
+            ></span>
+        </button>
+
+        <!-- Inline Quick Settings for Text Color -->
+        {#if isTextColorOpen}
+            <div class="pl-8 pb-3 text-left" role="group">
+                <div class="flex gap-2">
+                    <input
+                        type="color"
+                        value={currentFormData?.globalTextColor || "#000000"}
+                        on:input={(e) => {
+                            updateGlobalTextColor(e.currentTarget.value);
+                            saveForm();
+                        }}
+                        class="w-8 h-8 rounded cursor-pointer border border-gray-200"
+                    />
+                    <span class="text-xs text-slate-500 self-center"
+                        >{currentFormData?.globalTextColor || "Default"}</span
+                    >
                 </div>
-            {/if}
-        </div>
-    </button>
+                <p class="text-[10px] text-slate-400 mt-1">
+                    Overrides dynamic text colors
+                </p>
+            </div>
+        {/if}
+    </div>
 
     <!-- Slug Settings -->
-    <button
-        class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
-        on:click={() => (isSlugOpen = !isSlugOpen)}
-    >
-        <div class="flex flex-col gap-2 w-full">
-            <div class="flex items-center justify-between w-full group">
-                <div class="flex items-center gap-3">
-                    <span
-                        class="fas fa-link text-secondary group-hover:scale-110 transition-transform"
-                    ></span>
-                    <span class="text-sm font-medium">Form Slug</span>
-                </div>
+    <div class="w-full rounded-lg border border-transparent transition-all">
+        <button
+            class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 group"
+            on:click={() => (isSlugOpen = !isSlugOpen)}
+        >
+            <div class="flex items-center gap-3">
                 <span
-                    class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isSlugOpen
-                        ? 'rotate-90'
-                        : ''}"
+                    class="fas fa-link text-secondary group-hover:scale-110 transition-transform"
                 ></span>
+                <span class="text-sm font-medium">Form Slug</span>
             </div>
+            <span
+                class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isSlugOpen
+                    ? 'rotate-90'
+                    : ''}"
+            ></span>
+        </button>
 
-            <!-- Inline Slug Editor -->
-            {#if isSlugOpen}
-                <div
-                    class="pl-8 pt-2 text-left space-y-2"
-                    on:click|stopPropagation
-                    role="group"
-                >
-                    <input
-                        type="text"
-                        value={currentFormData?.slug || ""}
-                        on:change={(e) => updateSlug(e.currentTarget.value)}
-                        placeholder="my-form-slug"
-                        class="w-full text-xs bg-white border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-primary outline-none"
-                    />
-                    <p class="text-[10px] text-slate-400">
-                        Use this in your URL: /form/{currentFormData?.slug ||
-                            "form-slug"}
-                    </p>
-                </div>
-            {/if}
-        </div>
-    </button>
+        <!-- Inline Slug Editor -->
+        {#if isSlugOpen}
+            <div class="pl-8 pb-3 text-left space-y-2" role="group">
+                <input
+                    type="text"
+                    value={currentFormData?.slug || ""}
+                    on:change={(e) => updateSlug(e.currentTarget.value)}
+                    placeholder="my-form-slug"
+                    class="w-full text-xs bg-white border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-primary outline-none"
+                />
+                <p class="text-[10px] text-slate-400">
+                    Use this in your URL: /form/{currentFormData?.slug ||
+                        "form-slug"}
+                </p>
+            </div>
+        {/if}
+    </div>
 
     <button
         on:click={toggleFormStatus}
