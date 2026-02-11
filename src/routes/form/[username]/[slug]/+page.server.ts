@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '$lib/supabaseClient';
+import { createSupabaseServerClient } from '$lib/supabaseServer';
 import { error } from '@sveltejs/kit';
 
 export async function load({ params, cookies }) {

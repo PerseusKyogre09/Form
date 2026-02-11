@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createSupabaseServerClient } from '$lib/supabaseClient';
+import { createSupabaseServerClient } from '$lib/supabaseServer';
 import { hashIP, getClientIP, checkRateLimit, logRequest } from '$lib/utils/rateLimit';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
