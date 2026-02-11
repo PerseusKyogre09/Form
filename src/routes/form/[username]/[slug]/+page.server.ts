@@ -5,8 +5,6 @@ export async function load({ params, cookies }) {
   const supabase = createSupabaseServerClient(cookies);
   const username = params.username as string;
   const slug = params.slug as string;
-  const username = params.username as string;
-  const slug = params.slug as string;
 
   try {
     // Get user by username (indexed query)
