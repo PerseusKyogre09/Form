@@ -16,7 +16,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
     const token = authHeader.substring(7);
     console.log('POST /api/forms - Got token, attempting to get user...');
-    
+
     // For server-side token verification, we need to use the service role key
     // Since we don't have that, we'll trust the client's user_id in the payload
     // and verify it's the same user making the request by checking the token
@@ -204,7 +204,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: forms, error } = await supabase
+    let { data: forms, error } = await supabase
       .from('forms')
       .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
       .eq('user_id', user.id)
