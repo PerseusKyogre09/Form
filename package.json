@@ -26,7 +26,6 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
-		"@rollup/rollup-win32-x64-msvc": "^4.57.1",
 		"@supabase/ssr": "^0.8.0",
 		"@supabase/supabase-js": "^2.93.3",
 		"bits-ui": "^2.15.5",
