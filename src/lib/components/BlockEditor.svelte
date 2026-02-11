@@ -11,19 +11,9 @@
   const animationOptions: { value: AnimationType; label: string }[] = [
     { value: "fade", label: "Fade In" },
     { value: "slide", label: "Slide Up" },
-    { value: "pulse", label: "Pulse" },
-    { value: "bounce", label: "Bounce In" },
-    { value: "zoom", label: "Zoom In" },
-    { value: "flip", label: "Flip In" },
-    { value: "rotate", label: "Rotate In" },
     { value: "slideLeft", label: "Slide Left" },
     { value: "slideRight", label: "Slide Right" },
-    { value: "wobble", label: "Wobble" },
-    { value: "heartbeat", label: "Heartbeat" },
-    { value: "swing", label: "Swing" },
-    { value: "tada", label: "Tada" },
-    { value: "jello", label: "Jello" },
-    { value: "blink", label: "Blink" },
+    { value: "zoom", label: "Zoom In" },
   ];
 
   function updateBlock() {
@@ -376,9 +366,7 @@
         class="rounded-lg border border-gray-600 p-4 min-h-[120px] flex flex-col bg-gray-900"
       >
         {#if block.headerText}
-          <div
-            class="text-sm md:text-base font-mono text-teal-400 mb-2"
-          >
+          <div class="text-sm md:text-base font-mono text-teal-400 mb-2">
             {block.headerText}
           </div>
         {/if}
@@ -394,13 +382,19 @@
         {/if}
 
         {#if block.text}
-          <div class="text-xs md:text-sm text-white font-mono flex-1 mb-2 line-clamp-2">
-            {block.text}<span class="inline-block w-1 h-4 ml-2 bg-white align-middle"></span>
+          <div
+            class="text-xs md:text-sm text-white font-mono flex-1 mb-2 line-clamp-2"
+          >
+            {block.text}<span
+              class="inline-block w-1 h-4 ml-2 bg-white align-middle"
+            ></span>
           </div>
         {/if}
 
         {#if block.footerText}
-          <div class="text-xs text-gray-500 font-mono mt-2 pt-2 border-t border-gray-700">
+          <div
+            class="text-xs text-gray-500 font-mono mt-2 pt-2 border-t border-gray-700"
+          >
             // {block.footerText}
           </div>
         {/if}
@@ -408,12 +402,16 @@
     {:else}
       <!-- Card Style Preview (with or without IDE theme) -->
       <div
-        class="block-preview rounded-lg border {block.showCard === false ? 'border-gray-600' : 'border-gray-200'} p-4 min-h-[120px] flex flex-col"
+        class="block-preview rounded-lg border {block.showCard === false
+          ? 'border-gray-600'
+          : 'border-gray-200'} p-4 min-h-[120px] flex flex-col"
         style="background-color: {block.backgroundColor || '#ffffff'};"
       >
         {#if block.headerText}
           <div
-            class="text-xs font-bold {block.backgroundColor === '#252526' ? 'font-mono text-teal-400' : 'text-gray-500'} uppercase tracking-wide mb-2"
+            class="text-xs font-bold {block.backgroundColor === '#252526'
+              ? 'font-mono text-teal-400'
+              : 'text-gray-500'} uppercase tracking-wide mb-2"
           >
             {block.headerText}
           </div>
@@ -430,14 +428,24 @@
         {/if}
 
         {#if block.text}
-          <div class="text-sm {block.backgroundColor === '#252526' ? 'text-gray-300 font-mono' : 'text-gray-700'} flex-1 mb-2 line-clamp-2">
+          <div
+            class="text-sm {block.backgroundColor === '#252526'
+              ? 'text-gray-300 font-mono'
+              : 'text-gray-700'} flex-1 mb-2 line-clamp-2"
+          >
             {block.text}
           </div>
         {/if}
 
         {#if block.footerText}
-          <div class="text-xs {block.backgroundColor === '#252526' ? 'text-gray-500 font-mono' : 'text-gray-500'} mt-2 pt-2 {block.backgroundColor === '#252526' ? 'border-gray-700' : 'border-gray-300'} border-t">
-            {block.backgroundColor === '#252526' ? '// ' : ''}{block.footerText}
+          <div
+            class="text-xs {block.backgroundColor === '#252526'
+              ? 'text-gray-500 font-mono'
+              : 'text-gray-500'} mt-2 pt-2 {block.backgroundColor === '#252526'
+              ? 'border-gray-700'
+              : 'border-gray-300'} border-t"
+          >
+            {block.backgroundColor === "#252526" ? "// " : ""}{block.footerText}
           </div>
         {/if}
       </div>

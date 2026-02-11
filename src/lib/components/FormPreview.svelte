@@ -35,8 +35,6 @@
     slideInRight,
     slideOutLeft,
     zoomIn,
-    bounceIn,
-    flipIn,
     staggerElements,
     animateCheckmark,
   } from "../animations";
@@ -782,19 +780,9 @@
     const durations: Record<string, number> = {
       fade: 0.6,
       slide: 0.7,
-      pulse: 0.5,
-      bounce: 0.5,
-      zoom: 0.4,
-      flip: 0.6,
-      rotate: 0.6,
       slideLeft: 0.5,
       slideRight: 0.5,
-      wobble: 0.5,
-      heartbeat: 0.4,
-      swing: 0.4,
-      tada: 0.5,
-      jello: 0.32,
-      blink: 0.6,
+      zoom: 0.4,
     };
     return durations[animationType] || 0.5;
   }
@@ -804,62 +792,17 @@
 
     const animationType = currentElement.exitAnimation;
     if (!animationType) {
-      // No exit animation, just fade out
       gsap.to(container, { opacity: 0, duration: 0.3, ease: "power2.in" });
       return;
     }
     const duration = getAnimationExitDuration(animationType);
 
-    // Apply exit animation based on type
     switch (animationType) {
       case "fade":
         gsap.to(container, { opacity: 0, duration, ease: "power2.in" });
         break;
       case "slide":
         gsap.to(container, { opacity: 0, y: -30, duration, ease: "power2.in" });
-        break;
-      case "pulse":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.5,
-          duration,
-          ease: "back.in(1.5)",
-        });
-        break;
-      case "bounce":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.3,
-          y: -50,
-          duration,
-          ease: "back.in(1.5)",
-        });
-        break;
-      case "zoom":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.3,
-          duration,
-          ease: "back.in(1.5)",
-        });
-        break;
-      case "flip":
-        gsap.to(container, {
-          opacity: 0,
-          rotationY: -180,
-          scale: 0.8,
-          duration,
-          ease: "cubic.in",
-        });
-        break;
-      case "rotate":
-        gsap.to(container, {
-          opacity: 0,
-          rotationZ: -180,
-          scale: 0.8,
-          duration,
-          ease: "cubic.in",
-        });
         break;
       case "slideLeft":
         gsap.to(container, {
@@ -879,49 +822,13 @@
           ease: "power3.in",
         });
         break;
-      case "wobble":
+      case "zoom":
         gsap.to(container, {
           opacity: 0,
-          rotationZ: -5,
+          scale: 0.3,
           duration,
-          ease: "power2.in",
+          ease: "back.in(1.5)",
         });
-        break;
-      case "heartbeat":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.9,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "swing":
-        gsap.to(container, {
-          opacity: 0,
-          rotationZ: -5,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "tada":
-        gsap.to(container, {
-          opacity: 0,
-          rotationZ: 5,
-          scale: 0.9,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "jello":
-        gsap.to(container, {
-          opacity: 0,
-          skewX: 12.5,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "blink":
-        gsap.to(container, { opacity: 0, duration, ease: "power2.in" });
         break;
       default:
         gsap.to(container, { opacity: 0, duration: 0.3, ease: "power2.in" });
@@ -930,63 +837,18 @@
 
   function applyQuestionExitAnimation(animationType?: AnimationType) {
     if (!animationType) {
-      // No animation, just fade
       gsap.to(container, { opacity: 0, duration: 0.3, ease: "power2.in" });
       return;
     }
 
     const duration = getAnimationExitDuration(animationType);
 
-    // Apply exit animation based on type
     switch (animationType) {
       case "fade":
         gsap.to(container, { opacity: 0, duration, ease: "power2.in" });
         break;
       case "slide":
         gsap.to(container, { opacity: 0, y: -30, duration, ease: "power2.in" });
-        break;
-      case "pulse":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.5,
-          duration,
-          ease: "back.in(1.5)",
-        });
-        break;
-      case "bounce":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.3,
-          y: -50,
-          duration,
-          ease: "back.in(1.5)",
-        });
-        break;
-      case "zoom":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.3,
-          duration,
-          ease: "back.in(1.5)",
-        });
-        break;
-      case "flip":
-        gsap.to(container, {
-          opacity: 0,
-          rotationY: -180,
-          scale: 0.8,
-          duration,
-          ease: "cubic.in",
-        });
-        break;
-      case "rotate":
-        gsap.to(container, {
-          opacity: 0,
-          rotationZ: -180,
-          scale: 0.8,
-          duration,
-          ease: "cubic.in",
-        });
         break;
       case "slideLeft":
         gsap.to(container, {
@@ -1006,49 +868,13 @@
           ease: "power3.in",
         });
         break;
-      case "wobble":
+      case "zoom":
         gsap.to(container, {
           opacity: 0,
-          rotationZ: -5,
+          scale: 0.3,
           duration,
-          ease: "power2.in",
+          ease: "back.in(1.5)",
         });
-        break;
-      case "heartbeat":
-        gsap.to(container, {
-          opacity: 0,
-          scale: 0.9,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "swing":
-        gsap.to(container, {
-          opacity: 0,
-          rotationZ: -5,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "tada":
-        gsap.to(container, {
-          opacity: 0,
-          rotationZ: 5,
-          scale: 0.9,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "jello":
-        gsap.to(container, {
-          opacity: 0,
-          skewX: 12.5,
-          duration,
-          ease: "power2.in",
-        });
-        break;
-      case "blink":
-        gsap.to(container, { opacity: 0, duration, ease: "power2.in" });
         break;
       default:
         gsap.to(container, { opacity: 0, duration: 0.3, ease: "power2.in" });
@@ -1128,49 +954,6 @@
             ease: "power2.in",
           };
           break;
-        case "pulse":
-          exitAnimation = {
-            opacity: 0,
-            scale: 0.5,
-            duration: exitDuration,
-            ease: "back.in(1.5)",
-          };
-          break;
-        case "bounce":
-          exitAnimation = {
-            opacity: 0,
-            scale: 0.3,
-            y: -50,
-            duration: exitDuration,
-            ease: "back.in(1.5)",
-          };
-          break;
-        case "zoom":
-          exitAnimation = {
-            opacity: 0,
-            scale: 0.3,
-            duration: exitDuration,
-            ease: "back.in(1.5)",
-          };
-          break;
-        case "flip":
-          exitAnimation = {
-            opacity: 0,
-            rotationY: -180,
-            scale: 0.8,
-            duration: exitDuration,
-            ease: "cubic.in",
-          };
-          break;
-        case "rotate":
-          exitAnimation = {
-            opacity: 0,
-            rotationZ: -180,
-            scale: 0.8,
-            duration: exitDuration,
-            ease: "cubic.in",
-          };
-          break;
         case "slideLeft":
           exitAnimation = {
             opacity: 0,
@@ -1189,51 +972,12 @@
             ease: "power3.in",
           };
           break;
-        case "wobble":
+        case "zoom":
           exitAnimation = {
             opacity: 0,
-            rotationZ: -5,
-            duration: exitDuration,
-            ease: "power2.in",
-          };
-          break;
-        case "heartbeat":
-          exitAnimation = {
-            opacity: 0,
-            scale: 0.8,
-            duration: exitDuration,
-            ease: "power2.in",
-          };
-          break;
-        case "swing":
-          exitAnimation = {
-            opacity: 0,
-            rotationZ: 20,
-            duration: exitDuration,
-            ease: "cubic.in",
-          };
-          break;
-        case "tada":
-          exitAnimation = {
-            opacity: 0,
-            scale: 0.6,
+            scale: 0.3,
             duration: exitDuration,
             ease: "back.in(1.5)",
-          };
-          break;
-        case "jello":
-          exitAnimation = {
-            opacity: 0,
-            skewY: -10,
-            duration: exitDuration,
-            ease: "cubic.in",
-          };
-          break;
-        case "blink":
-          exitAnimation = {
-            opacity: 0,
-            duration: exitDuration,
-            ease: "power2.in",
           };
           break;
       }
@@ -1490,10 +1234,10 @@
       transitionStep("next");
       return;
     }
-    
+
     // Validate current question
     validateCurrentQuestion();
-    
+
     // Only proceed if no validation errors
     if (!validationError) {
       nextQuestion();
@@ -1860,7 +1604,8 @@
               Already submitted
             </h2>
             <p class="text-lg" style="color: var(--form-text-secondary);">
-              You've already submitted this form. If you think this is a mistake, please contact the organisers.
+              You've already submitted this form. If you think this is a
+              mistake, please contact the organisers.
             </p>
           </div>
         </div>

@@ -1,7 +1,12 @@
 <!-- src/lib/components/QuestionEditor.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import type { Question, Constraint, AnimationType, QuestionCondition } from "../types";
+  import type {
+    Question,
+    Constraint,
+    AnimationType,
+    QuestionCondition,
+  } from "../types";
 
   export let question: Question;
   export let questionNumber: number;
@@ -14,19 +19,9 @@
   const animationOptions: { value: AnimationType; label: string }[] = [
     { value: "fade", label: "Fade" },
     { value: "slide", label: "Slide Up" },
-    { value: "pulse", label: "Pulse" },
-    { value: "bounce", label: "Bounce" },
-    { value: "zoom", label: "Zoom" },
-    { value: "flip", label: "Flip" },
-    { value: "rotate", label: "Rotate" },
     { value: "slideLeft", label: "Slide Left" },
     { value: "slideRight", label: "Slide Right" },
-    { value: "wobble", label: "Wobble" },
-    { value: "heartbeat", label: "Heartbeat" },
-    { value: "swing", label: "Swing" },
-    { value: "tada", label: "Tada" },
-    { value: "jello", label: "Jello" },
-    { value: "blink", label: "Blink" },
+    { value: "zoom", label: "Zoom" },
   ];
 
   function updateQuestion() {
@@ -171,9 +166,13 @@
     return allQuestions.filter(
       (q) =>
         q.id !== question.id &&
-        ['multiple-choice', 'dropdown', 'checkboxes', 'yes-no', 'rating'].includes(
-          q.type,
-        ),
+        [
+          "multiple-choice",
+          "dropdown",
+          "checkboxes",
+          "yes-no",
+          "rating",
+        ].includes(q.type),
     );
   }
 
@@ -181,12 +180,12 @@
   function getOptionsForQuestion(questionId: string) {
     const q = allQuestions.find((x) => x.id === questionId);
     if (!q) return [];
-    
-    if (q.type === 'yes-no') {
-      return ['Yes', 'No'];
+
+    if (q.type === "yes-no") {
+      return ["Yes", "No"];
     }
 
-    if (q.type === 'rating') {
+    if (q.type === "rating") {
       const max = q.max || 5;
       return Array.from({ length: max }, (_, i) => String(i + 1));
     }
@@ -196,7 +195,7 @@
 
   function setCondition(
     questionId: string,
-    operator: 'equals' | 'not_equals' | 'contains',
+    operator: "equals" | "not_equals" | "contains",
     value: string,
   ) {
     question.condition = {
@@ -574,9 +573,13 @@
 
     <!-- Conditional Logic -->
     {#if getConditionalQuestions().length > 0}
-      <div class="bg-emerald-50/50 rounded-lg p-4 border border-emerald-100 mt-4">
+      <div
+        class="bg-emerald-50/50 rounded-lg p-4 border border-emerald-100 mt-4"
+      >
         <div class="flex items-center justify-between mb-3">
-          <span class="text-xs font-bold text-emerald-600 uppercase tracking-wide">
+          <span
+            class="text-xs font-bold text-emerald-600 uppercase tracking-wide"
+          >
             Show if
           </span>
           <button
@@ -631,7 +634,9 @@
 
           <!-- Value Selector -->
           {#if question.condition?.questionId}
-            {@const options = getOptionsForQuestion(question.condition.questionId)}
+            {@const options = getOptionsForQuestion(
+              question.condition.questionId,
+            )}
             {#if options.length > 0}
               <select
                 value={question.condition?.value || ""}

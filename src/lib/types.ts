@@ -35,7 +35,7 @@ export interface Question {
   condition?: QuestionCondition; // Show this question only if condition is met
 }
 
-export type AnimationType = 'fade' | 'slide' | 'pulse' | 'bounce' | 'zoom' | 'flip' | 'rotate' | 'slideLeft' | 'slideRight' | 'wobble' | 'heartbeat' | 'swing' | 'tada' | 'jello' | 'blink';
+export type AnimationType = 'fade' | 'slide' | 'slideLeft' | 'slideRight' | 'zoom';
 export type AnimationRepeatMode = 'once' | 'loop' | 'times';
 
 export interface BlockElement {
