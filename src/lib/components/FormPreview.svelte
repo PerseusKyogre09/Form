@@ -166,7 +166,14 @@
     openCountryDropdown = null;
     countrySearchQuery = "";
     highlightedCountryIndex = 0;
-    validateCurrentQuestion();
+    // Only validate if there's already a phone number entered
+    const phoneValue = answers[questionId];
+    if (phoneValue && phoneValue.trim().length > 0) {
+      validateCurrentQuestion();
+    } else {
+      // Clear any previous validation errors since we just selected a country
+      validationError = "";
+    }
   }
 
   function animateIn() {
@@ -1435,7 +1442,7 @@
     // Enter key - move to next question
     if (e.key === "Enter") {
       e.preventDefault();
-      nextQuestion();
+      validateAndAdvance();
     }
     // Backspace on empty - go to previous question
     else if (e.key === "Backspace") {
@@ -1452,7 +1459,7 @@
     // Enter key - move to next question
     if (e.key === "Enter") {
       e.preventDefault();
-      nextQuestion();
+      validateAndAdvance();
     }
     // Arrow Up - navigate to previous question
     else if (e.key === "ArrowUp") {
@@ -1462,7 +1469,7 @@
     // Arrow Down - navigate to next question
     else if (e.key === "ArrowDown") {
       e.preventDefault();
-      nextQuestion();
+      validateAndAdvance();
     }
   }
 
@@ -1475,11 +1482,29 @@
   }
 
   // Comprehensive keyboard handler for text inputs
+  // Wrapper to validate before advancing
+  function validateAndAdvance() {
+    if (!currentElement) return;
+    if (isBlockElement(currentElement)) {
+      validationError = "";
+      transitionStep("next");
+      return;
+    }
+    
+    // Validate current question
+    validateCurrentQuestion();
+    
+    // Only proceed if no validation errors
+    if (!validationError) {
+      nextQuestion();
+    }
+  }
+
   function handleKeyboardFlow(e: KeyboardEvent, questionId: string) {
     // Enter key - move to next question
     if (e.key === "Enter") {
       e.preventDefault();
-      nextQuestion();
+      validateAndAdvance();
     }
     // Backspace on empty - go to previous question
     else if (e.key === "Backspace") {
@@ -1496,7 +1521,7 @@
     // Arrow Down - navigate to next question
     else if (e.key === "ArrowDown") {
       e.preventDefault();
-      nextQuestion();
+      validateAndAdvance();
     }
   }
 
@@ -1835,7 +1860,7 @@
               Already submitted
             </h2>
             <p class="text-lg" style="color: var(--form-text-secondary);">
-              You've already submitted this form from this device.
+              You've already submitted this form. If you think this is a mistake, please contact the organisers.
             </p>
           </div>
         </div>
@@ -2428,12 +2453,20 @@
                                 />
                                 <div
                                   class="w-5 h-5 border-2 rounded-full transition-colors"
-                                  style="border-color: rgba(var(--form-text-primary-rgb), 0.3);"
+                                  style="border-color: {answers[
+                                    currentQuestion.id
+                                  ] === option
+                                    ? 'var(--form-accent)'
+                                    : theme?.id === 'ide-dark'
+                                      ? '#a0a0a0'
+                                      : '#9ca3af'}; background: transparent;"
                                 ></div>
                                 {#if answers[currentQuestion.id] === option}
                                   <div
                                     class="absolute w-2.5 h-2.5 rounded-full"
-                                    style="background: var(--form-accent);"
+                                    style="background: {theme?.id === 'ide-dark'
+                                      ? '#14b8a6'
+                                      : 'var(--form-accent)'};"
                                   ></div>
                                 {/if}
                               </div>
@@ -2537,7 +2570,9 @@
                                 />
                                 <div
                                   class="w-5 h-5 border-2 rounded-lg transition-colors flex items-center justify-center"
-                                  style="border-color: rgba(var(--form-text-primary-rgb), 0.3);"
+                                  style="border-color: {theme?.id === 'ide-dark'
+                                    ? '#a0a0a0'
+                                    : 'rgba(var(--form-text-primary-rgb), 0.3)'};"
                                 >
                                   {#if answers[currentQuestion.id]?.includes(option)}
                                     <i

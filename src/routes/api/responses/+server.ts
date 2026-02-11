@@ -59,7 +59,7 @@ export const POST: RequestHandler = async ({ request }) => {
       if (error.code === '23505') {
         console.log('Duplicate device submission blocked for form:', formId);
         return json(
-          { error: "You've already submitted this form from this device." },
+          { error: "You've already submitted this form. If you think this is a mistake, please contact the organisers." },
           { status: 409 }
         );
       }
