@@ -61,6 +61,9 @@
   let questionContainer: HTMLElement;
   let validationError = "";
   let isSubmitting = false;
+  let alreadySubmitted = false;
+  let deviceId: string = "";
+  let honeypotValue = "";
   let validationElement: HTMLElement;
   let currentElement: FormElement | undefined;
   let currentQuestion: Question | undefined;
@@ -244,6 +247,23 @@
   }
 
   onMount(async () => {
+    // --- Device ID management for anti-abuse ---
+    if (formId) {
+      const storedDeviceId = localStorage.getItem(`form_device_${formId}`);
+      if (storedDeviceId) {
+        deviceId = storedDeviceId;
+      } else {
+        deviceId = crypto.randomUUID();
+        localStorage.setItem(`form_device_${formId}`, deviceId);
+      }
+
+      // Check if already submitted from this device
+      const submitted = localStorage.getItem(`form_submitted_${formId}`);
+      if (submitted === "true") {
+        alreadySubmitted = true;
+      }
+    }
+
     // Ensure all questions have exitAnimation set (for backward compatibility)
     questions.forEach((el) => {
       if (!isBlockElement(el) && !el.exitAnimation) {
@@ -1031,7 +1051,7 @@
   function transitionStep(direction: "next" | "prev") {
     // Find next visible question or block
     let targetIndex = currentQuestionIndex + (direction === "next" ? 1 : -1);
-    
+
     // Loop to find next visible element (skip hidden questions based on conditions)
     if (direction === "next") {
       while (targetIndex < questions.length) {
@@ -1524,12 +1544,12 @@
     // Check if all required VISIBLE questions are answered
     for (const element of questions.filter((el) => !isBlockElement(el))) {
       const question = element as Question;
-      
+
       // Skip hidden questions
       if (!evaluateCondition(question)) {
         continue;
       }
-      
+
       if (question.required && !isAnswered(question)) {
         validationError = `Please answer: ${question.title}`;
         return;
@@ -1609,10 +1629,20 @@
       const response = await fetch("/api/responses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formId, answers }),
+        body: JSON.stringify({
+          formId,
+          answers,
+          device_id: deviceId || undefined,
+          _hp: honeypotValue || undefined,
+        }),
       });
 
       if (response.ok) {
+        // Mark as submitted in localStorage
+        if (formId) {
+          localStorage.setItem(`form_submitted_${formId}`, "true");
+        }
+
         gsap.to(container, {
           opacity: 0,
           y: -30,
@@ -1631,6 +1661,20 @@
             onSubmit(answers);
           },
         });
+      } else if (response.status === 409) {
+        // Duplicate device submission
+        alreadySubmitted = true;
+        if (formId) {
+          localStorage.setItem(`form_submitted_${formId}`, "true");
+        }
+        isSubmitting = false;
+      } else if (response.status === 429) {
+        // Rate limited
+        notifications.add(
+          "High traffic detected. Please try again in a few seconds.",
+          "error",
+        );
+        isSubmitting = false;
       } else {
         notifications.add("Failed to submit form. Please try again.", "error");
         isSubmitting = false;
@@ -1638,7 +1682,10 @@
       isSubmitting = false;
     } catch (error) {
       console.error("Submission error:", error);
-      notifications.add("Error submitting form. Please try again later.", "error");
+      notifications.add(
+        "Error submitting form. Please try again later.",
+        "error",
+      );
       isSubmitting = false;
     }
   }
@@ -1656,9 +1703,7 @@
 
   // Calculate only actual questions for numbering (exclude blocks and hidden questions)
   $: visibleQuestions = questions.filter(
-    (q) =>
-      !isBlockElement(q) &&
-      evaluateCondition(q as Question),
+    (q) => !isBlockElement(q) && evaluateCondition(q as Question),
   );
   $: questionList = visibleQuestions;
   $: currentQuestionNumber =
@@ -1682,7 +1727,7 @@
   $: hasNextVisibleQuestion = (() => {
     // Make answers a reactive dependency
     void answers;
-    
+
     if (!currentElement || currentQuestionIndex >= questions.length - 1) {
       return false;
     }
@@ -1721,10 +1766,11 @@
   </div>
 {:else}
   <div
-    class="{theme && theme.id === 'ide-dark' ? 'min-h-screen px-4 relative overflow-hidden transition-opacity duration-500' : 'min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500'}"
-    style="background-color: {theme?.colors?.background || (backgroundType === 'color'
-      ? backgroundColor
-      : '#ffffff')};
+    class={theme && theme.id === "ide-dark"
+      ? "min-h-screen px-4 relative overflow-hidden transition-opacity duration-500"
+      : "min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500"}
+    style="background-color: {theme?.colors?.background ||
+      (backgroundType === 'color' ? backgroundColor : '#ffffff')};
       --form-text-primary: {colorPalette?.textPrimary || '#1e293b'};
       --form-text-primary-rgb: {colorPalette?.textPrimaryRGB || '30, 41, 59'};
       --form-text-secondary: {colorPalette?.textSecondary || '#64748b'};
@@ -1772,6 +1818,27 @@
             </p>
           </div>
         </div>
+      {:else if alreadySubmitted}
+        <div class="min-h-screen flex items-center justify-center">
+          <div
+            class="text-center space-y-6 px-6 backdrop-blur-xl rounded-3xl p-8 border border-white/20"
+            style="background: var(--form-card-bg);"
+          >
+            <div class="text-8xl mb-4">
+              <i class="fas fa-check-circle" style="color: var(--form-accent);"
+              ></i>
+            </div>
+            <h2
+              class="text-4xl font-bold"
+              style="color: var(--form-text-primary);"
+            >
+              Already submitted
+            </h2>
+            <p class="text-lg" style="color: var(--form-text-secondary);">
+              You've already submitted this form from this device.
+            </p>
+          </div>
+        </div>
       {:else if questions.length > 0}
         <!-- Progress Bar (fixed at top) -->
         <div
@@ -1788,11 +1855,15 @@
         <!-- Question Container -->
         <!-- Question Container -->
         <div
-          class="{theme && theme.id === 'ide-dark' ? 'fixed inset-0 flex flex-col justify-center items-center' : 'min-h-screen flex flex-col justify-center items-center px-6 py-20 md:px-6 md:py-20 safe-area-pb'}"
+          class={theme && theme.id === "ide-dark"
+            ? "fixed inset-0 flex flex-col justify-center items-center"
+            : "min-h-screen flex flex-col justify-center items-center px-6 py-20 md:px-6 md:py-20 safe-area-pb"}
         >
           <div
             bind:this={container}
-            class="{theme && theme.id === 'ide-dark' ? 'max-w-3xl md:p-12' : 'max-w-3xl md:p-12'} transition-all duration-300"
+            class="{theme && theme.id === 'ide-dark'
+              ? 'max-w-3xl md:p-12'
+              : 'max-w-3xl md:p-12'} transition-all duration-300"
             style="background: transparent; border: none;"
           >
             {#if currentElement}
@@ -1856,14 +1927,14 @@
 
                 {#if isBlockElement(currentElement)}
                   <!-- Block Rendering with IDE Theme Support -->
-                  {#if theme && theme.id === 'ide-dark' && currentElement.showCard !== true}
+                  {#if theme && theme.id === "ide-dark" && currentElement.showCard !== true}
                     <!-- IDE Dark Theme Block - Floating Content with Code Styling (no card) -->
                     <IdleBlockRenderer
                       element={currentElement}
                       {colorPalette}
                       {globalTextColor}
                     />
-                  {:else if theme && theme.id === 'ide-dark' && currentElement.showCard === true}
+                  {:else if theme && theme.id === "ide-dark" && currentElement.showCard === true}
                     <!-- IDE Dark Theme Block - Card Styled (with borders) -->
                     <div
                       class="rounded-2xl overflow-hidden border border-[rgba(20,184,166,0.2)]"
@@ -1912,10 +1983,7 @@
                         <div
                           class="p-4 border-t border-[rgba(20,184,166,0.15)] font-mono"
                         >
-                          <p
-                            class="text-sm"
-                            style="color: #808080;"
-                          >
+                          <p class="text-sm" style="color: #808080;">
                             // {currentElement.footerText}
                           </p>
                         </div>
@@ -1928,76 +1996,76 @@
                       style="background-color: {currentElement.backgroundColor ||
                         '#ffffff'};"
                     >
-                    <!-- Header -->
-                    {#if currentElement.headerText}
-                      <div
-                        class="p-4 border-b border-[rgba(var(--form-text-primary-rgb),0.2)]"
-                      >
-                        <h4
-                          class="text-lg font-semibold"
-                          style="color: {currentElement.textColor ||
-                            globalTextColor ||
-                            'var(--form-text-primary)'};"
+                      <!-- Header -->
+                      {#if currentElement.headerText}
+                        <div
+                          class="p-4 border-b border-[rgba(var(--form-text-primary-rgb),0.2)]"
                         >
-                          {currentElement.headerText}
-                        </h4>
-                      </div>
-                    {/if}
-
-                    <!-- Content -->
-                    <div class="p-6 space-y-4">
-                      <!-- Image -->
-                      {#if currentElement.imageUrl}
-                        <img
-                          src={currentElement.imageUrl}
-                          alt={currentElement.title || "Block image"}
-                          class="max-h-64 max-w-full object-contain rounded-lg"
-                        />
+                          <h4
+                            class="text-lg font-semibold"
+                            style="color: {currentElement.textColor ||
+                              globalTextColor ||
+                              'var(--form-text-primary)'};"
+                          >
+                            {currentElement.headerText}
+                          </h4>
+                        </div>
                       {/if}
 
-                      <!-- Text Content -->
-                      {#if currentElement.text}
-                        <p
-                          class="text-base leading-relaxed"
-                          style="color: {currentElement.textColor ||
-                            globalTextColor ||
-                            (currentElement.backgroundColor === 'transparent' ||
-                            !currentElement.backgroundColor
-                              ? 'var(--form-text-primary)'
-                              : calculateLuminance(
-                                    currentElement.backgroundColor,
-                                  ) > 0.5
-                                ? '#111827'
-                                : '#ffffff')};"
+                      <!-- Content -->
+                      <div class="p-6 space-y-4">
+                        <!-- Image -->
+                        {#if currentElement.imageUrl}
+                          <img
+                            src={currentElement.imageUrl}
+                            alt={currentElement.title || "Block image"}
+                            class="max-h-64 max-w-full object-contain rounded-lg"
+                          />
+                        {/if}
+
+                        <!-- Text Content -->
+                        {#if currentElement.text}
+                          <p
+                            class="text-base leading-relaxed"
+                            style="color: {currentElement.textColor ||
+                              globalTextColor ||
+                              (currentElement.backgroundColor ===
+                                'transparent' || !currentElement.backgroundColor
+                                ? 'var(--form-text-primary)'
+                                : calculateLuminance(
+                                      currentElement.backgroundColor,
+                                    ) > 0.5
+                                  ? '#111827'
+                                  : '#ffffff')};"
+                          >
+                            {currentElement.text}
+                          </p>
+                        {/if}
+                      </div>
+
+                      <!-- Footer -->
+                      {#if currentElement.footerText}
+                        <div
+                          class="p-4 border-t border-[rgba(var(--form-text-primary-rgb),0.2)]"
                         >
-                          {currentElement.text}
-                        </p>
+                          <p
+                            class="text-sm opacity-70"
+                            style="color: {currentElement.textColor ||
+                              globalTextColor ||
+                              (currentElement.backgroundColor ===
+                                'transparent' || !currentElement.backgroundColor
+                                ? 'var(--form-text-secondary)'
+                                : calculateLuminance(
+                                      currentElement.backgroundColor,
+                                    ) > 0.5
+                                  ? '#374151'
+                                  : '#e5e7eb')};"
+                          >
+                            {currentElement.footerText}
+                          </p>
+                        </div>
                       {/if}
                     </div>
-
-                    <!-- Footer -->
-                    {#if currentElement.footerText}
-                      <div
-                        class="p-4 border-t border-[rgba(var(--form-text-primary-rgb),0.2)]"
-                      >
-                        <p
-                          class="text-sm opacity-70"
-                          style="color: {currentElement.textColor ||
-                            globalTextColor ||
-                            (currentElement.backgroundColor === 'transparent' ||
-                            !currentElement.backgroundColor
-                              ? 'var(--form-text-secondary)'
-                              : calculateLuminance(
-                                    currentElement.backgroundColor,
-                                  ) > 0.5
-                                ? '#374151'
-                                : '#e5e7eb')};"
-                        >
-                          {currentElement.footerText}
-                        </p>
-                      </div>
-                    {/if}
-                  </div>
                   {/if}
                 {:else if currentQuestion}
                   <div>
@@ -2014,7 +2082,8 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
+                            on:keydown={(e) =>
+                              handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
@@ -2030,7 +2099,8 @@
                               class="text-xs mt-3"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                              Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2047,7 +2117,8 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={(e) => handleLongTextKeyboard(e, currentQuestion.id)}
+                            on:keydown={(e) =>
+                              handleLongTextKeyboard(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           ></textarea>
                           {#if validationError}
@@ -2062,7 +2133,9 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Shift+Enter for new line • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                              Down Arrow to continue • Shift+Enter for new line
+                              • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2081,7 +2154,8 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
+                            on:keydown={(e) =>
+                              handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
@@ -2096,7 +2170,8 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                              Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2113,7 +2188,8 @@
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
-                            on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
+                            on:keydown={(e) =>
+                              handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
@@ -2128,7 +2204,8 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                              Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2175,9 +2252,9 @@
                               {#if openCountryDropdown === currentQuestion.id}
                                 <div
                                   class="absolute bottom-full left-0 mb-2 border rounded-2xl shadow-2xl z-50 w-72 max-h-72 overflow-y-auto backdrop-blur-xl"
-                                  style="{theme && theme.id === 'ide-dark' 
-                                    ? 'background-color: #252526; border-color: rgba(20,184,166,0.15);'
-                                    : 'background: var(--form-card-bg-solid); border-color: rgba(var(--form-text-primary-rgb), 0.1);'}"
+                                  style={theme && theme.id === "ide-dark"
+                                    ? "background-color: #252526; border-color: rgba(20,184,166,0.15);"
+                                    : "background: var(--form-card-bg-solid); border-color: rgba(var(--form-text-primary-rgb), 0.1);"}
                                 >
                                   <input
                                     type="text"
@@ -2189,9 +2266,9 @@
                                         currentQuestion.id,
                                       )}
                                     class="w-full px-4 py-3 border-b text-sm outline-none focus:ring-0 sticky top-0 rounded-t-2xl placeholder-slate-400"
-                                    style="{theme && theme.id === 'ide-dark'
-                                      ? 'background-color: #1e1e1e; border-color: rgba(20,184,166,0.1); color: #e0e0e0;'
-                                      : 'background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1); color: var(--form-text-primary);'}"
+                                    style={theme && theme.id === "ide-dark"
+                                      ? "background-color: #1e1e1e; border-color: rgba(20,184,166,0.1); color: #e0e0e0;"
+                                      : "background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1); color: var(--form-text-primary);"}
                                   />
                                   {#each getFilteredCountries(countrySearchQuery) as country, idx}
                                     <button
@@ -2203,11 +2280,15 @@
                                         )}
                                       class="w-full text-left px-4 py-3 text-sm transition-colors {idx ===
                                       highlightedCountryIndex
-                                        ? theme && theme.id === 'ide-dark' ? 'bg-[#14b8a6] text-white' : 'bg-[var(--form-accent)] !text-[var(--form-accent-text)]'
-                                        : theme && theme.id === 'ide-dark' ? 'hover:bg-[rgba(20,184,166,0.1)]' : 'hover:bg-[rgba(var(--form-accent-rgb),0.1)]'} border-b last:border-b-0"
-                                      style="{theme && theme.id === 'ide-dark'
-                                        ? 'color: #e0e0e0; border-color: rgba(20,184,166,0.1);'
-                                        : 'color: var(--form-text-primary); border-color: rgba(var(--form-text-primary-rgb), 0.05);'}"
+                                        ? theme && theme.id === 'ide-dark'
+                                          ? 'bg-[#14b8a6] text-white'
+                                          : 'bg-[var(--form-accent)] !text-[var(--form-accent-text)]'
+                                        : theme && theme.id === 'ide-dark'
+                                          ? 'hover:bg-[rgba(20,184,166,0.1)]'
+                                          : 'hover:bg-[rgba(var(--form-accent-rgb),0.1)]'} border-b last:border-b-0"
+                                      style={theme && theme.id === "ide-dark"
+                                        ? "color: #e0e0e0; border-color: rgba(20,184,166,0.1);"
+                                        : "color: var(--form-text-primary); border-color: rgba(var(--form-text-primary-rgb), 0.05);"}
                                     >
                                       <span class="text-lg mr-2"
                                         >{country.flag}</span
@@ -2215,10 +2296,16 @@
                                       <span class="font-medium"
                                         >{country.code}</span
                                       >
-                                      <span class="{theme && theme.id === 'ide-dark' ? 'text-[#a0a0a0]' : 'text-slate-300'} ml-2"
+                                      <span
+                                        class="{theme && theme.id === 'ide-dark'
+                                          ? 'text-[#a0a0a0]'
+                                          : 'text-slate-300'} ml-2"
                                         >{country.name}</span
                                       >
-                                      <span class="{theme && theme.id === 'ide-dark' ? 'text-[#808080]' : 'text-slate-400'} ml-1"
+                                      <span
+                                        class="{theme && theme.id === 'ide-dark'
+                                          ? 'text-[#808080]'
+                                          : 'text-slate-400'} ml-1"
                                         >{country.dialCode}</span
                                       >
                                     </button>
@@ -2226,7 +2313,10 @@
                                   {#if getFilteredCountries(countrySearchQuery).length === 0}
                                     <div
                                       class="px-4 py-6 text-sm text-center"
-                                      style="color: {theme && theme.id === 'ide-dark' ? '#808080' : '#9ca3af'};"
+                                      style="color: {theme &&
+                                      theme.id === 'ide-dark'
+                                        ? '#808080'
+                                        : '#9ca3af'};"
                                     >
                                       <i class="fas fa-search mb-2"></i>
                                       <p>No countries found</p>
@@ -2249,7 +2339,8 @@
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
                                   'var(--form-text-primary)'};"
-                                on:keydown={(e) => handleKeyboardFlow(e, currentQuestion.id)}
+                                on:keydown={(e) =>
+                                  handleKeyboardFlow(e, currentQuestion.id)}
                                 on:blur={validateCurrentQuestion}
                               />
                             </div>
@@ -2266,7 +2357,8 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                              Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
@@ -2279,7 +2371,8 @@
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: var(--form-text-primary);"
-                            on:keydown={(e) => handleDateKeyboard(e, currentQuestion.id)}
+                            on:keydown={(e) =>
+                              handleDateKeyboard(e, currentQuestion.id)}
                           />
                           {#if validationError}
                             <p
@@ -2293,12 +2386,16 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter to continue • Use arrows to change date
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter to
+                              continue • Use arrows to change date
                             </p>
                           {/if}
                         </div>
                       {:else if currentQuestion.type === "multiple-choice"}
-                        <div class="space-y-3" on:keydown={handleSelectionKeyboard}>
+                        <div
+                          class="space-y-3"
+                          on:keydown={handleSelectionKeyboard}
+                        >
                           {#each currentQuestion.options || [] as option}
                             <label
                               class="flex items-center px-4 py-4 md:px-6 md:py-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
@@ -2354,7 +2451,8 @@
                             style="color: var(--form-text-secondary); opacity: 0.6;"
                             class="text-xs mt-4"
                           >
-                            <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                            Down Arrow to continue • Up Arrow to go back
                           </p>
                         </div>
                       {:else if currentQuestion.type === "dropdown"}
@@ -2364,7 +2462,15 @@
                             class="w-full appearance-none text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 pl-0 pr-10 transition-all duration-200 bg-transparent placeholder-slate-300/50"
-                            style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : 'var(--form-text-primary)'}; color-scheme: {theme && theme.id === 'ide-dark' ? 'dark' : 'light'}; background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='{theme && theme.id === 'ide-dark' ? '%23a0a0a0' : '%236b7280'}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
+                            style="color: {theme && theme.id === 'ide-dark'
+                              ? '#e0e0e0'
+                              : 'var(--form-text-primary)'}; color-scheme: {theme &&
+                            theme.id === 'ide-dark'
+                              ? 'dark'
+                              : 'light'}; background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='{theme &&
+                            theme.id === 'ide-dark'
+                              ? '%23a0a0a0'
+                              : '%236b7280'}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
                             on:change={validateCurrentQuestion}
                             on:keydown={handleSelectionKeyboard}
                           >
@@ -2372,13 +2478,22 @@
                               value=""
                               disabled
                               selected
-                              style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : '#1f2937'}; background-color: {theme && theme.id === 'ide-dark' ? '#252526' : '#ffffff'};"
-                              >Select an option...</option
+                              style="color: {theme && theme.id === 'ide-dark'
+                                ? '#e0e0e0'
+                                : '#1f2937'}; background-color: {theme &&
+                              theme.id === 'ide-dark'
+                                ? '#252526'
+                                : '#ffffff'};">Select an option...</option
                             >
                             {#each currentQuestion.options || [] as option}
                               <option
                                 value={option}
-                                style="color: {theme && theme.id === 'ide-dark' ? '#e0e0e0' : '#1f2937'}; background-color: {theme && theme.id === 'ide-dark' ? '#252526' : '#ffffff'};">{option}</option
+                                style="color: {theme && theme.id === 'ide-dark'
+                                  ? '#e0e0e0'
+                                  : '#1f2937'}; background-color: {theme &&
+                                theme.id === 'ide-dark'
+                                  ? '#252526'
+                                  : '#ffffff'};">{option}</option
                               >
                             {/each}
                           </select>
@@ -2394,12 +2509,16 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                              Down Arrow to continue • Up Arrow to go back
                             </p>
                           {/if}
                         </div>
                       {:else if currentQuestion.type === "checkboxes"}
-                        <div class="space-y-3" on:keydown={handleSelectionKeyboard}>
+                        <div
+                          class="space-y-3"
+                          on:keydown={handleSelectionKeyboard}
+                        >
                           {#each currentQuestion.options || [] as option}
                             <label
                               class="flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
@@ -2442,11 +2561,15 @@
                             style="color: var(--form-text-secondary); opacity: 0.6;"
                             class="text-xs mt-4"
                           >
-                            <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                            Down Arrow to continue • Up Arrow to go back
                           </p>
                         </div>
                       {:else if currentQuestion.type === "yes-no"}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" on:keydown={handleSelectionKeyboard}>
+                        <div
+                          class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                          on:keydown={handleSelectionKeyboard}
+                        >
                           {#each ["Yes", "No"] as option}
                             <label
                               class="flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
@@ -2485,11 +2608,15 @@
                           style="color: var(--form-text-secondary); opacity: 0.6;"
                           class="text-xs mt-4 text-center"
                         >
-                          <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                          <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                          Down Arrow to continue • Up Arrow to go back
                         </p>
                       {:else if currentQuestion.type === "rating"}
                         <div class="flex flex-col gap-6">
-                          <div class="flex gap-6 justify-center py-6" on:keydown={handleSelectionKeyboard}>
+                          <div
+                            class="flex gap-6 justify-center py-6"
+                            on:keydown={handleSelectionKeyboard}
+                          >
                             {#each [1, 2, 3, 4, 5] as rating}
                               <button
                                 type="button"
@@ -2518,7 +2645,8 @@
                             style="color: var(--form-text-secondary); opacity: 0.6;"
                             class="text-xs text-center"
                           >
-                            <i class="fas fa-keyboard mr-1"></i>Press Enter or Down Arrow to continue • Up Arrow to go back
+                            <i class="fas fa-keyboard mr-1"></i>Press Enter or
+                            Down Arrow to continue • Up Arrow to go back
                           </p>
                         </div>
                       {/if}
@@ -2647,9 +2775,18 @@
               {/if}
             </button>
           {/if}
+
+          <!-- Honeypot field: CSS-hidden, catches bots that auto-fill all fields -->
+          <input
+            bind:value={honeypotValue}
+            type="text"
+            name="_hp_field"
+            autocomplete="off"
+            tabindex="-1"
+            aria-hidden="true"
+            style="position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; overflow: hidden;"
+          />
         </div>
-
-
       {:else}
         <div class="text-center py-12">
           <p class="text-slate-400">Add questions to preview your form</p>
