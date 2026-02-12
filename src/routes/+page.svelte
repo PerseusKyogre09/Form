@@ -8,9 +8,10 @@
   import { browser } from "$app/environment";
   import gsap from "gsap";
   import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+  import { SplitText } from "gsap/dist/SplitText";
 
   if (browser) {
-    gsap.registerPlugin(ScrollTrigger);
+    gsap.registerPlugin(ScrollTrigger, SplitText);
   }
 
   let user: any = null;
@@ -20,6 +21,40 @@
       data: { session },
     } = await supabase.auth.getSession();
     user = session?.user;
+
+    // Hero Text Animation
+    // Hero Text Animation
+    const heroLine = document.querySelector(".hero-line-rotate");
+    const heroTypewriter = document.querySelector(".hero-typewriter");
+
+    if (heroLine && heroTypewriter) {
+      const tl = gsap.timeline();
+
+      const splitLine = new SplitText(heroLine, { type: "lines" });
+      const splitTypewriter = new SplitText(heroTypewriter, { type: "chars" });
+
+      // Ensure specific perspective on parent
+      gsap.set(heroLine.parentElement, { perspective: 400 });
+
+      tl.from(splitLine.lines, {
+        duration: 0.8,
+        opacity: 0,
+        rotationX: -100,
+        force3D: true,
+        transformOrigin: "50% 50% -160px",
+        stagger: 0.25,
+        ease: "power3.out",
+      }).from(
+        splitTypewriter.chars,
+        {
+          duration: 0.05,
+          opacity: 0,
+          stagger: 0.05,
+          ease: "none",
+        },
+        "+=0.2",
+      ); // Small delay after first part
+    }
 
     // Animate elements on scroll
     gsap.utils.toArray(".animate-on-scroll").forEach((element: any) => {
@@ -62,10 +97,19 @@
 
 <svelte:head>
   <title>Quill - Beautiful Form Builder | No Code Required</title>
-  <meta name="description" content="Create beautiful, customizable forms without coding. Collect responses, analyze data, and share instantly with Quill." />
-  <meta name="keywords" content="form builder, survey creator, questionnaire, form creation, data collection, form responses, no-code" />
+  <meta
+    name="description"
+    content="Create beautiful, customizable forms without coding. Collect responses, analyze data, and share instantly with Quill."
+  />
+  <meta
+    name="keywords"
+    content="form builder, survey creator, questionnaire, form creation, data collection, form responses, no-code"
+  />
   <meta property="og:title" content="Quill - Beautiful Form Builder" />
-  <meta property="og:description" content="Create beautiful forms without coding. Collect responses and analyze data instantly." />
+  <meta
+    property="og:description"
+    content="Create beautiful forms without coding. Collect responses and analyze data instantly."
+  />
   <meta property="og:type" content="website" />
 </svelte:head>
 
@@ -110,12 +154,12 @@
       <div class="grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <h1
-            in:fly={{ y: 20, duration: 800 }}
-            class="text-5xl md:text-6xl font-black tracking-tight mb-6 leading-[1.1]"
+            class="text-5xl md:text-6xl font-black tracking-tight mb-6 leading-[1.1] perspective-[500px]"
           >
-            Google Forms works.
-            <br />
-            <span class="text-black/60">It just doesn't feel good.</span>
+            <div class="hero-line-rotate">Google Forms works.</div>
+            <div class="hero-typewriter text-black/60 mt-2">
+              It just doesn't feel <br class="hidden md:inline" /> good.
+            </div>
           </h1>
 
           <p

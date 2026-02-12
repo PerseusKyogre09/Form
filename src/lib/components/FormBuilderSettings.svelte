@@ -14,9 +14,7 @@
     export let removeBackgroundImage: () => void;
     export let copyToClipboard: () => void;
 
-    let isBackgroundOpen = false;
-    let isTextColorOpen = false;
-    let isSlugOpen = false;
+    let activeTab: "themes" | "background" | "settings" = "themes";
 
     function updateSlug(newSlug: string) {
         if (currentFormData) {
@@ -26,249 +24,366 @@
     }
 </script>
 
-<div
-    class="bg-surface p-6 rounded-xl border border-slate-200 custom-shadow space-y-4"
->
-    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-        Form Settings
-    </h3>
+<div class="flex flex-col h-full bg-white border-l border-slate-200">
+    <!-- Persistent Top Header -->
+    <div class="p-6 border-b border-slate-100 space-y-4 bg-slate-50/50">
+        <div class="space-y-3">
+            <h3
+                class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1"
+            >
+                Share & Preview
+            </h3>
 
-    <ThemesModal />
-
-    <!-- Background Settings -->
-    <!-- Background Settings -->
-    <div class="w-full rounded-lg border border-transparent transition-all">
-        <button
-            class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 group"
-            on:click={() => (isBackgroundOpen = !isBackgroundOpen)}
-        >
-            <div class="flex items-center gap-3">
-                <span
-                    class="fas fa-image text-secondary group-hover:scale-110 transition-transform"
-                ></span>
-                <span class="text-sm font-medium">Background Image</span>
-            </div>
-            <span
-                class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isBackgroundOpen
-                    ? 'rotate-90'
-                    : ''}"
-            ></span>
-        </button>
-
-        <!-- Inline Quick Settings for Background -->
-        {#if isBackgroundOpen}
-            <div class="pl-8 pb-3 space-y-2 text-left">
-                {#if currentFormData?.backgroundType === "color"}
-                    <div class="flex gap-2">
-                        <input
-                            type="color"
-                            value={currentFormData?.backgroundColor ||
-                                "#ffffff"}
-                            on:input={(e) =>
-                                updateBackgroundColor(e.currentTarget.value)}
-                            class="w-8 h-8 rounded cursor-pointer border border-gray-200"
-                        />
-                        <span class="text-xs text-slate-500 self-center"
-                            >{currentFormData?.backgroundColor}</span
-                        >
-                    </div>
-                {:else}
-                    <div class="text-xs text-slate-500">Image selected</div>
-                {/if}
-                <label
-                    class="text-xs text-primary cursor-pointer hover:underline"
-                >
-                    {currentFormData?.backgroundImage
-                        ? "Change Image"
-                        : "Upload Image"}
-                    <input
-                        type="file"
-                        accept="image/*"
-                        on:change={handleBackgroundImageUpload}
-                        class="hidden"
-                    />
-                </label>
-                {#if currentFormData?.backgroundImage}
-                    <button
-                        on:click={removeBackgroundImage}
-                        class="text-xs text-red-500 block hover:underline"
-                        >Remove Image</button
-                    >
-                {/if}
-            </div>
-        {/if}
-    </div>
-
-    <!-- Global Text Color Settings -->
-    <div class="w-full rounded-lg border border-transparent transition-all">
-        <button
-            class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 group"
-            on:click={() => (isTextColorOpen = !isTextColorOpen)}
-        >
-            <div class="flex items-center gap-3">
-                <span
-                    class="fas fa-font text-secondary group-hover:scale-110 transition-transform"
-                ></span>
-                <span class="text-sm font-medium">Global Text Color</span>
-            </div>
-            <span
-                class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isTextColorOpen
-                    ? 'rotate-90'
-                    : ''}"
-            ></span>
-        </button>
-
-        <!-- Inline Quick Settings for Text Color -->
-        {#if isTextColorOpen}
-            <div class="pl-8 pb-3 text-left" role="group">
+            {#if shareLink && currentFormData?.published}
                 <div class="flex gap-2">
                     <input
-                        type="color"
-                        value={currentFormData?.globalTextColor || "#000000"}
-                        on:input={(e) => {
-                            updateGlobalTextColor(e.currentTarget.value);
-                            saveForm();
-                        }}
-                        class="w-8 h-8 rounded cursor-pointer border border-gray-200"
+                        class="flex-1 text-xs bg-white border border-slate-200 rounded-lg py-2 px-3 focus:ring-1 focus:ring-primary outline-none truncate"
+                        readonly
+                        type="text"
+                        value={shareLink}
                     />
-                    <span class="text-xs text-slate-500 self-center"
-                        >{currentFormData?.globalTextColor || "Default"}</span
+                    <button
+                        on:click={copyToClipboard}
+                        class="bg-primary text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-600 transition-colors shadow-sm"
+                        aria-label="Copy Share Link"
                     >
+                        <i class="fas fa-copy"></i>
+                    </button>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1">
-                    Overrides dynamic text colors
-                </p>
-            </div>
-        {/if}
-    </div>
+            {/if}
 
-    <!-- Slug Settings -->
-    <div class="w-full rounded-lg border border-transparent transition-all">
-        <button
-            class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 group"
-            on:click={() => (isSlugOpen = !isSlugOpen)}
-        >
-            <div class="flex items-center gap-3">
-                <span
-                    class="fas fa-link text-secondary group-hover:scale-110 transition-transform"
-                ></span>
-                <span class="text-sm font-medium">Form Slug</span>
-            </div>
-            <span
-                class="fas fa-chevron-right text-slate-300 text-sm transition-transform duration-200 {isSlugOpen
-                    ? 'rotate-90'
-                    : ''}"
-            ></span>
-        </button>
+            <div class="grid grid-cols-2 gap-2">
+                {#if shareLink && currentFormData?.published}
+                    <a
+                        href={shareLink}
+                        target="_blank"
+                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 bg-white hover:border-primary transition-all text-center no-underline shadow-sm group"
+                    >
+                        <span
+                            class="fas fa-external-link-alt text-slate-400 group-hover:text-primary text-xs"
+                        ></span>
+                        <span
+                            class="text-[10px] font-bold text-slate-600 group-hover:text-slate-900"
+                            >Preview</span
+                        >
+                    </a>
+                {:else}
+                    <button
+                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed shadow-none"
+                    >
+                        <span class="fas fa-eye-slash text-slate-400 text-xs"
+                        ></span>
+                        <span class="text-[10px] font-bold text-slate-500"
+                            >Unpublished</span
+                        >
+                    </button>
+                {/if}
 
-        <!-- Inline Slug Editor -->
-        {#if isSlugOpen}
-            <div class="pl-8 pb-3 text-left space-y-2" role="group">
-                <input
-                    type="text"
-                    value={currentFormData?.slug || ""}
-                    on:change={(e) => updateSlug(e.currentTarget.value)}
-                    placeholder="my-form-slug"
-                    class="w-full text-xs bg-white border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-primary outline-none"
-                />
-                <p class="text-[10px] text-slate-400">
-                    Use this in your URL: /form/{currentFormData?.slug ||
-                        "form-slug"}
-                </p>
+                <button
+                    on:click={saveForm}
+                    class="flex items-center justify-center gap-2 p-3 rounded-xl bg-black text-white hover:opacity-90 transition-all shadow-sm"
+                >
+                    <span class="fas fa-save text-xs"></span>
+                    <span class="text-[10px] font-bold">Save</span>
+                </button>
             </div>
-        {/if}
-    </div>
-
-    <button
-        on:click={toggleFormStatus}
-        class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 group transition-all"
-    >
-        {#if currentFormData?.closed}
-            <div class="flex items-center gap-3 text-orange-600">
-                <span
-                    class="fas fa-lock group-hover:scale-110 transition-transform"
-                ></span>
-                <span class="text-sm font-medium">Form is Closed</span>
-            </div>
-        {:else}
-            <div class="flex items-center gap-3 text-emerald-600">
-                <span
-                    class="fas fa-lock-open group-hover:scale-110 transition-transform"
-                ></span>
-                <span class="text-sm font-medium">Form is Open</span>
-            </div>
-        {/if}
-        <span class="fas fa-chevron-right text-slate-300 text-sm"></span>
-    </button>
-    <button
-        on:click={saveForm}
-        class="w-full flex items-center justify-center gap-2 p-3 text-sm font-medium bg-black text-white rounded-xl hover:opacity-90 transition-all mt-4"
-    >
-        <span class="fas fa-save text-sm"></span>
-        Save Changes
-    </button>
-</div>
-
-{#if shareLink && currentFormData?.published}
-    <div
-        class="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 space-y-3"
-    >
-        <h3 class="text-xs font-bold text-primary uppercase tracking-widest">
-            Share Link
-        </h3>
-        <div class="flex gap-2">
-            <input
-                class="flex-1 text-xs bg-white border-indigo-100 rounded-lg py-2 px-3 focus:ring-primary outline-none"
-                readonly
-                type="text"
-                value={shareLink}
-            />
-            <button
-                on:click={copyToClipboard}
-                class="bg-primary text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-600 transition-colors"
-                >Copy</button
-            >
         </div>
-        <p class="text-[10px] text-slate-500 leading-relaxed italic">
-            Share this link to let others fill out your form. Responses will
-            appear in the tab above.
-        </p>
     </div>
-{/if}
 
-<div class="space-y-3">
-    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">
-        Quick Links
-    </h3>
-    <div class="grid grid-cols-2 gap-2">
-        {#if shareLink && currentFormData?.published}
-            <a
-                href={shareLink}
-                target="_blank"
-                class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface hover:border-primary transition-colors text-center no-underline"
-            >
-                <span class="fas fa-eye text-slate-400"></span>
-                <span class="text-[10px] font-semibold text-slate-600"
-                    >Public Preview</span
-                >
-            </a>
-        {:else}
-            <button
-                class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface opacity-50 cursor-not-allowed"
-            >
-                <span class="fas fa-eye-slash text-slate-400"></span>
-                <span class="text-[10px] font-semibold text-slate-600"
-                    >Not Published</span
-                >
-            </button>
-        {/if}
-        <button
-            class="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-surface hover:border-primary transition-colors"
+    <!-- Main Content with Tab Navigation -->
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Tab Sidebar (Vertical Icons) -->
+        <div
+            class="w-16 border-r border-slate-100 flex flex-col items-center py-6 gap-4 bg-slate-50/30"
         >
-            <span class="fas fa-cog text-slate-400"></span>
-            <span class="text-[10px] font-semibold text-slate-600"
-                >Advanced Settings</span
+            <button
+                on:click={() => (activeTab = "themes")}
+                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                'themes'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                aria-label="Themes"
+                title="Themes"
             >
-        </button>
+                <i class="fas fa-palette text-lg"></i>
+            </button>
+
+            <button
+                on:click={() => (activeTab = "background")}
+                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                'background'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                aria-label="Appearance"
+                title="Appearance"
+            >
+                <i class="fas fa-image text-lg"></i>
+            </button>
+
+            <button
+                on:click={() => (activeTab = "settings")}
+                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                'settings'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                aria-label="Configuration"
+                title="Configuration"
+            >
+                <i class="fas fa-cog text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable Tab Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+            {#if activeTab === "themes"}
+                <div class="space-y-6">
+                    <header>
+                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                            Themes
+                        </h3>
+                        <p class="text-xs text-slate-500">
+                            Select a predefined style for your form.
+                        </p>
+                    </header>
+                    <ThemesModal inline={true} />
+                </div>
+            {:else if activeTab === "background"}
+                <div class="space-y-8">
+                    <header>
+                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                            Appearance
+                        </h3>
+                        <p class="text-xs text-slate-500">
+                            Customize the look and feel of your form.
+                        </p>
+                    </header>
+
+                    <!-- Background Image section -->
+                    <section class="space-y-4">
+                        <h4
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                            Background Image
+                        </h4>
+                        <div class="relative group">
+                            <div
+                                class="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 overflow-hidden overflow-ellipsis transition-all group-hover:border-primary/50"
+                            >
+                                {#if currentFormData?.backgroundImage}
+                                    <img
+                                        src={currentFormData.backgroundImage}
+                                        alt="Background"
+                                        class="absolute inset-0 w-full h-full object-cover opacity-40 blur-[1px]"
+                                    />
+                                    <div
+                                        class="relative flex flex-col items-center gap-2"
+                                    >
+                                        <button
+                                            on:click={removeBackgroundImage}
+                                            class="p-2 bg-white rounded-lg shadow-sm text-red-500 hover:bg-red-50 transition-colors"
+                                            aria-label="Remove background image"
+                                        >
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                        <span
+                                            class="text-[10px] font-bold text-slate-600 bg-white/80 px-2 py-0.5 rounded shadow-sm"
+                                            >Image Uploaded</span
+                                        >
+                                    </div>
+                                {:else}
+                                    <i
+                                        class="fas fa-cloud-upload-alt text-slate-300 text-2xl group-hover:text-primary transition-colors"
+                                    ></i>
+                                    <span
+                                        class="text-[10px] font-bold text-slate-400 group-hover:text-slate-600"
+                                        >Click to upload</span
+                                    >
+                                {/if}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    on:change={handleBackgroundImageUpload}
+                                    class="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Background Color section -->
+                    <section class="space-y-4">
+                        <h4
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                            Background Color
+                        </h4>
+                        <div
+                            class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100"
+                        >
+                            <input
+                                type="color"
+                                value={currentFormData?.backgroundColor ||
+                                    "#ffffff"}
+                                on:input={(e) =>
+                                    updateBackgroundColor(
+                                        e.currentTarget.value,
+                                    )}
+                                class="w-10 h-10 p-0.5 rounded-lg border border-slate-200 cursor-pointer bg-white"
+                            />
+                            <div class="flex flex-col">
+                                <span
+                                    class="text-xs font-bold text-slate-700 uppercase"
+                                    >{currentFormData?.backgroundColor ||
+                                        "#ffffff"}</span
+                                >
+                                <span class="text-[10px] text-slate-400"
+                                    >Main background</span
+                                >
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Text Color section -->
+                    <section class="space-y-4">
+                        <h4
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                            Global Text Color
+                        </h4>
+                        <div
+                            class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100"
+                        >
+                            <input
+                                type="color"
+                                value={currentFormData?.globalTextColor ||
+                                    "#000000"}
+                                on:input={(e) => {
+                                    updateGlobalTextColor(
+                                        e.currentTarget.value,
+                                    );
+                                    saveForm();
+                                }}
+                                class="w-10 h-10 p-0.5 rounded-lg border border-slate-200 cursor-pointer bg-white"
+                            />
+                            <div class="flex flex-col">
+                                <span
+                                    class="text-xs font-bold text-slate-700 uppercase"
+                                    >{currentFormData?.globalTextColor ||
+                                        "Default"}</span
+                                >
+                                <span class="text-[10px] text-slate-400"
+                                    >Overrides dynamic contrast</span
+                                >
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            {:else if activeTab === "settings"}
+                <div class="space-y-8">
+                    <header>
+                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                            Configuration
+                        </h3>
+                        <p class="text-xs text-slate-500">
+                            Manage form visibility and URL.
+                        </p>
+                    </header>
+
+                    <section class="space-y-4">
+                        <h4
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                            Form Visibility
+                        </h4>
+                        <button
+                            on:click={toggleFormStatus}
+                            class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.closed
+                                ? 'bg-orange-50 border-orange-100 text-orange-700 hover:bg-orange-100'
+                                : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100'}"
+                        >
+                            <div class="flex items-center gap-3">
+                                <i
+                                    class="fas {currentFormData?.closed
+                                        ? 'fa-lock'
+                                        : 'fa-lock-open'} text-lg"
+                                ></i>
+                                <div class="flex flex-col items-start">
+                                    <span class="text-xs font-bold"
+                                        >{currentFormData?.closed
+                                            ? "Closed"
+                                            : "Open"}</span
+                                    >
+                                    <span class="text-[10px] opacity-80"
+                                        >{currentFormData?.closed
+                                            ? "Not accepting responses"
+                                            : "Publicly accessible"}</span
+                                    >
+                                </div>
+                            </div>
+                            <span class="fas fa-power-off opacity-40"></span>
+                        </button>
+                    </section>
+
+                    <section class="space-y-4">
+                        <h4
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                            Custom URL Slug
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="relative">
+                                <span
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+                                    >/form/</span
+                                >
+                                <input
+                                    type="text"
+                                    value={currentFormData?.slug || ""}
+                                    on:change={(e) =>
+                                        updateSlug(e.currentTarget.value)}
+                                    placeholder="my-cool-form"
+                                    class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-white outline-none font-medium transition-all"
+                                />
+                            </div>
+                            <p
+                                class="text-[10px] text-slate-400 px-1 leading-relaxed"
+                            >
+                                Changing the slug will break old links.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="space-y-4 pt-4 border-t border-slate-100">
+                        <button
+                            class="w-full flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-white hover:border-primary transition-all group"
+                        >
+                            <span
+                                class="fas fa-trash-alt text-slate-300 group-hover:text-red-500 transition-colors"
+                            ></span>
+                            <span
+                                class="text-[10px] font-bold text-slate-500 group-hover:text-slate-900"
+                                >Advanced Settings</span
+                            >
+                        </button>
+                    </section>
+                </div>
+            {/if}
+        </div>
     </div>
 </div>
+
+<style>
+    /* Custom scrollbar for better look */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 4px;
+    }
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #cbd5e1;
+    }
+</style>

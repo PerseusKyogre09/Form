@@ -19,6 +19,16 @@
   let shareLink: string = "";
   let copied = false;
   let isSettingsOpen = false;
+  let isSidebarOpen = true;
+  let isRightSidebarOpen = true;
+
+  function toggleSidebar() {
+    isSidebarOpen = !isSidebarOpen;
+  }
+
+  function toggleRightSidebar() {
+    isRightSidebarOpen = !isRightSidebarOpen;
+  }
 
   onMount(() => {
     // Create a new form when navigating to /form-builder
@@ -32,7 +42,7 @@
       backgroundColor: "#ffffff",
       backgroundImage: "",
       slug: "",
-      theme: "light",
+      theme: undefined,
     };
     currentForm.set(newForm);
   });
@@ -305,6 +315,7 @@
         <a
           href="/dashboard"
           class="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0"
+          aria-label="Back to Dashboard"
         >
           <span class="fas fa-arrow-left text-slate-600"></span>
         </a>
@@ -321,169 +332,287 @@
       </div>
 
       <div class="flex items-center gap-2 md:gap-4">
-        <Button.Root
+        <button
           on:click={saveForm}
           class="rounded-lg bg-black text-white shadow-sm hover:bg-black/90 inline-flex h-10 items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] active:transition-all"
         >
           <span class="fas fa-save mr-2 text-xs"></span>
           Save Form
-        </Button.Root>
+        </button>
       </div>
     </div>
-    <div class="max-w-[1400px] mx-auto px-4 md:px-6">
-      <Tabs.Root bind:value={view}>
-        <Tabs.List
-          class="bg-transparent border-b border-slate-200 gap-0 grid w-auto grid-cols-4 p-0"
-        >
-          <Tabs.Trigger
-            value="edit"
-            class="px-4 py-3 font-semibold text-sm data-[state=active]:text-slate-900 data-[state=active]:border-b-2 data-[state=active]:border-slate-900 data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 bg-transparent border-0 rounded-none h-auto"
-          >
-            Edit
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="preview"
-            class="px-4 py-3 font-semibold text-sm data-[state=active]:text-slate-900 data-[state=active]:border-b-2 data-[state=active]:border-slate-900 data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 bg-transparent border-0 rounded-none h-auto"
-          >
-            Preview
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="thank-you"
-            class="px-4 py-3 font-semibold text-sm data-[state=active]:text-slate-900 data-[state=active]:border-b-2 data-[state=active]:border-slate-900 data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 bg-transparent border-0 rounded-none h-auto"
-          >
-            Thank You
-          </Tabs.Trigger>
-          <Tabs.Trigger
-            value="responses"
-            class="px-4 py-3 font-semibold text-sm data-[state=active]:text-slate-900 data-[state=active]:border-b-2 data-[state=active]:border-slate-900 data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 bg-transparent border-0 rounded-none h-auto"
-          >
-            Responses
-          </Tabs.Trigger>
-        </Tabs.List>
-      </Tabs.Root>
+    <div class="hidden lg:flex items-center gap-2">
+      <!-- Sidebar Toggle space if needed -->
     </div>
+
+    <!-- Desktop Right Sidebar Toggle -->
+    <button
+      on:click={toggleRightSidebar}
+      class="hidden xl:flex items-center justify-center p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-all active:scale-95"
+      aria-label="Toggle Settings Sidebar"
+      title="Toggle Settings Sidebar"
+    >
+      <i
+        class="fas fa-cog text-xl {isRightSidebarOpen
+          ? 'text-primary rotate-90'
+          : ''} transition-all duration-300"
+      ></i>
+    </button>
 
     <!-- Mobile Settings Button -->
-    <div class="max-w-[1400px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between lg:hidden border-t border-slate-200">
-      <div></div>
-      <button
-        on:click={() => (isSettingsOpen = true)}
-        class="p-2 hover:bg-slate-100 rounded-lg text-slate-600"
-      >
-        <span class="fas fa-cog text-lg"></span>
-      </button>
-    </div>
+    <button
+      on:click={() => (isSettingsOpen = true)}
+      class="p-2 hover:bg-slate-100 rounded-lg xl:hidden"
+      aria-label="Open Form Settings"
+    >
+      <span class="fas fa-cog text-slate-600 text-xl"></span>
+    </button>
   </header>
 
-  <div class="max-w-[1400px] mx-auto px-6 py-8">
-    {#if view === "preview"}
-      <!-- Device Preset Toolbar -->
-      <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap">
-          <span class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white text-slate-900 shadow-sm">
-            Responsive
-          </span>
-        </div>
-      </div>
+  <!-- Desktop Sidebar -->
+  <aside
+    class="hidden lg:flex fixed left-0 top-16 bottom-0 bg-white border-r border-slate-200 flex-col transition-all duration-300 z-40 {isSidebarOpen
+      ? 'w-64'
+      : 'w-20'}"
+  >
+    <div class="flex-1 py-6 flex flex-col gap-2">
+      <button
+        on:click={() => (view = "edit")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'edit'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-edit w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Build</span>
+        {/if}
+      </button>
 
-      <!-- Preview Container -->
-      <div class="relative bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden" style="height: calc(80vh - 60px);">
-        <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 16px 16px;"></div>
-        <div class="relative bg-white rounded-lg shadow-2xl overflow-hidden w-full h-full">
-          {#if currentFormData}
-            <FormPreview
-              questions={currentFormData.questions}
-              formId={currentFormData.id}
-              isClosed={currentFormData.closed || false}
-              backgroundType={currentFormData.backgroundType || "color"}
-              backgroundColor={currentFormData.backgroundColor || "#ffffff"}
-              backgroundImage={currentFormData.backgroundImage || ""}
-              globalTextColor={currentFormData?.globalTextColor || ""}
-              theme={currentFormData.theme}
-              isEmbedded={true}
-              {onSubmit}
-            />
-          {/if}
-        </div>
-      </div>
-    {:else if view === "thank-you"}
-      <!-- Thank You Page Editor -->
-      {#if currentFormData}
-        <div class="space-y-6">
-          <ThankYouPageEditor />
-        </div>
-      {/if}
-    {:else if view === "responses"}
-      <!-- Responses viewer -->
-      <ResponseViewer
-        formId={currentFormData.id}
-        questions={currentFormData.questions}
-      />
-    {:else}
-      <!-- Form builder layout -->
-      <main class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <div class="flex-1 space-y-6">
-          <FormBuilder {saveForm} />
-        </div>
+      <button
+        on:click={() => (view = "preview")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'preview'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-eye w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Preview</span>
+        {/if}
+      </button>
 
-        <!-- Desktop Sidebar -->
-        <aside class="hidden lg:block w-80 space-y-6 sticky top-24 self-start">
-          {#if currentFormData}
-            <FormBuilderSettings
-              {currentFormData}
-              {shareLink}
-              {saveForm}
-              toggleFormStatus={() => {}}
-              {updateBackgroundColor}
-              updateGlobalTextColor={() => {}}
-              {handleBackgroundImageUpload}
-              {removeBackgroundImage}
-              {copyToClipboard}
-              isNewForm={true}
-            />
-          {/if}
-        </aside>
-      </main>
+      <button
+        on:click={() => (view = "thank-you")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'thank-you'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-heart w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Thank You</span>
+        {/if}
+      </button>
 
-      <!-- Mobile Settings Drawer -->
-      {#if isSettingsOpen}
-        <div class="fixed inset-0 z-[60] lg:hidden">
-          <!-- Backdrop -->
+      <button
+        on:click={() => (view = "responses")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'responses'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-chart-bar w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Responses</span>
+        {/if}
+      </button>
+    </div>
+
+    <!-- Collapse Toggle -->
+    <div class="p-4 border-t border-slate-100">
+      <button
+        on:click={toggleSidebar}
+        class="w-full flex items-center justify-center py-3 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all font-medium text-sm"
+        aria-label="Toggle Sidebar"
+      >
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </aside>
+
+  <div
+    class="transition-all duration-300 {isSidebarOpen
+      ? 'lg:pl-64'
+      : 'lg:pl-20'} {isRightSidebarOpen ? 'xl:pr-80' : 'xl:pr-0'}"
+  >
+    <div class="max-w-[1400px] mx-auto px-6 py-8">
+      {#if view === "preview"}
+        <!-- Device Preset Toolbar -->
+        <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div
-            class="absolute inset-0 bg-black/20 backdrop-blur-sm"
-            on:click={() => (isSettingsOpen = false)}
-          ></div>
-
-          <!-- Drawer -->
-          <div
-            class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
+            class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap"
           >
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-lg font-bold text-slate-900">Settings</h2>
-              <button
-                on:click={() => (isSettingsOpen = false)}
-                class="p-2 hover:bg-slate-100 rounded-full transition-colors"
-              >
-                <span class="fas fa-times text-slate-600"></span>
-              </button>
-            </div>
+            <span
+              class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white text-slate-900 shadow-sm"
+            >
+              Responsive
+            </span>
+          </div>
+        </div>
+
+        <!-- Preview Container -->
+        <div
+          class="relative bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden"
+          style="height: calc(80vh - 60px);"
+        >
+          <div
+            class="absolute inset-0 opacity-[0.03]"
+            style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 16px 16px;"
+          ></div>
+          <div
+            class="relative bg-white rounded-lg shadow-2xl overflow-hidden w-full h-full"
+          >
+            {#if currentFormData}
+              <FormPreview
+                questions={currentFormData.questions}
+                formId={currentFormData.id}
+                isClosed={currentFormData.closed || false}
+                backgroundType={currentFormData.backgroundType || "color"}
+                backgroundColor={currentFormData.backgroundColor || "#ffffff"}
+                backgroundImage={currentFormData.backgroundImage || ""}
+                globalTextColor={currentFormData?.globalTextColor || ""}
+                theme={currentFormData.theme}
+                {onSubmit}
+              />
+            {/if}
+          </div>
+        </div>
+      {:else if view === "thank-you"}
+        <!-- Thank You Page Editor -->
+        {#if currentFormData}
+          <div class="space-y-6">
+            <ThankYouPageEditor
+              thankYouPage={currentFormData.thankYouPage}
+              onUpdate={(config) => {
+                currentForm.update((f) => ({ ...f, thankYouPage: config }));
+              }}
+              {saveForm}
+            />
+          </div>
+        {/if}
+      {:else if view === "responses"}
+        <!-- Responses viewer -->
+        <ResponseViewer
+          formId={currentFormData.id}
+          questions={currentFormData.questions}
+        />
+      {:else}
+        <main class="flex flex-col xl:flex-row gap-6 lg:gap-8">
+          <div class="flex-1 space-y-6">
+            <FormBuilder />
+          </div>
+
+          <!-- Desktop Right Sidebar -->
+          <aside
+            class="hidden xl:flex fixed right-0 top-16 bottom-0 bg-white border-l border-slate-200 flex-col transition-all duration-300 z-40 {isRightSidebarOpen
+              ? 'w-80'
+              : 'w-0 overflow-hidden border-none'}"
+          >
             {#if currentFormData}
               <FormBuilderSettings
                 {currentFormData}
                 {shareLink}
                 {saveForm}
-                toggleFormStatus={() => {}}
-                {updateBackgroundColor}
-                updateGlobalTextColor={() => {}}
-                {handleBackgroundImageUpload}
-                {removeBackgroundImage}
-                {copyToClipboard}
-                isNewForm={true}
+                toggleFormStatus={async () => {
+                  currentFormData.closed = !currentFormData.closed;
+                }}
+                updateBackgroundColor={(color) => {
+                  currentFormData.backgroundColor = color;
+                }}
+                updateGlobalTextColor={(color) => {
+                  currentFormData.globalTextColor = color;
+                }}
+                handleBackgroundImageUpload={async (e) => {
+                  // Background image upload logic
+                }}
+                removeBackgroundImage={() => {
+                  currentFormData.backgroundImage = "";
+                }}
+                copyToClipboard={() => {
+                  if (shareLink) {
+                    navigator.clipboard.writeText(shareLink);
+                    notifications.add("Copied to clipboard!", "success");
+                  }
+                }}
               />
             {/if}
+          </aside>
+        </main>
+
+        <!-- Mobile Settings Drawer -->
+        {#if isSettingsOpen}
+          <div class="fixed inset-0 z-[60] xl:hidden">
+            <!-- Backdrop -->
+            <div
+              class="absolute inset-0 bg-black/20 backdrop-blur-sm"
+              on:click={() => (isSettingsOpen = false)}
+              role="button"
+              tabindex="0"
+              on:keydown={(e) => e.key === "Enter" && (isSettingsOpen = false)}
+              aria-label="Close settings"
+            ></div>
+
+            <!-- Drawer -->
+            <div
+              class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-0 overflow-hidden transform transition-transform duration-300"
+            >
+              <div
+                class="flex items-center justify-between p-6 border-b border-slate-100"
+              >
+                <h2 class="text-lg font-bold text-slate-900">Settings</h2>
+                <button
+                  on:click={() => (isSettingsOpen = false)}
+                  class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                  aria-label="Close settings"
+                >
+                  <span class="fas fa-times text-slate-600"></span>
+                </button>
+              </div>
+              <div class="h-[calc(100%-80px)] overflow-y-auto">
+                {#if currentFormData}
+                  <FormBuilderSettings
+                    {currentFormData}
+                    {shareLink}
+                    {saveForm}
+                    toggleFormStatus={async () => {
+                      currentFormData.closed = !currentFormData.closed;
+                    }}
+                    updateBackgroundColor={(color) => {
+                      currentFormData.backgroundColor = color;
+                    }}
+                    updateGlobalTextColor={(color) => {
+                      currentFormData.globalTextColor = color;
+                    }}
+                    handleBackgroundImageUpload={async (e) => {
+                      // Background image upload logic
+                    }}
+                    removeBackgroundImage={() => {
+                      currentFormData.backgroundImage = "";
+                    }}
+                    copyToClipboard={() => {
+                      if (shareLink) {
+                        navigator.clipboard.writeText(shareLink);
+                        notifications.add("Copied to clipboard!", "success");
+                      }
+                    }}
+                  />
+                {/if}
+              </div>
+            </div>
           </div>
-        </div>
+        {/if}
       {/if}
-    {/if}
+    </div>
   </div>
 </div>

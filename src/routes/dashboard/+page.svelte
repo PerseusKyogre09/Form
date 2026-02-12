@@ -6,24 +6,44 @@
   import { supabase } from "$lib/supabaseClient";
   import { goto } from "$app/navigation";
   import type { Form } from "../../lib/types";
+  import favicon from "$lib/assets/favicon.svg";
 
-  let allForms: Form[] = [];
-  let loading = true;
-  let loadingMore = false;
-  let hasMore = true;
+  let allForms = $state<Form[]>([]);
+  let loading = $state(true);
+  let loadingMore = $state(false);
+  let hasMore = $state(true);
+  let searchQuery = $state("");
   const PAGE_SIZE = 20;
-  let user: any = null;
+  let user = $state<any>(null);
+
+  // Derived filtered forms
+  let filteredForms = $derived(
+    allForms.filter((form) =>
+      form.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    ),
+  );
 
   onMount(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     user = session?.user;
     await loadForms();
   });
 
+  function generateGradient(id: string) {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    return `linear-gradient(135deg, hsl(${hue}, 70%, 96%) 0%, hsl(${(hue + 60) % 360}, 70%, 96%) 100%)`;
+  }
+
   async function loadForms() {
     try {
       if (!user) return;
-      
+
       const { data, error } = await supabase
         .from("forms")
         .select("*")
@@ -32,7 +52,7 @@
         .range(0, PAGE_SIZE - 1);
 
       if (error) throw error;
-      
+
       // Fetch questions for all forms
       const formsWithQuestions = await Promise.all(
         (data as Form[])?.map(async (form) => {
@@ -41,24 +61,30 @@
             .select("data")
             .eq("form_id", form.id)
             .order("order_index", { ascending: true });
-          
+
           return {
             ...form,
-            questions: questionsData?.map(q => q.data) || []
+            questions: questionsData?.map((q) => q.data) || [],
           };
-        }) || []
+        }) || [],
       );
-      
+
       allForms = formsWithQuestions;
       hasMore = data && data.length === PAGE_SIZE;
-      
+
       // Animate in forms
       setTimeout(() => {
-        document.querySelectorAll('.form-card').forEach((card, idx) => {
+        document.querySelectorAll(".form-card").forEach((card, idx) => {
           gsap.fromTo(
             card,
             { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.5, ease: 'back.out', delay: idx * 0.05 }
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.5,
+              ease: "back.out",
+              delay: idx * 0.05,
+            },
           );
         });
       }, 0);
@@ -91,14 +117,14 @@
               .select("data")
               .eq("form_id", form.id)
               .order("order_index", { ascending: true });
-            
+
             return {
               ...form,
-              questions: questionsData?.map(q => q.data) || []
+              questions: questionsData?.map((q) => q.data) || [],
             };
-          })
+          }),
         );
-        
+
         allForms = [...allForms, ...formsWithQuestions];
         hasMore = data.length === PAGE_SIZE;
       } else {
@@ -121,17 +147,14 @@
 
   async function deleteForm(formId: string, formTitle: string) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${formTitle}"? This action cannot be undone.`
+      `Are you sure you want to delete "${formTitle}"? This action cannot be undone.`,
     );
 
     if (!confirmed) return;
 
     try {
       // Delete from Supabase
-      const { error } = await supabase
-        .from("forms")
-        .delete()
-        .eq("id", formId);
+      const { error } = await supabase.from("forms").delete().eq("id", formId);
 
       if (error) throw error;
 
@@ -165,170 +188,340 @@
   }
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+<div class="min-h-screen bg-[#F8F9FA] font-sans text-slate-900">
   <!-- Header -->
-  <header class="border-b border-gray-200 sticky top-0 bg-white/80 backdrop-blur-md z-50">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Quill</div>
+  <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <div
+      class="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between"
+    >
+      <div class="flex items-center gap-8">
+        <!-- Logo -->
+        <a href="/dashboard" class="flex items-center gap-3 group">
+          <img
+            src={favicon}
+            alt="Quill Logo"
+            class="w-8 h-8 group-hover:scale-105 transition-transform"
+          />
+          <span class="text-xl font-bold text-slate-800 tracking-tight"
+            >Quill</span
+          >
+        </a>
+
+        <!-- Workspace Toggle (Visual Only) -->
+        <div class="hidden md:flex bg-gray-100/80 p-1 rounded-lg">
+          <button
+            class="px-4 py-1.5 bg-white rounded-md shadow-sm text-sm font-medium text-slate-800 transition-all"
+            >Personal</button
+          >
+          <button
+            class="px-4 py-1.5 text-sm font-medium text-gray-500 hover:text-slate-700 transition-colors"
+            >Workspace</button
+          >
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <!-- New Form Button -->
+        <a
+          href="/form-builder"
+          class="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558DD] text-white text-sm font-medium rounded-lg transition-colors shadow-md shadow-indigo-100"
+        >
+          <i class="fas fa-plus"></i>
+          <span>New Form</span>
+        </a>
+
+        <!-- Profile -->
         {#if user}
-          <a href="/profile" class="ml-2 transition-transform hover:scale-110">
-            <Avatar.Root class="h-10 w-10">
-              <Avatar.Image 
-                src={user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
+          <div class="relative group cursor-pointer ml-2">
+            <Avatar.Root
+              class="h-9 w-9 border-2 border-white shadow-sm rounded-full overflow-hidden transition-transform hover:scale-105"
+            >
+              <Avatar.Image
+                src={user.user_metadata?.avatar_url ||
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
                 alt={user.email || "User avatar"}
+                class="h-full w-full object-cover"
               />
-              <Avatar.Fallback class="flex items-center justify-center w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm">
+              <Avatar.Fallback
+                class="flex items-center justify-center w-full h-full bg-indigo-50 text-indigo-600 font-bold text-xs"
+              >
                 {user.email?.charAt(0).toUpperCase() || "U"}
               </Avatar.Fallback>
             </Avatar.Root>
-          </a>
+
+            <!-- Quick Profile Menu -->
+            <div
+              class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right"
+            >
+              <div class="p-2">
+                <a
+                  href="/profile"
+                  class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <i class="fas fa-user w-4"></i> Profile
+                </a>
+                <button
+                  on:click={handleLogout}
+                  class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <i class="fas fa-sign-out-alt w-4"></i> Logout
+                </button>
+              </div>
+            </div>
+          </div>
         {/if}
-      </div>
-      <div class="flex gap-3">
-        <button
-          on:click={handleLogout}
-          class="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
-        >
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-        <a
-          href="/form-builder"
-          class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
-        >
-          <i class="fas fa-plus"></i> New Form
-        </a>
       </div>
     </div>
   </header>
 
   <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-6 py-12">
-    <!-- Hero Section -->
-    <div class="mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-3">My Forms</h1>
-      <p class="text-lg text-gray-600 flex items-center gap-2">
-        <i class="fas fa-file-alt text-blue-600"></i>
-        {allForms.length} form{allForms.length !== 1 ? "s" : ""}
-        {#if allForms.length > 0}
-          <span class="text-gray-400">•</span>
-          <span class="text-blue-600 font-medium">Sorted by recently edited</span>
-        {/if}
-      </p>
+  <main class="max-w-[1600px] mx-auto px-6 py-10">
+    <!-- Section Header -->
+    <div
+      class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
+    >
+      <div>
+        <h1
+          class="text-4xl font-serif font-bold text-slate-900 mb-3 tracking-tight"
+        >
+          My Forms
+        </h1>
+        <div class="flex items-center gap-3 text-sm font-medium text-gray-500">
+          <span class="flex items-center gap-2 px-1">
+            <i class="fas fa-folder text-gray-400"></i> All Projects
+          </span>
+          <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+          <span>{filteredForms.length} Forms</span>
+        </div>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="relative flex-1 md:w-80 group">
+          <i
+            class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors"
+          ></i>
+          <input
+            type="text"
+            placeholder="Search forms..."
+            bind:value={searchQuery}
+            class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-gray-400"
+          />
+          {#if searchQuery}
+            <button
+              on:click={() => (searchQuery = "")}
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <i class="fas fa-times-circle"></i>
+            </button>
+          {/if}
+        </div>
+        <button
+          class="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all"
+        >
+          <i class="fas fa-filter"></i>
+        </button>
+      </div>
     </div>
 
+    <!-- Forms Grid -->
     {#if loading}
-      <div class="flex items-center justify-center py-20">
-        <div class="text-center">
-          <div class="inline-block">
-            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
-          </div>
-          <p class="text-gray-600 text-lg">Loading your forms...</p>
+      <div class="flex items-center justify-center py-32">
+        <div class="flex flex-col items-center gap-4">
+          <div
+            class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"
+          ></div>
+          <p class="text-slate-500 font-medium">Loading your workspace...</p>
         </div>
-      </div>
-    {:else if allForms.length === 0}
-      <div class="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-300 shadow-sm">
-        <div class="mb-4">
-          <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-900 mb-2">No forms yet</h3>
-        <p class="text-gray-600 mb-8">Create your first form to get started</p>
-        <a
-          href="/form-builder"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl"
-        >
-          <i class="fas fa-plus"></i> Create Your First Form
-        </a>
       </div>
     {:else}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {#each allForms as form (form.id)}
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      >
+        <!-- Create New Form Card -->
+        {#if !searchQuery}
+          <a
+            href="/form-builder"
+            class="group relative bg-[#F8FAFC] rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-[320px] text-center p-6 order-last md:order-none"
+          >
+            <div
+              class="w-16 h-16 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-indigo-500 group-hover:scale-110 group-hover:shadow-md transition-all duration-300"
+            >
+              <i class="fas fa-plus text-2xl"></i>
+            </div>
+            <div>
+              <h3
+                class="text-lg font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors"
+              >
+                Create New Form
+              </h3>
+              <p
+                class="text-sm text-slate-400 px-4 group-hover:text-slate-500 transition-colors"
+              >
+                Start from a blank canvas or choose a template
+              </p>
+            </div>
+          </a>
+        {/if}
+
+        {#each filteredForms as form (form.id)}
           <div
-            class="form-card group bg-white rounded-2xl border border-gray-200 p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden relative"
+            class="form-card group relative bg-white rounded-2xl p-4 border border-gray-200/60 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all duration-300 cursor-pointer flex flex-col h-[320px]"
             role="button"
             tabindex="0"
             on:click={() => navigateToBuilder(form)}
             on:keydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
           >
-            <!-- Status badge -->
-            <div class="absolute top-4 right-4 flex gap-2 items-start">
-              <div class="flex gap-2">
-                {#if form.published}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                    <i class="fas fa-check-circle"></i> Published
-                  </span>
-                {/if}
-                {#if form.closed}
-                  <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                    <i class="fas fa-lock"></i> Closed
-                  </span>
-                {/if}
+            <!-- Thumbnail Area -->
+            <div
+              class="relative h-40 w-full rounded-xl overflow-hidden mb-4 border border-gray-100/50"
+              style="background: {generateGradient(form.title)}"
+            >
+              <!-- Decorative elements -->
+              <div class="absolute inset-0 opacity-40">
+                <div
+                  class="absolute top-4 left-4 w-24 h-4 bg-white/60 rounded-full"
+                ></div>
+                <div
+                  class="absolute top-12 left-4 right-4 h-2 bg-white/40 rounded-full"
+                ></div>
+                <div
+                  class="absolute top-20 left-4 right-12 h-2 bg-white/40 rounded-full"
+                ></div>
+                <div
+                  class="absolute top-28 left-4 right-8 h-2 bg-white/40 rounded-full"
+                ></div>
               </div>
-              <!-- Three-dot menu -->
-              <div class="relative group/menu">
-                <button
-                  on:click={(e) => { e.stopPropagation(); }}
-                  class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
-                  title="More options"
-                >
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <!-- Dropdown menu -->
-                <div class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 z-10">
+
+              <!-- Menu Trigger -->
+              <div class="absolute top-3 right-3 z-20">
+                <div class="relative group/menu">
                   <button
                     on:click={(e) => {
                       e.stopPropagation();
-                      deleteForm(form.id, form.title);
                     }}
-                    class="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium text-sm rounded-lg hover:rounded-none hover:rounded-b-lg first:hover:rounded-t-lg"
+                    class="w-8 h-8 flex items-center justify-center bg-white/80 hover:bg-white backdrop-blur-sm rounded-lg text-gray-400 hover:text-indigo-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200"
                   >
-                    <i class="fas fa-trash"></i> Delete Form
+                    <i class="fas fa-ellipsis-h"></i>
                   </button>
+
+                  <!-- Dropdown menu -->
+                  <div
+                    class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 transform origin-top-right scale-95 group-hover/menu:scale-100"
+                  >
+                    <button
+                      on:click={(e) => {
+                        e.stopPropagation();
+                        deleteForm(form.id, form.title);
+                      }}
+                      class="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium text-sm rounded-lg"
+                    >
+                      <i class="fas fa-trash w-4"></i> Delete Form
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              <!-- Status Badge -->
+              <div class="absolute bottom-3 left-3">
+                {#if form.published}
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100/80 backdrop-blur-md text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-emerald-200/50 shadow-sm"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                    ></span> Published
+                  </span>
+                {:else}
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100/80 backdrop-blur-md text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-slate-200/50 shadow-sm"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Draft
+                  </span>
+                {/if}
               </div>
             </div>
 
             <!-- Content -->
-            <div class="mb-6 pr-20">
-              <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">{form.title}</h3>
-              <div class="flex items-center gap-4 text-sm text-gray-600">
-                <span class="flex items-center gap-1">
-                  <i class="fas fa-file-lines text-blue-500"></i>
-                  {(form.questions?.length) || 0} question{(form.questions?.length) !== 1 ? "s" : ""}
-                </span>
-                <span class="flex items-center gap-1">
-                  <i class="fas fa-clock text-gray-400"></i>
-                  {formatDate(form.updated_at)}
-                </span>
+            <div class="flex-1 flex flex-col">
+              <h3
+                class="font-bold text-slate-800 text-lg leading-tight mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors"
+              >
+                {form.title}
+              </h3>
+
+              <div
+                class="flex items-center gap-4 text-xs font-medium text-gray-400 mb-auto"
+              >
+                <div class="flex items-center gap-1.5">
+                  <i class="fas fa-list-ul"></i>
+                  {form.questions?.length || 0} questions
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <i class="fas fa-clock"></i>
+                  Edited {formatDate(form.updated_at)}
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div
+                class="flex items-center gap-3 pt-4 border-t border-gray-50 mt-4"
+              >
+                <button
+                  on:click={(e) => {
+                    e.stopPropagation();
+                    navigateToBuilder(form);
+                  }}
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-100 text-indigo-600 bg-indigo-50/50 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 font-semibold text-sm transition-all duration-200"
+                >
+                  <i class="fas fa-pen-to-square"></i> Edit Form
+                </button>
+                <button
+                  on:click={(e) => {
+                    e.stopPropagation(); /* Future Analytics nav */
+                  }}
+                  class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-slate-700 hover:bg-gray-100 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                >
+                  <i class="far fa-chart-bar text-lg"></i>
+                </button>
               </div>
             </div>
-
-            <!-- Action button -->
-            <button
-              on:click={(e) => { e.stopPropagation(); navigateToBuilder(form); }}
-              class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 group-hover:shadow-lg"
-            >
-              <i class="fas fa-edit"></i> Edit Form
-            </button>
           </div>
         {/each}
       </div>
 
-      {#if hasMore}
-        <div class="text-center mt-12">
+      {#if searchQuery && filteredForms.length === 0}
+        <div class="text-center py-20">
+          <div class="mb-4">
+            <i class="fas fa-search text-5xl text-gray-200"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">No forms found</h3>
+          <p class="text-slate-400">
+            Try adjusting your search query for "{searchQuery}"
+          </p>
+          <button
+            on:click={() => (searchQuery = "")}
+            class="mt-6 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors"
+          >
+            Clear Search
+          </button>
+        </div>
+      {/if}
+
+      {#if hasMore && !searchQuery}
+        <div class="text-center mt-12 mb-8">
           <button
             on:click={loadMoreForms}
             disabled={loadingMore}
-            class="px-8 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 hover:border-blue-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+            class="px-6 py-2.5 bg-white border border-gray-200 text-slate-600 rounded-full font-medium shadow-sm hover:border-indigo-300 hover:text-indigo-600 transition-all disabled:opacity-50"
           >
             {#if loadingMore}
-              <i class="fas fa-spinner fa-spin"></i> Loading...
+              <i class="fas fa-spinner fa-spin mr-2"></i> Loading...
             {:else}
-              <i class="fas fa-arrow-down"></i> Load More Forms
+              Load More Forms
             {/if}
           </button>
         </div>
       {/if}
     {/if}
-  </div>
+  </main>
 </div>

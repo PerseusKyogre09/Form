@@ -23,6 +23,16 @@
   let loading = true;
   let username: string = "";
   let isSettingsOpen = false;
+  let isSidebarOpen = true;
+  let isRightSidebarOpen = true;
+
+  function toggleSidebar() {
+    isSidebarOpen = !isSidebarOpen;
+  }
+
+  function toggleRightSidebar() {
+    isRightSidebarOpen = !isRightSidebarOpen;
+  }
 
   // Device preview presets
   type DevicePreset = {
@@ -145,7 +155,9 @@
     try {
       const { data, error } = await supabase
         .from("forms")
-        .select("id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page")
+        .select(
+          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page",
+        )
         .eq("id", $page.params.formId)
         .single();
 
@@ -153,14 +165,14 @@
         console.error("Error loading form:", error);
       } else if (data) {
         console.log("Form loaded:", data.id);
-        
+
         // Fetch questions from the questions table
         const { data: questionsData } = await supabase
           .from("questions")
           .select("data")
           .eq("form_id", data.id)
           .order("order_index", { ascending: true });
-        
+
         // Convert snake_case to camelCase for consistency in the app
         const formData = {
           ...data,
@@ -169,7 +181,7 @@
           backgroundImage: data.background_image || "",
           globalTextColor: data.global_text_color || "",
           theme: data.theme || undefined,
-          questions: questionsData?.map(q => q.data) || [],
+          questions: questionsData?.map((q) => q.data) || [],
         };
         currentForm.set(formData);
       }
@@ -249,7 +261,9 @@
       const { data, error } = await supabase
         .from("forms")
         .upsert(formToSave)
-        .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page');
+        .select(
+          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page",
+        );
 
       if (error) {
         console.error("Supabase error:", error);
@@ -261,14 +275,16 @@
       // Always save questions via API if they exist (don't rely on form save success)
       if (currentFormData.questions && currentFormData.questions.length > 0) {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
           const token = session?.access_token;
           if (token) {
-            const apiResponse = await fetch('/api/forms', {
-              method: 'POST',
+            const apiResponse = await fetch("/api/forms", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
                 id: currentFormData.id,
@@ -283,8 +299,8 @@
                 theme: currentFormData.theme,
                 global_text_color: currentFormData.globalTextColor,
                 thank_you_page: currentFormData.thankYouPage,
-                user_id: user.id
-              })
+                user_id: user.id,
+              }),
             });
             if (!apiResponse.ok) {
               const errorText = await apiResponse.text();
@@ -587,6 +603,7 @@
         <button
           on:click={goBack}
           class="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0"
+          aria-label="Go Back"
         >
           <span class="fas fa-arrow-left text-slate-600"></span>
         </button>
@@ -602,37 +619,8 @@
         />
       </div>
 
-      <div class="hidden lg:flex absolute left-1/2 -translate-x-1/2">
-        <Tabs.Root bind:value={view}>
-          <Tabs.List
-            class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl"
-          >
-            <Tabs.Trigger
-              value="edit"
-              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
-            >
-              Edit
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="preview"
-              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
-            >
-              Preview
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="thankYou"
-              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
-            >
-              Thank You
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="responses"
-              class="px-6 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors data-[state=active]:bg-white data-[state=active]:text-primary data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900"
-            >
-              Responses
-            </Tabs.Trigger>
-          </Tabs.List>
-        </Tabs.Root>
+      <div class="hidden lg:flex items-center gap-2">
+        <!-- Sidebar Toggle is in Sidebar or elsewhere, for now we can have it here or just make sidebar collapsible -->
       </div>
 
       <div class="flex items-center gap-2 md:gap-3 flex-1 justify-end">
@@ -652,10 +640,25 @@
           </button>
         {/if}
 
+        <!-- Desktop Right Sidebar Toggle -->
+        <button
+          on:click={toggleRightSidebar}
+          class="hidden xl:flex items-center justify-center p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-all active:scale-95"
+          aria-label="Toggle Settings Sidebar"
+          title="Toggle Settings Sidebar"
+        >
+          <i
+            class="fas fa-cog text-xl {isRightSidebarOpen
+              ? 'text-primary rotate-90'
+              : ''} transition-all duration-300"
+          ></i>
+        </button>
+
         <!-- Mobile Settings Button -->
         <button
           on:click={() => (isSettingsOpen = true)}
-          class="p-2 hover:bg-slate-100 rounded-lg lg:hidden"
+          class="p-2 hover:bg-slate-100 rounded-lg xl:hidden"
+          aria-label="Open Form Settings"
         >
           <span class="fas fa-cog text-slate-600 text-xl"></span>
         </button>
@@ -663,259 +666,339 @@
     </div>
   </header>
 
-  <div class="max-w-[1400px] mx-auto px-6 py-8">
-    {#if loading}
-      <div class="text-center py-12">
-        <p class="text-gray-500">Loading form...</p>
-      </div>
-    {:else if view === "preview"}
-      <!-- Device Preset Toolbar -->
-      <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <div
-          class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap"
-        >
-          {#each devicePresets as preset}
-            <button
-              on:click={() => selectPreset(preset)}
-              class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap
-                {selectedPreset === preset.name
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}"
-            >
-              <i class="fas {preset.icon} text-[10px]"></i>
-              {preset.name}
-            </button>
-          {/each}
-          {#if selectedPreset === "Custom"}
-            <span
-              class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white text-primary shadow-sm flex items-center gap-1.5"
-            >
-              <i class="fas fa-arrows-alt text-[10px]"></i>
-              Custom
-            </span>
-          {/if}
+  <!-- Desktop Sidebar -->
+  <aside
+    class="hidden lg:flex fixed left-0 top-16 bottom-0 bg-white border-r border-slate-200 flex-col transition-all duration-300 z-40 {isSidebarOpen
+      ? 'w-64'
+      : 'w-20'}"
+  >
+    <div class="flex-1 py-6 flex flex-col gap-2">
+      <button
+        on:click={() => (view = "edit")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'edit'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-edit w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Build</span>
+        {/if}
+      </button>
+
+      <button
+        on:click={() => (view = "preview")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'preview'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-eye w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Preview</span>
+        {/if}
+      </button>
+
+      <button
+        on:click={() => (view = "thankYou")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'thankYou'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-heart w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Thank You</span>
+        {/if}
+      </button>
+
+      <button
+        on:click={() => (view = "responses")}
+        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        'responses'
+          ? 'bg-indigo-50 text-indigo-600'
+          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+      >
+        <i class="fas fa-chart-bar w-5 text-lg"></i>
+        {#if isSidebarOpen}
+          <span class="font-semibold text-sm">Responses</span>
+        {/if}
+      </button>
+    </div>
+
+    <!-- Collapse Toggle -->
+    <div class="p-4 border-t border-slate-100">
+      <button
+        on:click={toggleSidebar}
+        class="w-full flex items-center justify-center py-3 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all font-medium text-sm"
+        aria-label="Toggle Sidebar"
+      >
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </aside>
+
+  <div
+    class="transition-all duration-300 {isSidebarOpen
+      ? 'lg:pl-64'
+      : 'lg:pl-20'} {isRightSidebarOpen ? 'xl:pr-80' : 'xl:pr-0'}"
+  >
+    <div class="max-w-[1400px] mx-auto px-6 py-8">
+      {#if loading}
+        <div class="text-center py-12">
+          <p class="text-gray-500">Loading form...</p>
         </div>
-        <div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
-          {#if isFixedDevice || selectedPreset === "Custom"}
-            <span class="bg-slate-100 px-2 py-1 rounded">
-              {Math.round(customWidth)} × {Math.round(customHeight)}
-            </span>
-            {#if previewScale < 1}
-              <span class="bg-slate-100 px-2 py-1 rounded">
-                {Math.round(previewScale * 100)}%
+      {:else if view === "preview"}
+        <!-- Device Preset Toolbar -->
+        <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <div
+            class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap"
+          >
+            {#each devicePresets as preset}
+              <button
+                on:click={() => selectPreset(preset)}
+                class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap
+                {selectedPreset === preset.name
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}"
+              >
+                <i class="fas {preset.icon} text-[10px]"></i>
+                {preset.name}
+              </button>
+            {/each}
+            {#if selectedPreset === "Custom"}
+              <span
+                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white text-primary shadow-sm flex items-center gap-1.5"
+              >
+                <i class="fas fa-arrows-alt text-[10px]"></i>
+                Custom
               </span>
             {/if}
-          {:else}
-            <span class="bg-slate-100 px-2 py-1 rounded">Responsive</span>
-          {/if}
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
+            {#if isFixedDevice || selectedPreset === "Custom"}
+              <span class="bg-slate-100 px-2 py-1 rounded">
+                {Math.round(customWidth)} × {Math.round(customHeight)}
+              </span>
+              {#if previewScale < 1}
+                <span class="bg-slate-100 px-2 py-1 rounded">
+                  {Math.round(previewScale * 100)}%
+                </span>
+              {/if}
+            {:else}
+              <span class="bg-slate-100 px-2 py-1 rounded">Responsive</span>
+            {/if}
+          </div>
         </div>
-      </div>
 
-      <!-- Preview Container -->
-      <div
-        bind:this={previewContainerEl}
-        class="relative bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden"
-        style="height: calc(80vh - 60px);"
-      >
-        <!-- Dotted background pattern -->
+        <!-- Preview Container -->
         <div
-          class="absolute inset-0 opacity-[0.03]"
-          style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 16px 16px;"
-        ></div>
-
-        {#if isFixedDevice || selectedPreset === "Custom"}
-          <!-- Fixed device frame -->
+          bind:this={previewContainerEl}
+          class="relative bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden"
+          style="height: calc(80vh - 60px);"
+        >
+          <!-- Dotted background pattern -->
           <div
-            class="relative bg-white rounded-lg shadow-2xl overflow-hidden"
-            style="width: {customWidth}px; height: {customHeight}px; transform: scale({previewScale}); transform-origin: center center;"
-          >
-            {#if currentFormData}
-              <FormPreview
-                questions={currentFormData.questions}
-                formId={currentFormData.id}
-                isClosed={currentFormData.closed || false}
-                backgroundType={currentFormData.backgroundType || "color"}
-                backgroundColor={currentFormData.backgroundColor || "#ffffff"}
-                backgroundImage={currentFormData.backgroundImage || ""}
-                globalTextColor={currentFormData?.globalTextColor || ""}
-                theme={currentFormData.theme}
-                isEmbedded={true}
-                {onSubmit}
-              />
-            {/if}
-
-            <!-- Resize Handle -->
-            <button
-              on:mousedown={onResizeStart}
-              class="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize z-[60] group p-0 bg-transparent border-none"
-              aria-label="Drag to resize preview"
-            >
-              <svg
-                class="w-full h-full text-slate-400 group-hover:text-primary transition-colors"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  d="M14.5 17.5L17.5 14.5M9.5 17.5L17.5 9.5M4.5 17.5L17.5 4.5"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  fill="none"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        {:else}
-          <!-- Responsive: fill entire container -->
-          <div class="absolute inset-0 overflow-hidden">
-            {#if currentFormData}
-              <FormPreview
-                questions={currentFormData.questions}
-                formId={currentFormData.id}
-                isClosed={currentFormData.closed || false}
-                backgroundType={currentFormData.backgroundType || "color"}
-                backgroundColor={currentFormData.backgroundColor || "#ffffff"}
-                backgroundImage={currentFormData.backgroundImage || ""}
-                globalTextColor={currentFormData?.globalTextColor || ""}
-                theme={currentFormData.theme}
-                isEmbedded={true}
-                {onSubmit}
-              />
-            {/if}
-          </div>
-        {/if}
-      </div>
-    {:else if view === "thankYou"}
-      <!-- Thank You Page Editor -->
-      {#if currentFormData}
-        <div class="space-y-6">
-          <ThankYouPageEditor
-            thankYouPage={currentFormData.thankYouPage}
-            onUpdate={(config) => {
-              currentForm.update(f => ({...f, thankYouPage: config}));
-            }}
-            {saveForm}
-          />
-        </div>
-      {/if}
-    {:else if view === "responses"}
-      <!-- Responses viewer -->
-      {#if currentFormData}
-        <ResponseViewer
-          formId={currentFormData.id}
-          questions={currentFormData.questions}
-        />
-      {/if}
-    {:else}
-      <!-- Form builder layout -->
-      <main class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <div class="flex-1 space-y-6">
-          <FormBuilder {saveForm} />
-        </div>
-
-        <!-- Desktop Sidebar -->
-        <aside class="hidden lg:block w-80 space-y-6 sticky top-24 self-start">
-          <FormBuilderSettings
-            {currentFormData}
-            {shareLink}
-            {saveForm}
-            {toggleFormStatus}
-            {updateBackgroundColor}
-            {updateGlobalTextColor}
-            {handleBackgroundImageUpload}
-            {removeBackgroundImage}
-            {copyToClipboard}
-          />
-        </aside>
-      </main>
-
-      <!-- Mobile Settings Drawer -->
-      {#if isSettingsOpen}
-        <div class="fixed inset-0 z-[60] lg:hidden">
-          <!-- Backdrop -->
-          <div
-            class="absolute inset-0 bg-black/20 backdrop-blur-sm"
-            on:click={() => (isSettingsOpen = false)}
+            class="absolute inset-0 opacity-[0.03]"
+            style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 16px 16px;"
           ></div>
 
-          <!-- Drawer -->
-          <div
-            class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
-          >
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-lg font-bold text-slate-900">Settings</h2>
+          {#if isFixedDevice || selectedPreset === "Custom"}
+            <!-- Fixed device frame -->
+            <div
+              class="relative bg-white rounded-lg shadow-2xl overflow-hidden"
+              style="width: {customWidth}px; height: {customHeight}px; transform: scale({previewScale}); transform-origin: center center;"
+            >
+              {#if currentFormData}
+                <FormPreview
+                  questions={currentFormData.questions}
+                  formId={currentFormData.id}
+                  isClosed={currentFormData.closed || false}
+                  backgroundType={currentFormData.backgroundType || "color"}
+                  backgroundColor={currentFormData.backgroundColor || "#ffffff"}
+                  backgroundImage={currentFormData.backgroundImage || ""}
+                  globalTextColor={currentFormData?.globalTextColor || ""}
+                  theme={currentFormData.theme}
+                  {onSubmit}
+                />
+              {/if}
+
+              <!-- Resize Handle -->
               <button
-                on:click={() => (isSettingsOpen = false)}
-                class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                on:mousedown={onResizeStart}
+                class="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize z-[60] group p-0 bg-transparent border-none"
+                aria-label="Drag to resize preview"
               >
-                <span class="fas fa-times text-slate-500 text-xl"></span>
+                <svg
+                  class="w-full h-full text-slate-400 group-hover:text-primary transition-colors"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M14.5 17.5L17.5 14.5M9.5 17.5L17.5 9.5M4.5 17.5L17.5 4.5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    fill="none"
+                    stroke-linecap="round"
+                  />
+                </svg>
               </button>
             </div>
+          {:else}
+            <!-- Responsive: fill entire container -->
+            <div class="absolute inset-0 overflow-hidden">
+              {#if currentFormData}
+                <FormPreview
+                  questions={currentFormData.questions}
+                  formId={currentFormData.id}
+                  isClosed={currentFormData.closed || false}
+                  backgroundType={currentFormData.backgroundType || "color"}
+                  backgroundColor={currentFormData.backgroundColor || "#ffffff"}
+                  backgroundImage={currentFormData.backgroundImage || ""}
+                  globalTextColor={currentFormData?.globalTextColor || ""}
+                  theme={currentFormData.theme}
+                  {onSubmit}
+                />
+              {/if}
+            </div>
+          {/if}
+        </div>
+      {:else if view === "thankYou"}
+        <!-- Thank You Page Editor -->
+        {#if currentFormData}
+          <div class="space-y-6">
+            <ThankYouPageEditor
+              thankYouPage={currentFormData.thankYouPage}
+              onUpdate={(config) => {
+                currentForm.update((f) => ({ ...f, thankYouPage: config }));
+              }}
+              {saveForm}
+            />
+          </div>
+        {/if}
+      {:else if view === "responses"}
+        <!-- Responses viewer -->
+        {#if currentFormData}
+          <ResponseViewer
+            formId={currentFormData.id}
+            questions={currentFormData.questions}
+          />
+        {/if}
+      {:else}
+        <!-- Form builder layout -->
+        <main class="flex flex-col xl:flex-row gap-6 lg:gap-8">
+          <div class="flex-1 space-y-6">
+            <FormBuilder />
+          </div>
 
-            <div class="space-y-6">
-              <FormBuilderSettings
-                {currentFormData}
-                {shareLink}
-                {saveForm}
-                {toggleFormStatus}
-                {updateBackgroundColor}
-                {updateGlobalTextColor}
-                {handleBackgroundImageUpload}
-                {removeBackgroundImage}
-                {copyToClipboard}
-              />
+          <!-- Desktop Right Sidebar -->
+          <aside
+            class="hidden xl:flex fixed right-0 top-16 bottom-0 bg-white border-l border-slate-200 flex-col transition-all duration-300 z-40 {isRightSidebarOpen
+              ? 'w-80'
+              : 'w-0 overflow-hidden border-none'}"
+          >
+            <FormBuilderSettings
+              {currentFormData}
+              {shareLink}
+              {saveForm}
+              {toggleFormStatus}
+              {updateBackgroundColor}
+              {updateGlobalTextColor}
+              {handleBackgroundImageUpload}
+              {removeBackgroundImage}
+              {copyToClipboard}
+            />
+          </aside>
+        </main>
+
+        <!-- Mobile Settings Drawer -->
+        {#if isSettingsOpen}
+          <div class="fixed inset-0 z-[60] lg:hidden">
+            <!-- Backdrop -->
+            <div
+              class="absolute inset-0 bg-black/20 backdrop-blur-sm"
+              on:click={() => (isSettingsOpen = false)}
+            ></div>
+
+            <!-- Drawer -->
+            <div
+              class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
+            >
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-bold text-slate-900">Settings</h2>
+                <button
+                  on:click={() => (isSettingsOpen = false)}
+                  class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                >
+                  <span class="fas fa-times text-slate-500 text-xl"></span>
+                </button>
+              </div>
+
+              <div class="space-y-6">
+                <FormBuilderSettings
+                  {currentFormData}
+                  {shareLink}
+                  {saveForm}
+                  {toggleFormStatus}
+                  {updateBackgroundColor}
+                  {updateGlobalTextColor}
+                  {handleBackgroundImageUpload}
+                  {removeBackgroundImage}
+                  {copyToClipboard}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      {/if}
+        {/if}
 
-      <!-- Mobile Bottom Navigation -->
-      {#if !loading && view}
-        <div
-          class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-2 z-50 flex justify-around items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
-        >
-          <button
-            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
-            'edit'
-              ? 'text-primary'
-              : 'text-slate-400 hover:text-slate-600'}"
-            on:click={() => (view = "edit")}
+        <!-- Mobile Bottom Navigation -->
+        {#if !loading && view}
+          <div
+            class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-2 z-50 flex justify-around items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
           >
-            <span class="fas fa-edit text-xl"></span>
-            <span class="text-[10px] font-medium">Edit</span>
-          </button>
-          <button
-            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
-            'preview'
-              ? 'text-primary'
-              : 'text-slate-400 hover:text-slate-600'}"
-            on:click={() => (view = "preview")}
-          >
-            <span class="fas fa-eye text-xl"></span>
-            <span class="text-[10px] font-medium">Preview</span>
-          </button>
-          <button
-            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
-            'thankYou'
-              ? 'text-primary'
-              : 'text-slate-400 hover:text-slate-600'}"
-            on:click={() => (view = "thankYou")}
-          >
-            <span class="fas fa-heart text-xl"></span>
-            <span class="text-[10px] font-medium">Thank You</span>
-          </button>
-          <button
-            class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
-            'responses'
-              ? 'text-primary'
-              : 'text-slate-400 hover:text-slate-600'}"
-            on:click={() => (view = "responses")}
-          >
-            <span class="fas fa-chart-bar text-xl"></span>
-            <span class="text-[10px] font-medium">Responses</span>
-          </button>
-        </div>
+            <button
+              class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+              'edit'
+                ? 'text-primary'
+                : 'text-slate-400 hover:text-slate-600'}"
+              on:click={() => (view = "edit")}
+            >
+              <span class="fas fa-edit text-xl"></span>
+              <span class="text-[10px] font-medium">Edit</span>
+            </button>
+            <button
+              class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+              'preview'
+                ? 'text-primary'
+                : 'text-slate-400 hover:text-slate-600'}"
+              on:click={() => (view = "preview")}
+            >
+              <span class="fas fa-eye text-xl"></span>
+              <span class="text-[10px] font-medium">Preview</span>
+            </button>
+            <button
+              class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+              'thankYou'
+                ? 'text-primary'
+                : 'text-slate-400 hover:text-slate-600'}"
+              on:click={() => (view = "thankYou")}
+            >
+              <span class="fas fa-heart text-xl"></span>
+              <span class="text-[10px] font-medium">Thank You</span>
+            </button>
+            <button
+              class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
+              'responses'
+                ? 'text-primary'
+                : 'text-slate-400 hover:text-slate-600'}"
+              on:click={() => (view = "responses")}
+            >
+              <span class="fas fa-chart-bar text-xl"></span>
+              <span class="text-[10px] font-medium">Responses</span>
+            </button>
+          </div>
+        {/if}
       {/if}
-    {/if}
+    </div>
   </div>
 </div>
