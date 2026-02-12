@@ -60,6 +60,15 @@
   });
 </script>
 
+<svelte:head>
+  <title>Quill - Beautiful Form Builder | No Code Required</title>
+  <meta name="description" content="Create beautiful, customizable forms without coding. Collect responses, analyze data, and share instantly with Quill." />
+  <meta name="keywords" content="form builder, survey creator, questionnaire, form creation, data collection, form responses, no-code" />
+  <meta property="og:title" content="Quill - Beautiful Form Builder" />
+  <meta property="og:description" content="Create beautiful forms without coding. Collect responses and analyze data instantly." />
+  <meta property="og:type" content="website" />
+</svelte:head>
+
 <div class="min-h-screen bg-white overflow-hidden text-black font-sans">
   <!-- Nav -->
   <nav class="fixed top-0 w-full z-50 bg-white border-b border-black/10">

@@ -15,6 +15,15 @@
   }
 </script>
 
+<svelte:head>
+  <title>{formData?.title} - Form</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Fill out {formData?.title}" />
+  <meta property="og:title" content="{formData?.title} - Quill Form" />
+  <meta property="og:description" content="You're invited to fill out a form" />
+  <meta property="og:type" content="website" />
+</svelte:head>
+
 <div class="min-h-screen bg-[#ffffff]">
   {#if formData}
     <div class="min-h-screen">

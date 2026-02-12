@@ -58,6 +58,14 @@
   });
 </script>
 
+<svelte:head>
+  <title>Form Submitted - Thank You</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Thank you for submitting the form" />
+  <meta property="og:title" content="Thank You - Form Submitted" />
+  <meta property="og:description" content="Your response has been received" />
+</svelte:head>
+
 <div
   class="min-h-screen flex items-center justify-center transition-colors duration-200"
   style="background-color: {theme && theme.id === 'ide-dark' ? '#1a1a1a' : backgroundColor};"
