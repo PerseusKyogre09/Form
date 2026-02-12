@@ -105,7 +105,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 };
 
-export const GET: RequestHandler = async ({ url, request }) => {
+export const GET: RequestHandler = async ({ url, request, cookies }) => {
+  const supabase = createSupabaseServerClient(cookies);
   try {
     const formId = url.searchParams.get('formId');
     const slug = url.searchParams.get('slug');
@@ -164,7 +165,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
       return json({
         ...data,
-        questions: questionsData?.map(q => q.data) || (data.questions || [])
+        questions: questionsData?.map((q: any) => q.data) || []
       });
     } else if (formId) {
       // Look up by form ID
@@ -188,7 +189,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
       return json({
         ...data,
-        questions: questionsData?.map(q => q.data) || (data.questions || [])
+        questions: questionsData?.map((q: any) => q.data) || []
       });
     }
 
@@ -218,7 +219,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
     // Fetch questions for all forms
     if (forms && forms.length > 0) {
-      const formIds = forms.map(f => f.id);
+      const formIds = forms.map((f: any) => f.id);
       const { data: allQuestions } = await supabase
         .from('questions')
         .select('form_id, data')
@@ -227,20 +228,20 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
       // Map questions back to forms
       const questionsMap: Record<string, any[]> = {};
-      allQuestions?.forEach(q => {
+      allQuestions?.forEach((q: any) => {
         if (!questionsMap[q.form_id]) {
           questionsMap[q.form_id] = [];
         }
         questionsMap[q.form_id].push(q.data);
       });
 
-      forms = forms.map(f => ({
+      forms = forms.map((f: any) => ({
         ...f,
         questions: questionsMap[f.id] || []
       }));
     } else if (forms) {
       // Ensure all forms have questions array even if no questions table entries
-      forms = forms.map(f => ({
+      forms = forms.map((f: any) => ({
         ...f,
         questions: f.questions || []
       }));
