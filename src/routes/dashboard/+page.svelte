@@ -32,7 +32,10 @@
         .range(0, PAGE_SIZE - 1);
 
       if (error) throw error;
-      allForms = (data as Form[]) || [];
+      allForms = (data as Form[])?.map(form => ({
+        ...form,
+        questions: form.questions || []
+      })) || [];
       hasMore = data && data.length === PAGE_SIZE;
       
       // Animate in forms
@@ -66,7 +69,11 @@
 
       if (error) throw error;
       if (data && data.length > 0) {
-        allForms = [...allForms, ...(data as Form[])];
+        const newForms = (data as Form[]).map(form => ({
+          ...form,
+          questions: form.questions || []
+        }));
+        allForms = [...allForms, ...newForms];
         hasMore = data.length === PAGE_SIZE;
       } else {
         hasMore = false;
@@ -261,7 +268,7 @@
               <div class="flex items-center gap-4 text-sm text-gray-600">
                 <span class="flex items-center gap-1">
                   <i class="fas fa-file-lines text-blue-500"></i>
-                  {form.questions.length} question{form.questions.length !== 1 ? "s" : ""}
+                  {(form.questions?.length) || 0} question{(form.questions?.length) !== 1 ? "s" : ""}
                 </span>
                 <span class="flex items-center gap-1">
                   <i class="fas fa-clock text-gray-400"></i>
