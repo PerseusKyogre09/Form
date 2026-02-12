@@ -1,25 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+
+const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
 export async function load({ params }) {
   try {
-    // Validate environment variables
-    if (!env.PUBLIC_SUPABASE_URL || !env.PUBLIC_SUPABASE_ANON_KEY) {
-      console.warn('Supabase environment variables not configured');
-      return {
-        theme: null,
-        backgroundColor: '#ffffff',
-        thankYouPage: null,
-        username: params.username,
-        slug: params.slug
-      };
-    }
-
-    const supabase = createClient(
-      env.PUBLIC_SUPABASE_URL,
-      env.PUBLIC_SUPABASE_ANON_KEY
-    );
-
     const username = params.username as string;
     const slug = params.slug as string;
 
@@ -30,51 +15,45 @@ export async function load({ params }) {
       .eq('username', username)
       .single();
 
-    if (profileError || !profileData) {
-      console.warn('Profile not found for username:', username);
-      return {
-        theme: null,
-        backgroundColor: '#ffffff',
-        thankYouPage: null,
-        username,
-        slug
-      };
+    if (profileError) {
+      console.error('Profile error:', profileError);
+      throw new Error(`Failed to load profile: ${profileError.message}`);
     }
 
-    // Get the form by user_id and slug
-    const { data: formData, error: formError } = await supabase
-      .from('forms')
-      .select('background_color, theme, thank_you_page')
-      .eq('user_id', profileData.id)
-      .eq('slug', slug)
-      .single();
+    if (profileData) {
+      // Get the form by user_id and slug
+      const { data: formData, error: formError } = await supabase
+        .from('forms')
+        .select('background_color, theme, thank_you_page')
+        .eq('user_id', profileData.id)
+        .eq('slug', slug)
+        .single();
 
-    if (formError || !formData) {
-      console.warn('Form not found for slug:', slug);
-      return {
-        theme: null,
-        backgroundColor: '#ffffff',
-        thankYouPage: null,
-        username,
-        slug
-      };
+      if (formError && formError.code !== 'PGRST116') {
+        console.error('Form error:', formError);
+        throw new Error(`Failed to load form: ${formError.message}`);
+      }
+
+      if (formData) {
+        return {
+          theme: formData.theme || null,
+          backgroundColor: formData.background_color || '#ffffff',
+          thankYouPage: formData.thank_you_page || null,
+          username,
+          slug
+        };
+      }
     }
 
-    return {
-      theme: formData.theme || null,
-      backgroundColor: formData.background_color || '#ffffff',
-      thankYouPage: formData.thank_you_page || null,
-      username,
-      slug
-    };
-  } catch (error) {
-    console.error('Error loading success page data:', error);
     return {
       theme: null,
       backgroundColor: '#ffffff',
       thankYouPage: null,
-      username: params.username,
-      slug: params.slug
+      username,
+      slug
     };
+  } catch (error) {
+    console.error('Error loading thank you page:', error);
+    throw error;
   }
 }
