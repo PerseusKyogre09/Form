@@ -32,10 +32,24 @@
         .range(0, PAGE_SIZE - 1);
 
       if (error) throw error;
-      allForms = (data as Form[])?.map(form => ({
-        ...form,
-        questions: form.questions || []
-      })) || [];
+      
+      // Fetch questions for all forms
+      const formsWithQuestions = await Promise.all(
+        (data as Form[])?.map(async (form) => {
+          const { data: questionsData } = await supabase
+            .from("questions")
+            .select("data")
+            .eq("form_id", form.id)
+            .order("order_index", { ascending: true });
+          
+          return {
+            ...form,
+            questions: questionsData?.map(q => q.data) || []
+          };
+        }) || []
+      );
+      
+      allForms = formsWithQuestions;
       hasMore = data && data.length === PAGE_SIZE;
       
       // Animate in forms
@@ -69,11 +83,23 @@
 
       if (error) throw error;
       if (data && data.length > 0) {
-        const newForms = (data as Form[]).map(form => ({
-          ...form,
-          questions: form.questions || []
-        }));
-        allForms = [...allForms, ...newForms];
+        // Fetch questions for new forms
+        const formsWithQuestions = await Promise.all(
+          (data as Form[]).map(async (form) => {
+            const { data: questionsData } = await supabase
+              .from("questions")
+              .select("data")
+              .eq("form_id", form.id)
+              .order("order_index", { ascending: true });
+            
+            return {
+              ...form,
+              questions: questionsData?.map(q => q.data) || []
+            };
+          })
+        );
+        
+        allForms = [...allForms, ...formsWithQuestions];
         hasMore = data.length === PAGE_SIZE;
       } else {
         hasMore = false;
