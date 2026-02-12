@@ -1,4 +1,4 @@
-name = "form"
+name = "quill"
 main = ".svelte-kit/cloudflare/index.js"
 compatibility_date = "2024-01-01"
 
