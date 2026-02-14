@@ -2173,7 +2173,7 @@
                         </div>
                       {:else if currentQuestion.type === "multiple-choice"}
                         <div
-                          class="space-y-3"
+                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2"
                           on:keydown={handleSelectionKeyboard}
                         >
                           {#each currentQuestion.options || [] as option}
@@ -2304,7 +2304,7 @@
                         </div>
                       {:else if currentQuestion.type === "checkboxes"}
                         <div
-                          class="space-y-3"
+                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2"
                           on:keydown={handleSelectionKeyboard}
                         >
                           {#each currentQuestion.options || [] as option}
