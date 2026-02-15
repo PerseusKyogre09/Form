@@ -434,6 +434,36 @@
         }
         return;
       }
+    } else if (currentQuestion.type === "checkboxes") {
+      const constraintError = validateSelectionConstraints(
+        answer || [],
+        currentQuestion.constraints,
+      );
+      if (constraintError) {
+        validationError = constraintError;
+        if (!hadError && validationElement) {
+          tick().then(() => bounceError(validationElement));
+        }
+        return;
+      }
+    } else if (
+      currentQuestion.type === "multiple-choice" ||
+      currentQuestion.type === "yes-no"
+    ) {
+      // Validate selection constraints for multiple-choice and yes-no
+      if (answer) {
+        const constraintError = validateSelectionConstraints(
+          [answer],
+          currentQuestion.constraints,
+        );
+        if (constraintError) {
+          validationError = constraintError;
+          if (!hadError && validationElement) {
+            tick().then(() => bounceError(validationElement));
+          }
+          return;
+        }
+      }
     }
 
     // Check if required question is answered

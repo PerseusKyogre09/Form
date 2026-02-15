@@ -678,7 +678,7 @@
     {/if}
 
     <!-- Constraints Area -->
-    {#if getAvailableConstraints().length > 0}
+    {#if (question.constraints && question.constraints.length > 0) || getAvailableConstraints().length > 0}
       {#each question.constraints || [] as constraint (constraint.id)}
         <div class="bg-indigo-50/50 rounded-lg p-4 border border-indigo-100">
           <div class="flex items-center justify-between mb-2">
