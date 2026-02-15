@@ -1,14 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { PRIVATE_SUPABASE_SERVICE_KEY } from '$env/static/private';
+import { createSupabaseServerClient } from '$lib/supabaseServer';
 
-// Create a service role client that bypasses RLS for admin operations
-const supabaseAdmin = createClient(
-  PUBLIC_SUPABASE_URL,
-  PRIVATE_SUPABASE_SERVICE_KEY
-);
 
 // Simple CSV escape function
 function escapeCSV(value: string): string {
@@ -35,8 +28,9 @@ function generateCSV(headers: string[], rows: (string | number | boolean | null)
   return lines.join('\n');
 }
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, request, cookies }) => {
   try {
+    const supabase = createSupabaseServerClient(cookies);
     const { formId } = params;
     console.log('CSV API: Request received for formId:', formId);
 
@@ -45,23 +39,61 @@ export const GET: RequestHandler = async ({ params }) => {
       return json({ error: 'Missing formId parameter' }, { status: 400 });
     }
 
-    // Get the form to check ownership and get questions
+    // Get the current user from the Authorization header
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('CSV API: No authorization header');
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.log('CSV API: User auth failed:', userError);
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('CSV API: User authenticated:', user.id);
+
+    // Get the form to check ownership
     console.log('CSV API: Fetching form data...');
-    const { data: form, error: formError } = await supabaseAdmin
+    const { data: form, error: formError } = await supabase
       .from('forms')
-      .select('id, title, questions, user_id')
+      .select('id, title, user_id')
       .eq('id', formId)
       .single();
 
     if (formError) {
       console.error('CSV API: Error fetching form:', formError);
-      return json({ error: 'Form not found' }, { status: 404 });
+      return json({ error: 'Form not found', details: formError.message }, { status: 404 });
     }
-    console.log('CSV API: Form found:', { id: form.id, title: form.title, questionsCount: form.questions?.length });
+
+    // Check if user owns the form
+    if (form.user_id !== user.id) {
+      console.log('CSV API: User does not own this form');
+      return json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Fetch questions separately
+    console.log('CSV API: Fetching questions...');
+    const { data: questionsData, error: questionsError } = await supabase
+      .from('questions')
+      .select('id, data')
+      .eq('form_id', formId)
+      .order('order_index', { ascending: true });
+
+    if (questionsError) {
+      console.error('CSV API: Error fetching questions:', questionsError);
+      // Continue without questions - might be a form with no questions
+    }
+
+    const questions = questionsData?.map(q => q.data) || [];
+    console.log('CSV API: Form found:', { id: form.id, title: form.title, questionsCount: questions.length });
 
     // Get all responses for this form
     console.log('CSV API: Fetching responses...');
-    const { data: responses, error: responsesError } = await supabaseAdmin
+    const { data: responses, error: responsesError } = await supabase
       .from('form_responses')
       .select('id, created_at, answers')
       .eq('form_id', formId)
@@ -80,7 +112,7 @@ export const GET: RequestHandler = async ({ params }) => {
     const questionMap = new Map();
 
     // Add question titles to headers
-    form.questions.forEach((q: any, index: number) => {
+    questions.forEach((q: any, index: number) => {
       csvHeaders.push(q.title);
       questionMap.set(q.id, index + 2); // +2 because of timestamp and response ID
     });
@@ -117,7 +149,7 @@ export const GET: RequestHandler = async ({ params }) => {
             value = answer;
           } else if (typeof answer === 'number') {
             // Check if this is a rating question
-            const question = form.questions.find((q: any) => q.id === questionId);
+            const question = questions.find((q: any) => q.id === questionId);
             if (question && question.type === 'rating') {
               value = `${answer}/5`;
             } else {

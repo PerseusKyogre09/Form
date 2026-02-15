@@ -160,13 +160,42 @@
     return new Date(timestamp).toLocaleString();
   }
 
-  function downloadCSV() {
-    const link = document.createElement("a");
-    link.href = `/api/responses/${formId}/csv`;
-    link.download = `form-responses-${formId}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  async function downloadCSV() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      
+      if (!accessToken) {
+        alert('Not authenticated. Please log in again.');
+        return;
+      }
+
+      const response = await fetch(`/api/responses/${formId}/csv`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        alert(`Error downloading CSV: ${error.error || response.statusText}`);
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `form-responses-${formId}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading CSV:', err);
+      alert('Failed to download CSV. Please try again.');
+    }
   }
 
   async function deleteAllResponses() {

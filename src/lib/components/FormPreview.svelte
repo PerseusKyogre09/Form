@@ -1254,11 +1254,23 @@
     }
   }
 
+
+  // Helper to detect if device is mobile
+  function isMobileDevice() {
+    return typeof window !== 'undefined' && window.innerWidth < 768;
+  }
+
   function handleKeyboardFlow(e: KeyboardEvent, questionId: string) {
-    // Enter key - move to next question
+    const isMobile = isMobileDevice();
+
+    // Enter key - on desktop move to next question, on mobile allow new line
     if (e.key === "Enter") {
-      e.preventDefault();
-      validateAndAdvance();
+      if (!isMobile) {
+        e.preventDefault();
+        validateAndAdvance();
+      }
+      // On mobile, allow default behavior (new line)
+      return;
     }
     // Backspace on empty - go to previous question
     else if (e.key === "Backspace") {
@@ -1267,26 +1279,33 @@
         prevQuestion();
       }
     }
-    // Arrow Up - navigate to previous question
-    else if (e.key === "ArrowUp") {
+    // Arrow Up - navigate to previous question (only on desktop with hardware keyboard)
+    else if (e.key === "ArrowUp" && !isMobile) {
       e.preventDefault();
       prevQuestion();
     }
-    // Arrow Down - navigate to next question
-    else if (e.key === "ArrowDown") {
+    // Arrow Down - navigate to next question (only on desktop with hardware keyboard)
+    else if (e.key === "ArrowDown" && !isMobile) {
       e.preventDefault();
       validateAndAdvance();
     }
   }
 
-  // Special handler for long-text that allows Shift+Enter for new lines
+  // Special handler for long-text that allows Enter for new lines on mobile
   function handleLongTextKeyboard(e: KeyboardEvent, questionId: string) {
-    // Enter key without Shift - move to next question
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      nextQuestion();
+    const isMobile = isMobileDevice();
+
+    // Enter key - on mobile always allow new line, on desktop use Shift+Enter for new lines
+    if (e.key === "Enter") {
+      if (!isMobile && !e.shiftKey) {
+        // Desktop: Enter without Shift moves to next question
+        e.preventDefault();
+        nextQuestion();
+      }
+      // Mobile: Always allow Enter to create new line
+      // Desktop: Shift+Enter allows natural new lines
+      return;
     }
-    // Shift+Enter allows natural new lines (default behavior)
     // Backspace on empty - go to previous question
     else if (e.key === "Backspace") {
       if (isInputEmpty(questionId)) {
@@ -1294,24 +1313,25 @@
         prevQuestion();
       }
     }
-    // Arrow Up - navigate to previous question
-    else if (e.key === "ArrowUp") {
+    // Arrow Up - navigate to previous question (only on desktop)
+    else if (e.key === "ArrowUp" && !isMobile) {
       e.preventDefault();
       prevQuestion();
     }
-    // Arrow Down - navigate to next question
-    else if (e.key === "ArrowDown") {
+    // Arrow Down - navigate to next question (only on desktop)
+    else if (e.key === "ArrowDown" && !isMobile) {
       e.preventDefault();
       nextQuestion();
     }
   }
 
-  // Simplified handler for inputs - Enter moves to next
+  // Simplified handler for inputs - Enter moves to next (on desktop only)
   function handleEnter(e: KeyboardEvent) {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !isMobileDevice()) {
       e.preventDefault();
       nextQuestion();
     }
+    // On mobile, allow default behavior (new line)
   }
 
   function prevQuestion() {
