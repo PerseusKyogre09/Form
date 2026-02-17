@@ -3,7 +3,7 @@
   import { supabase } from "$lib/supabaseClient";
 
   let { form, isOpen = false } = $props();
-  
+
   let searchQuery = $state("");
   let searchResults = $state<any[]>([]);
   let collaborators = $state<FormCollaborator[]>([]);
@@ -29,9 +29,16 @@
     try {
       loading = true;
       const response = await fetch(
-        `/api/users/search?q=${encodeURIComponent(searchQuery)}&formId=${form.id}`
+        `/api/users/search?q=${encodeURIComponent(searchQuery)}&formId=${form.id}`,
       );
       const data = await response.json();
+
+      if (data.error) {
+        showNotification(`Search error: ${data.error}`, "error");
+        searchResults = [];
+        return;
+      }
+
       searchResults = data.users || [];
     } catch (error) {
       console.error("Error searching users:", error);
@@ -45,23 +52,20 @@
     if (!form) return;
 
     try {
-      const response = await fetch(
-        `/api/forms/${form.id}/collaborators`,
-        {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
+      const response = await fetch(`/api/forms/${form.id}/collaborators`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
       if (!response.ok) {
         console.warn(`Failed to load collaborators: ${response.status}`);
         collaborators = [];
         return;
       }
-      
+
       const data = await response.json();
       collaborators = data.collaborators || [];
     } catch (error) {
@@ -77,14 +81,14 @@
       adding = true;
       const response = await fetch(`/api/forms/${form.id}/collaborators`, {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "add",
           formId: form.id,
           userId,
-          role: selectedRole
-        })
+          role: selectedRole,
+        }),
       });
 
       if (!response.ok) {
@@ -113,13 +117,13 @@
     try {
       const response = await fetch(`/api/forms/${form.id}/collaborators`, {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "remove",
           formId: form.id,
-          userId
-        })
+          userId,
+        }),
       });
 
       if (!response.ok) {
@@ -142,14 +146,14 @@
     try {
       const response = await fetch(`/api/forms/${form.id}/collaborators`, {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "update-role",
           formId: form.id,
           userId,
-          role: newRole
-        })
+          role: newRole,
+        }),
       });
 
       if (!response.ok) {
@@ -268,9 +272,13 @@
           {#if searchResults.length > 0}
             <div class="space-y-2">
               {#each searchResults as user (user.id)}
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                <div
+                  class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                >
                   <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+                    <div
+                      class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0"
+                    >
                       {user.username?.charAt(0).toUpperCase() || "U"}
                     </div>
                     <div class="min-w-0">
@@ -303,7 +311,9 @@
             </div>
           {:else if searchQuery.length >= 2 && !loading}
             <div class="p-4 text-center">
-              <p class="text-xs text-slate-500">No users found. Try searching by username or email.</p>
+              <p class="text-xs text-slate-500">
+                No users found. Try searching by username or email.
+              </p>
             </div>
           {/if}
         </div>
@@ -313,7 +323,7 @@
           <label class="text-xs font-bold text-slate-600 uppercase"
             >Collaborators ({collaborators.length})</label
           >
-          
+
           {#if collaborators.length === 0}
             <p class="text-xs text-slate-500 py-4 text-center">
               No collaborators yet. Start by adding a user above.
@@ -321,21 +331,21 @@
           {:else}
             <div class="space-y-2">
               {#each collaborators as collab (collab.id)}
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <div
+                  class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                >
                   <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                      {collab.user?.user_metadata?.username?.charAt(0).toUpperCase() ||
-                        collab.user?.email?.charAt(0).toUpperCase() ||
-                        "U"}
+                    <div
+                      class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                    >
+                      {collab.user?.username?.charAt(0).toUpperCase() || "U"}
                     </div>
                     <div class="min-w-0">
                       <p class="text-xs font-semibold text-slate-900 truncate">
-                        {collab.user?.user_metadata?.username ||
-                          collab.user?.email?.split("@")[0] ||
-                          "User"}
+                        {collab.user?.username || "Collaborator"}
                       </p>
-                      <p class="text-[10px] text-slate-500 truncate">
-                        {collab.user?.email}
+                      <p class="text-[10px] text-slate-500 truncate italic">
+                        Access: {collab.role}
                       </p>
                     </div>
                   </div>
@@ -345,7 +355,7 @@
                       onchange={(e) =>
                         updateRole(
                           collab.user_id,
-                          e.currentTarget.value as "viewer" | "editor"
+                          e.currentTarget.value as "viewer" | "editor",
                         )}
                       class="px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                     >
@@ -358,7 +368,7 @@
                           collab.user_id,
                           collab.user?.user_metadata?.username ||
                             collab.user?.email?.split("@")[0] ||
-                            "User"
+                            "User",
                         )}
                       class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
                       title="Remove collaborator"
