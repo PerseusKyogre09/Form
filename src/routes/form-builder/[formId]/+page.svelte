@@ -173,6 +173,21 @@
           .eq("form_id", data.id)
           .order("order_index", { ascending: true });
 
+        // Fetch collaborators for this form (wrapped in try-catch to not break if table doesn't exist)
+        let collaboratorsData = [];
+        try {
+          const { data: collabData, error: collabError } = await supabase
+            .from("form_collaborators")
+            .select("*")
+            .eq("form_id", data.id);
+
+          if (!collabError && collabData) {
+            collaboratorsData = collabData;
+          }
+        } catch (collabErr) {
+          console.warn("Could not load collaborators:", collabErr);
+        }
+
         // Convert snake_case to camelCase for consistency in the app
         const formData = {
           ...data,
@@ -182,6 +197,7 @@
           globalTextColor: data.global_text_color || "",
           theme: data.theme || undefined,
           questions: questionsData?.map((q) => q.data) || [],
+          collaborators: collaboratorsData || [],
         };
         currentForm.set(formData);
       }
@@ -248,14 +264,17 @@
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
         thank_you_page: currentFormData.thankYouPage || null,
-        // Remove camelCase versions and questions
-        backgroundType: undefined,
-        backgroundColor: undefined,
-        backgroundImage: undefined,
-        globalTextColor: undefined,
-        thankYouPage: undefined,
-        questions: undefined, // Don't save questions to forms table
       };
+
+      // Remove properties that shouldn't be saved to forms table
+      delete formToSave.backgroundType;
+      delete formToSave.backgroundColor;
+      delete formToSave.backgroundImage;
+      delete formToSave.globalTextColor;
+      delete formToSave.thankYouPage;
+      delete formToSave.questions;
+      delete formToSave.collaborators;
+      delete formToSave.user;
 
       // Use upsert directly with Supabase and select() to confirm save
       const { data, error } = await supabase
@@ -359,7 +378,6 @@
       const payload = {
         id: currentFormData.id,
         title: currentFormData.title,
-        questions: currentFormData.questions,
         slug: currentFormData.slug,
         closed: currentFormData.closed,
         user_id: user.id,
@@ -401,7 +419,6 @@
       const payload = {
         id: currentFormData.id,
         title: currentFormData.title,
-        questions: currentFormData.questions,
         slug: currentFormData.slug,
         closed: currentFormData.closed,
         user_id: user.id,
@@ -446,7 +463,6 @@
       const payload = {
         id: currentFormData.id,
         title: currentFormData.title,
-        questions: currentFormData.questions,
         slug: currentFormData.slug,
         user_id: user.id,
         published: currentFormData.published,

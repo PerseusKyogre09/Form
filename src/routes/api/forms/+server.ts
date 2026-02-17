@@ -46,7 +46,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
     // Extract questions from payload
     const questions = data.questions || [];
-    const { questions: _, ...formPayload } = data; // Exclude questions from form
+    const { questions: _, collaborators: __, user: ___, ...formPayload } = data; // Exclude questions, collaborators, and user from form
 
     // Ensure form has correct user_id
     const finalFormPayload = {

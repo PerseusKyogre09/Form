@@ -1,20 +1,22 @@
 <script lang="ts">
     import ThemesModal from "./ThemesModal.svelte";
+    import FormSharingModal from "./FormSharingModal.svelte";
     import type { Form } from "../types";
 
-    export let currentFormData: Form | undefined;
-    export let shareLink: string = "";
+    let {
+        currentFormData,
+        shareLink = "",
+        saveForm,
+        toggleFormStatus,
+        updateGlobalTextColor,
+        updateBackgroundColor,
+        handleBackgroundImageUpload,
+        removeBackgroundImage,
+        copyToClipboard
+    } = $props()
 
-    // Event handlers passed from parent
-    export let saveForm: () => Promise<void>;
-    export let toggleFormStatus: () => Promise<void>;
-    export let updateGlobalTextColor: (color: string) => void;
-    export let updateBackgroundColor: (color: string) => void;
-    export let handleBackgroundImageUpload: (e: Event) => Promise<void>;
-    export let removeBackgroundImage: () => void;
-    export let copyToClipboard: () => void;
-
-    let activeTab: "themes" | "background" | "settings" = "themes";
+    let activeTab = $state<"themes" | "background" | "settings" | "sharing">("themes");
+    let isSharingModalOpen = $state(false);
 
     function updateSlug(newSlug: string) {
         if (currentFormData) {
@@ -43,7 +45,7 @@
                         value={shareLink}
                     />
                     <button
-                        on:click={copyToClipboard}
+                        onclick={copyToClipboard}
                         class="bg-primary text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-600 transition-colors shadow-sm"
                         aria-label="Copy Share Link"
                     >
@@ -80,7 +82,7 @@
                 {/if}
 
                 <button
-                    on:click={saveForm}
+                    onclick={saveForm}
                     class="flex items-center justify-center gap-2 p-3 rounded-xl bg-black text-white hover:opacity-90 transition-all shadow-sm"
                 >
                     <span class="fas fa-save text-xs"></span>
@@ -97,7 +99,7 @@
             class="w-16 border-r border-slate-100 flex flex-col items-center py-6 gap-4 bg-slate-50/30"
         >
             <button
-                on:click={() => (activeTab = "themes")}
+                onclick={() => (activeTab = "themes")}
                 class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
                 'themes'
                     ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
@@ -109,7 +111,7 @@
             </button>
 
             <button
-                on:click={() => (activeTab = "background")}
+                onclick={() => (activeTab = "background")}
                 class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
                 'background'
                     ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
@@ -121,7 +123,7 @@
             </button>
 
             <button
-                on:click={() => (activeTab = "settings")}
+                onclick={() => (activeTab = "settings")}
                 class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
                 'settings'
                     ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
@@ -130,6 +132,18 @@
                 title="Configuration"
             >
                 <i class="fas fa-cog text-lg"></i>
+            </button>
+
+            <button
+                onclick={() => (activeTab = "sharing")}
+                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                'sharing'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                aria-label="Share"
+                title="Share"
+            >
+                <i class="fas fa-share-alt text-lg"></i>
             </button>
         </div>
 
@@ -179,7 +193,7 @@
                                         class="relative flex flex-col items-center gap-2"
                                     >
                                         <button
-                                            on:click={removeBackgroundImage}
+                                            onclick={removeBackgroundImage}
                                             class="p-2 bg-white rounded-lg shadow-sm text-red-500 hover:bg-red-50 transition-colors"
                                             aria-label="Remove background image"
                                         >
@@ -202,7 +216,7 @@
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    on:change={handleBackgroundImageUpload}
+                                    onchange={handleBackgroundImageUpload}
                                     class="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>
@@ -223,7 +237,7 @@
                                 type="color"
                                 value={currentFormData?.backgroundColor ||
                                     "#ffffff"}
-                                on:input={(e) =>
+                                oninput={(e) =>
                                     updateBackgroundColor(
                                         e.currentTarget.value,
                                     )}
@@ -256,7 +270,7 @@
                                 type="color"
                                 value={currentFormData?.globalTextColor ||
                                     "#000000"}
-                                on:input={(e) => {
+                                oninput={(e) => {
                                     updateGlobalTextColor(
                                         e.currentTarget.value,
                                     );
@@ -295,7 +309,7 @@
                             Form Visibility
                         </h4>
                         <button
-                            on:click={toggleFormStatus}
+                            onclick={toggleFormStatus}
                             class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.closed
                                 ? 'bg-orange-50 border-orange-100 text-orange-700 hover:bg-orange-100'
                                 : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100'}"
@@ -338,7 +352,7 @@
                                 <input
                                     type="text"
                                     value={currentFormData?.slug || ""}
-                                    on:change={(e) =>
+                                    onchange={(e) =>
                                         updateSlug(e.currentTarget.value)}
                                     placeholder="my-cool-form"
                                     class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-white outline-none font-medium transition-all"
@@ -366,10 +380,67 @@
                         </button>
                     </section>
                 </div>
+            {:else if activeTab === "sharing"}
+                <div class="space-y-8">
+                    <header>
+                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                            Share Form
+                        </h3>
+                        <p class="text-xs text-slate-500">
+                            Grant access to other registered users.
+                        </p>
+                    </header>
+
+                    <section class="space-y-4">
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Share this form with other registered users to collaborate. You can grant them <strong>Editor</strong> (can edit form and view responses) or <strong>Viewer</strong> (read-only) access.
+                        </p>
+                        <button
+                            onclick={() => (isSharingModalOpen = true)}
+                            class="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-primary text-white font-semibold hover:bg-indigo-600 transition-colors"
+                        >
+                            <i class="fas fa-user-plus"></i>
+                            <span>Manage Collaborators</span>
+                        </button>
+                    </section>
+
+                    {#if currentFormData?.collaborators && currentFormData.collaborators.length > 0}
+                        <section class="space-y-4 pt-4 border-t border-slate-100">
+                            <h4 class="text-xs font-bold text-slate-600 uppercase">
+                                Active Collaborators ({currentFormData.collaborators.length})
+                            </h4>
+                            <div class="space-y-2">
+                                {#each currentFormData.collaborators as collab}
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-bold text-white">
+                                                {collab.user?.user_metadata?.username?.charAt(0).toUpperCase() ||
+                                                    collab.user?.email?.charAt(0).toUpperCase() ||
+                                                    "U"}
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold text-slate-900">
+                                                    {collab.user?.user_metadata?.username ||
+                                                        collab.user?.email?.split("@")[0] ||
+                                                        "User"}
+                                                </p>
+                                                <p class="text-[10px] text-slate-500 capitalize">
+                                                    {collab.role}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
+                        </section>
+                    {/if}
+                </div>
             {/if}
         </div>
     </div>
 </div>
+
+<FormSharingModal bind:isOpen={isSharingModalOpen} form={currentFormData} />
 
 <style>
     /* Custom scrollbar for better look */

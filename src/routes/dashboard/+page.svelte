@@ -9,16 +9,18 @@
   import favicon from "$lib/assets/favicon.svg";
 
   let allForms = $state<Form[]>([]);
+  let sharedForms = $state<Form[]>([]);
   let loading = $state(true);
   let loadingMore = $state(false);
   let hasMore = $state(true);
   let searchQuery = $state("");
+  let activeTab = $state<"personal" | "workspace">("personal");
   const PAGE_SIZE = 20;
   let user = $state<any>(null);
 
-  // Derived filtered forms
+  // Derived filtered forms based on active tab
   let filteredForms = $derived(
-    allForms.filter((form) =>
+    (activeTab === "personal" ? allForms : sharedForms).filter((form) =>
       form.title.toLowerCase().includes(searchQuery.toLowerCase()),
     ),
   );
@@ -29,6 +31,7 @@
     } = await supabase.auth.getSession();
     user = session?.user;
     await loadForms();
+    await loadSharedForms();
   });
 
   function generateGradient(id: string) {
@@ -92,6 +95,62 @@
       console.error("Error loading forms:", error);
     } finally {
       loading = false;
+    }
+  }
+
+  async function loadSharedForms() {
+    try {
+      if (!user) return;
+
+      // Get forms where current user is a collaborator
+      const { data: collaborations, error: collabError } = await supabase
+        .from("form_collaborators")
+        .select("form_id")
+        .eq("user_id", user.id);
+
+      // If table doesn't exist or there's an error, just set empty array
+      if (collabError) {
+        console.warn("form_collaborators table not yet available:", collabError);
+        sharedForms = [];
+        return;
+      }
+
+      if (!collaborations || collaborations.length === 0) {
+        sharedForms = [];
+        return;
+      }
+
+      const formIds = collaborations.map((c) => c.form_id);
+
+      // Fetch the actual forms
+      const { data: forms, error: formError } = await supabase
+        .from("forms")
+        .select("*")
+        .in("id", formIds)
+        .order("updated_at", { ascending: false });
+
+      if (formError) throw formError;
+
+      // Fetch questions for shared forms
+      const formsWithQuestions = await Promise.all(
+        (forms as Form[])?.map(async (form) => {
+          const { data: questionsData } = await supabase
+            .from("questions")
+            .select("data")
+            .eq("form_id", form.id)
+            .order("order_index", { ascending: true });
+
+          return {
+            ...form,
+            questions: questionsData?.map((q) => q.data) || [],
+          };
+        }) || [],
+      );
+
+      sharedForms = formsWithQuestions;
+    } catch (error) {
+      console.error("Error loading shared forms:", error);
+      sharedForms = [];
     }
   }
 
@@ -207,14 +266,42 @@
           >
         </a>
 
-        <!-- Workspace Toggle (Visual Only) -->
+        <!-- Desktop Workspace Toggle -->
         <div class="hidden md:flex bg-gray-100/80 p-1 rounded-lg">
           <button
-            class="px-4 py-1.5 bg-white rounded-md shadow-sm text-sm font-medium text-slate-800 transition-all"
+            onclick={() => (activeTab = "personal")}
+            class="px-4 py-1.5 {activeTab === 'personal'
+              ? 'bg-white rounded-md shadow-sm text-slate-800'
+              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
             >Personal</button
           >
           <button
-            class="px-4 py-1.5 text-sm font-medium text-gray-500 hover:text-slate-700 transition-colors"
+            onclick={() => (activeTab = "workspace")}
+            class="px-4 py-1.5 {activeTab === 'workspace'
+              ? 'bg-white rounded-md shadow-sm text-slate-800'
+              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
+            >Workspace{#if sharedForms.length > 0}
+              <span class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
+                {sharedForms.length}
+              </span>
+            {/if}</button
+          >
+        </div>
+
+        <!-- Mobile Workspace Toggle -->
+        <div class="flex md:hidden bg-gray-100/80 p-1 rounded-lg">
+          <button
+            onclick={() => (activeTab = "personal")}
+            class="px-3 py-1.5 {activeTab === 'personal'
+              ? 'bg-white rounded-md shadow-sm text-slate-800'
+              : 'text-gray-500 hover:text-slate-700'} text-xs font-medium transition-all"
+            >Personal</button
+          >
+          <button
+            onclick={() => (activeTab = "workspace")}
+            class="px-3 py-1.5 {activeTab === 'workspace'
+              ? 'bg-white rounded-md shadow-sm text-slate-800'
+              : 'text-gray-500 hover:text-slate-700'} text-xs font-medium transition-all"
             >Workspace</button
           >
         </div>
@@ -261,7 +348,7 @@
                   <i class="fas fa-user w-4"></i> Profile
                 </a>
                 <button
-                  on:click={handleLogout}
+                  onclick={handleLogout}
                   class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <i class="fas fa-sign-out-alt w-4"></i> Logout
@@ -284,11 +371,12 @@
         <h1
           class="text-4xl font-serif font-bold text-slate-900 mb-3 tracking-tight"
         >
-          My Forms
+          {activeTab === "personal" ? "My Forms" : "Workspace"}
         </h1>
         <div class="flex items-center gap-3 text-sm font-medium text-gray-500">
           <span class="flex items-center gap-2 px-1">
-            <i class="fas fa-folder text-gray-400"></i> All Projects
+            <i class="fas {activeTab === 'personal' ? 'fa-user' : 'fa-users'} text-gray-400"></i>
+            {activeTab === "personal" ? "My Forms" : "Shared with Me"}
           </span>
           <span class="w-1 h-1 rounded-full bg-gray-300"></span>
           <span>{filteredForms.length} Forms</span>
@@ -309,7 +397,7 @@
           />
           {#if searchQuery}
             <button
-              on:click={() => (searchQuery = "")}
+              onclick={() => (searchQuery = "")}
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <i class="fas fa-times-circle"></i>
@@ -338,8 +426,8 @@
       <div
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
       >
-        <!-- Create New Form Card -->
-        {#if !searchQuery}
+        <!-- Create New Form Card - Only show on Personal tab -->
+        {#if activeTab === "personal" && !searchQuery}
           <a
             href="/form-builder"
             class="group relative bg-[#F8FAFC] rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-[320px] text-center p-6 order-last md:order-none"
@@ -369,8 +457,8 @@
             class="form-card group relative bg-white rounded-2xl p-4 border border-gray-200/60 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all duration-300 cursor-pointer flex flex-col h-[320px]"
             role="button"
             tabindex="0"
-            on:click={() => navigateToBuilder(form)}
-            on:keydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
+            onclick={() => navigateToBuilder(form)}
+            onkeydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
           >
             <!-- Thumbnail Area -->
             <div
@@ -397,7 +485,7 @@
               <div class="absolute top-3 right-3 z-20">
                 <div class="relative group/menu">
                   <button
-                    on:click={(e) => {
+                    onclick={(e) => {
                       e.stopPropagation();
                     }}
                     class="w-8 h-8 flex items-center justify-center bg-white/80 hover:bg-white backdrop-blur-sm rounded-lg text-gray-400 hover:text-indigo-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200"
@@ -410,7 +498,7 @@
                     class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 transform origin-top-right scale-95 group-hover/menu:scale-100"
                   >
                     <button
-                      on:click={(e) => {
+                      onclick={(e) => {
                         e.stopPropagation();
                         deleteForm(form.id, form.title);
                       }}
@@ -467,7 +555,7 @@
                 class="flex items-center gap-3 pt-4 border-t border-gray-50 mt-4"
               >
                 <button
-                  on:click={(e) => {
+                  onclick={(e) => {
                     e.stopPropagation();
                     navigateToBuilder(form);
                   }}
@@ -476,7 +564,7 @@
                   <i class="fas fa-pen-to-square"></i> Edit Form
                 </button>
                 <button
-                  on:click={(e) => {
+                  onclick={(e) => {
                     e.stopPropagation(); /* Future Analytics nav */
                   }}
                   class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-slate-700 hover:bg-gray-100 rounded-xl transition-all border border-transparent hover:border-gray-200"
@@ -499,18 +587,44 @@
             Try adjusting your search query for "{searchQuery}"
           </p>
           <button
-            on:click={() => (searchQuery = "")}
+            onclick={() => (searchQuery = "")}
             class="mt-6 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors"
           >
             Clear Search
           </button>
         </div>
+      {:else if !searchQuery && filteredForms.length === 0}
+        <div class="text-center py-20">
+          <div class="mb-4">
+            <i class="fas {activeTab === 'personal'
+              ? 'fa-file-circle-plus'
+              : 'fa-handshake'} text-5xl text-gray-200"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">
+            {activeTab === "personal"
+              ? "No forms yet"
+              : "No shared forms yet"}
+          </h3>
+          <p class="text-slate-400">
+            {activeTab === "personal"
+              ? "Create your first form to get started"
+              : "Forms shared with you will appear here"}
+          </p>
+          {#if activeTab === "personal"}
+            <a
+              href="/form-builder"
+              class="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <i class="fas fa-plus"></i> Create Form
+            </a>
+          {/if}
+        </div>
       {/if}
 
-      {#if hasMore && !searchQuery}
+      {#if hasMore && !searchQuery && activeTab === "personal"}
         <div class="text-center mt-12 mb-8">
           <button
-            on:click={loadMoreForms}
+            onclick={loadMoreForms}
             disabled={loadingMore}
             class="px-6 py-2.5 bg-white border border-gray-200 text-slate-600 rounded-full font-medium shadow-sm hover:border-indigo-300 hover:text-indigo-600 transition-all disabled:opacity-50"
           >

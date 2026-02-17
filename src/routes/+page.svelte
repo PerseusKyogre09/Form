@@ -136,7 +136,7 @@
             >Log in</a
           >
           <Button.Root
-            href="/signup"
+            href="/login"
             class="rounded-lg bg-black text-white shadow-sm hover:bg-black/90 inline-flex
 	h-9 items-center justify-center px-5 text-sm
 	font-medium active:scale-[0.98] active:transition-all"
@@ -176,7 +176,7 @@
             class="flex flex-col sm:flex-row items-start gap-3"
           >
             <Button.Root
-              href={user ? "/dashboard" : "/signup"}
+              href={user ? "/dashboard" : "/login"}
               class="rounded-lg bg-black text-white shadow-sm hover:bg-black/90 inline-flex
 	h-11 items-center justify-center px-6 text-sm
 	font-semibold active:scale-[0.98] active:transition-all"
@@ -184,7 +184,7 @@
               Try a live demo
             </Button.Root>
             <Button.Root
-              href={user ? "/dashboard" : "/signup"}
+              href={user ? "/dashboard" : "/login"}
               class="rounded-lg border border-black text-black bg-white hover:bg-black hover:text-white inline-flex
 	h-11 items-center justify-center px-6 text-sm
 	font-semibold active:scale-[0.98] active:transition-all transition-colors"
@@ -418,7 +418,7 @@
         No credit card required. No features locked behind a paywall.
       </p>
       <Button.Root
-        href={user ? "/dashboard" : "/signup"}
+        href={user ? "/dashboard" : "/login"}
         class="rounded-lg bg-white text-black shadow-sm hover:bg-white/90 inline-flex
 	h-12 items-center justify-center px-8 text-base
 	font-semibold active:scale-[0.98] active:transition-all"

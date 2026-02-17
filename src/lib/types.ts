@@ -104,6 +104,22 @@ export interface ThankYouPage {
   theme?: string; // Optional theme applied to this page
 }
 
+export interface FormCollaborator {
+  id: string;
+  form_id: string;
+  user_id: string;
+  role: 'viewer' | 'editor';
+  created_at: string;
+  // User details (populated from auth.users)
+  user?: {
+    id: string;
+    email: string;
+    user_metadata?: {
+      username?: string;
+    };
+  };
+}
+
 export interface Form {
   id: string;
   user_id?: string; // Owner ID
@@ -125,6 +141,7 @@ export interface Form {
   backgroundImage?: string;
   theme?: Theme; // Optional theme configuration
   thankYouPage?: ThankYouPage; // Optional custom thank you page configuration
+  collaborators?: FormCollaborator[]; // Shared users with access to this form
 }
 
 export interface FormResponse {

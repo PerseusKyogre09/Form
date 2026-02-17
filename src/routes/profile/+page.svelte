@@ -81,7 +81,7 @@
         >
             <div class="flex items-center gap-4">
                 <button
-                    on:click={() => goto("/dashboard")}
+                    onclick={() => goto("/dashboard")}
                     class="text-gray-500 hover:text-black transition-colors"
                     title="Back to Dashboard"
                 >
@@ -152,8 +152,7 @@
                         <!-- Helper text showing public URL if username exists -->
                         {#if username}
                             <p class="mt-1 text-xs text-gray-500">
-                                Your forms will be available at:
-                                quill.com/form/<span
+                                Your forms will be available at: quill.com/form/<span
                                     class="font-bold text-gray-700"
                                     >{username}</span
                                 >/[slug]
@@ -162,15 +161,14 @@
                     </div>
 
                     <div class="pt-4">
-                        <Button.Root
-                            on:click={updateProfile}
+                        <button
+                            type="button"
+                            onclick={updateProfile}
                             disabled={saving}
-                            class="w-full sm:w-auto px-6 py-2.5 bg-black text-white rounded-lg font-semibold hover:bg-gray-900 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed rounded-xl bg-black text-white shadow-mini hover:bg-black/95 inline-flex
-	h-12 items-center justify-center px-[21px] text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all"
+                            class="w-full sm:w-auto px-6 py-2.5 bg-black text-white rounded-xl font-semibold hover:bg-black/90 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed shadow-sm inline-flex h-12 items-center justify-center px-[21px] text-[15px]"
                         >
                             {saving ? "Saving..." : "Save Changes"}
-                        </Button.Root>
+                        </button>
                     </div>
 
                     {#if message}

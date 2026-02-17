@@ -83,13 +83,17 @@
         background_image: currentFormData.backgroundImage || "",
         global_text_color: currentFormData.globalTextColor || "",
         thank_you_page: currentFormData.thankYouPage || null,
-        // Remove camelCase versions
-        backgroundType: undefined,
-        backgroundColor: undefined,
-        backgroundImage: undefined,
-        globalTextColor: undefined,
-        thankYouPage: undefined,
       };
+
+      // Remove properties that shouldn't be saved to forms table
+      delete payload.backgroundType;
+      delete payload.backgroundColor;
+      delete payload.backgroundImage;
+      delete payload.globalTextColor;
+      delete payload.thankYouPage;
+      delete payload.questions;
+      delete payload.collaborators;
+      delete payload.user;
 
       const { error } = await supabase.from("forms").upsert(payload);
 
@@ -123,9 +127,17 @@
       }
 
       const payload = {
-        ...currentFormData,
+        id: currentFormData.id,
+        title: currentFormData.title,
+        slug: currentFormData.slug,
+        closed: currentFormData.closed,
         user_id: user.id,
         published: true,
+        background_type: currentFormData.backgroundType || "color",
+        background_color: currentFormData.backgroundColor || "#ffffff",
+        background_image: currentFormData.backgroundImage || "",
+        global_text_color: currentFormData.globalTextColor || "",
+        thank_you_page: currentFormData.thankYouPage || null,
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -153,9 +165,17 @@
       }
 
       const payload = {
-        ...currentFormData,
+        id: currentFormData.id,
+        title: currentFormData.title,
+        slug: currentFormData.slug,
+        closed: currentFormData.closed,
         user_id: user.id,
         published: false,
+        background_type: currentFormData.backgroundType || "color",
+        background_color: currentFormData.backgroundColor || "#ffffff",
+        background_image: currentFormData.backgroundImage || "",
+        global_text_color: currentFormData.globalTextColor || "",
+        thank_you_page: currentFormData.thankYouPage || null,
       };
 
       const { error } = await supabase.from("forms").upsert(payload);
@@ -186,9 +206,17 @@
       }
 
       const payload = {
-        ...currentFormData,
+        id: currentFormData.id,
+        title: currentFormData.title,
+        slug: currentFormData.slug,
         user_id: user.id,
+        published: currentFormData.published,
         closed: newStatus,
+        background_type: currentFormData.backgroundType || "color",
+        background_color: currentFormData.backgroundColor || "#ffffff",
+        background_image: currentFormData.backgroundImage || "",
+        global_text_color: currentFormData.globalTextColor || "",
+        thank_you_page: currentFormData.thankYouPage || null,
       };
 
       const { error } = await supabase.from("forms").upsert(payload);

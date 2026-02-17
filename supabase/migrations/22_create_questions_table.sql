@@ -90,6 +90,5 @@ BEGIN
   END IF;
 END $$;
 
--- Drop the old questions column from forms (optional - keep for backward compatibility during testing)
--- Once migration is verified, uncomment:
--- ALTER TABLE public.forms DROP COLUMN questions;
+-- Drop the old questions column from forms (now that we have a separate questions table)
+ALTER TABLE public.forms DROP COLUMN IF EXISTS questions;
