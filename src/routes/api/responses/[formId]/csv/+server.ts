@@ -16,15 +16,15 @@ function escapeCSV(value: string): string {
 // Generate CSV content from data
 function generateCSV(headers: string[], rows: (string | number | boolean | null)[][]): string {
   const lines: string[] = [];
-  
+
   // Add header
   lines.push(headers.map(h => escapeCSV(String(h))).join(','));
-  
+
   // Add rows
   rows.forEach(row => {
     lines.push(row.map(cell => escapeCSV(String(cell || ''))).join(','));
   });
-  
+
   return lines.join('\n');
 }
 
@@ -69,10 +69,22 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
       return json({ error: 'Form not found', details: formError.message }, { status: 404 });
     }
 
-    // Check if user owns the form
+    // Check if user owns the form OR is a collaborator
     if (form.user_id !== user.id) {
-      console.log('CSV API: User does not own this form');
-      return json({ error: 'Forbidden' }, { status: 403 });
+      // Check if user is a collaborator
+      const { data: collaborator, error: collabError } = await supabase
+        .from('form_collaborators')
+        .select('id')
+        .eq('form_id', formId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (collabError || !collaborator) {
+        console.log('CSV API: User does not own this form and is not a collaborator');
+        return json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      console.log('CSV API: User is a collaborator');
     }
 
     // Fetch questions separately

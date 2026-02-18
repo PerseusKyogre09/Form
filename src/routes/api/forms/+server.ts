@@ -48,15 +48,47 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     const questions = data.questions || [];
     const { questions: _, collaborators: __, user: ___, ...formPayload } = data; // Exclude questions, collaborators, and user from form
 
-    // Ensure form has correct user_id
+    // Check if form exists and verify permissions
+    let existingForm = null;
+    let ownerId = user.id;
+
+    if (data.id) {
+      const { data: form } = await supabase
+        .from('forms')
+        .select('user_id')
+        .eq('id', data.id)
+        .single();
+
+      if (form) {
+        existingForm = form;
+        ownerId = form.user_id;
+
+        // If user is not owner, check if they are an editor
+        if (form.user_id !== user.id) {
+          const { data: collaborator } = await supabase
+            .from('form_collaborators')
+            .select('role')
+            .eq('form_id', data.id)
+            .eq('user_id', user.id)
+            .single();
+
+          if (!collaborator || collaborator.role !== 'editor') {
+            return json({ error: 'Unauthorized: You do not have permission to edit this form' }, { status: 403 });
+          }
+          // User is an editor, keep original ownerId
+        }
+      }
+    }
+
+    // Ensure form has correct user_id (original owner)
     const finalFormPayload = {
       ...formPayload,
-      user_id: user.id,
+      user_id: ownerId,
       slug: slug,
       updated_at: new Date().toISOString(),
     };
 
-    console.log('POST /api/forms - Upserting form:', { id: finalFormPayload.id, user_id: finalFormPayload.user_id });
+    console.log('POST /api/forms - Upserting form:', { id: finalFormPayload.id, user_id: finalFormPayload.user_id, acting_user: user.id });
 
     // Use upsert to handle both create and update
     const { error: formError } = await supabase
@@ -148,7 +180,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
         .from('forms')
         .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
         .eq('slug', slug)
-        .eq('user_id', user.id)
+        // .eq('user_id', user.id) // Removed to allow accessing shared forms
         .single();
 
       if (error) {
@@ -209,7 +241,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
     let { data: forms, error } = await supabase
       .from('forms')
       .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
-      .eq('user_id', user.id)
+      // .eq('user_id', user.id) // Removed to rely on RLS for fetching owned + shared forms
       .order('updated_at', { ascending: false });
 
     if (error) {
