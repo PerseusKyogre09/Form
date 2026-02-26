@@ -44,6 +44,11 @@ export async function load({ params, cookies }) {
       throw error(404, 'Form not found');
     }
 
+    // Check if form is closed
+    if (data.closed) {
+      throw error(410, 'Form is closed');
+    }
+
     // Fetch questions separately (indexed by form_id)
     const { data: questionsData, error: questionsError } = await supabase
       .from('questions')
@@ -76,6 +81,10 @@ export async function load({ params, cookies }) {
     };
   } catch (err) {
     console.error('Error loading form:', err);
+    // Re-throw if it's already an HTTP error
+    if (err instanceof Error && err.message.includes('404|410|500')) {
+      throw err;
+    }
     throw error(500, 'Error loading form');
   }
 }
