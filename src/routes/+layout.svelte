@@ -19,6 +19,7 @@
 				currentPath === "/login" ||
 				currentPath === "/signup" ||
 				currentPath === "/unauthorized" ||
+				currentPath === "/certificate-generator" ||
 				currentPath.startsWith("/form/");
 
 			// Protected route logic

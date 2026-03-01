@@ -110,7 +110,10 @@
 
       // If table doesn't exist or there's an error, just set empty array
       if (collabError) {
-        console.warn("form_collaborators table not yet available:", collabError);
+        console.warn(
+          "form_collaborators table not yet available:",
+          collabError,
+        );
         sharedForms = [];
         return;
       }
@@ -266,44 +269,19 @@
           >
         </a>
 
-        <!-- Desktop Workspace Toggle -->
-        <div class="hidden md:flex bg-gray-100/80 p-1 rounded-lg">
-          <button
-            onclick={() => (activeTab = "personal")}
-            class="px-4 py-1.5 {activeTab === 'personal'
-              ? 'bg-white rounded-md shadow-sm text-slate-800'
-              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
-            >Personal</button
+        <!-- Global App Tabs -->
+        <div class="flex bg-gray-100/80 p-1 rounded-lg">
+          <a
+            href="/dashboard"
+            class="px-4 py-1.5 bg-white rounded-md shadow-sm text-slate-800 text-sm font-medium transition-all"
+            >My Forms</a
           >
-          <button
-            onclick={() => (activeTab = "workspace")}
-            class="px-4 py-1.5 {activeTab === 'workspace'
-              ? 'bg-white rounded-md shadow-sm text-slate-800'
-              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
-            >Workspace{#if sharedForms.length > 0}
-              <span class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
-                {sharedForms.length}
-              </span>
-            {/if}</button
+          <a
+            href="/certificate-generator"
+            class="px-4 py-1.5 text-gray-500 hover:text-slate-700 text-sm font-medium transition-all flex items-center gap-2"
           >
-        </div>
-
-        <!-- Mobile Workspace Toggle -->
-        <div class="flex md:hidden bg-gray-100/80 p-1 rounded-lg">
-          <button
-            onclick={() => (activeTab = "personal")}
-            class="px-3 py-1.5 {activeTab === 'personal'
-              ? 'bg-white rounded-md shadow-sm text-slate-800'
-              : 'text-gray-500 hover:text-slate-700'} text-xs font-medium transition-all"
-            >Personal</button
-          >
-          <button
-            onclick={() => (activeTab = "workspace")}
-            class="px-3 py-1.5 {activeTab === 'workspace'
-              ? 'bg-white rounded-md shadow-sm text-slate-800'
-              : 'text-gray-500 hover:text-slate-700'} text-xs font-medium transition-all"
-            >Workspace</button
-          >
+            Certificate
+          </a>
         </div>
       </div>
 
@@ -367,19 +345,51 @@
     <div
       class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
     >
-      <div>
-        <h1
-          class="text-4xl font-serif font-bold text-slate-900 mb-3 tracking-tight"
-        >
-          {activeTab === "personal" ? "My Forms" : "Workspace"}
-        </h1>
-        <div class="flex items-center gap-3 text-sm font-medium text-gray-500">
-          <span class="flex items-center gap-2 px-1">
-            <i class="fas {activeTab === 'personal' ? 'fa-user' : 'fa-users'} text-gray-400"></i>
-            {activeTab === "personal" ? "My Forms" : "Shared with Me"}
-          </span>
-          <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-          <span>{filteredForms.length} Forms</span>
+      <div class="flex flex-col gap-5">
+        <div>
+          <h1
+            class="text-4xl font-serif font-bold text-slate-900 mb-3 tracking-tight"
+          >
+            {activeTab === "personal" ? "My Forms" : "Workspace"}
+          </h1>
+          <div
+            class="flex items-center gap-3 text-sm font-medium text-gray-500"
+          >
+            <span class="flex items-center gap-2 px-1">
+              <i
+                class="fas {activeTab === 'personal'
+                  ? 'fa-user'
+                  : 'fa-users'} text-gray-400"
+              ></i>
+              {activeTab === "personal" ? "Personal Forms" : "Shared with Me"}
+            </span>
+            <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+            <span>{filteredForms.length} Forms</span>
+          </div>
+        </div>
+
+        <!-- View Toggle -->
+        <div class="flex bg-gray-100/80 p-1 rounded-lg w-fit">
+          <button
+            onclick={() => (activeTab = "personal")}
+            class="px-4 py-1.5 {activeTab === 'personal'
+              ? 'bg-white rounded-md shadow-sm text-slate-800'
+              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
+            >Personal</button
+          >
+          <button
+            onclick={() => (activeTab = "workspace")}
+            class="px-4 py-1.5 {activeTab === 'workspace'
+              ? 'bg-white rounded-md shadow-sm text-slate-800'
+              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
+            >Workspace{#if sharedForms.length > 0}
+              <span
+                class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full"
+              >
+                {sharedForms.length}
+              </span>
+            {/if}</button
+          >
         </div>
       </div>
 
@@ -596,14 +606,14 @@
       {:else if !searchQuery && filteredForms.length === 0}
         <div class="text-center py-20">
           <div class="mb-4">
-            <i class="fas {activeTab === 'personal'
-              ? 'fa-file-circle-plus'
-              : 'fa-handshake'} text-5xl text-gray-200"></i>
+            <i
+              class="fas {activeTab === 'personal'
+                ? 'fa-file-circle-plus'
+                : 'fa-handshake'} text-5xl text-gray-200"
+            ></i>
           </div>
           <h3 class="text-xl font-bold text-slate-800 mb-2">
-            {activeTab === "personal"
-              ? "No forms yet"
-              : "No shared forms yet"}
+            {activeTab === "personal" ? "No forms yet" : "No shared forms yet"}
           </h3>
           <p class="text-slate-400">
             {activeTab === "personal"
