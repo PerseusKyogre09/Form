@@ -12,6 +12,104 @@
     } from "lucide-svelte";
     import JSZip from "jszip";
     import favicon from "$lib/assets/favicon.svg";
+    import { supabase } from "$lib/supabaseClient";
+
+    // --- Import State ---
+    let showImportModal = $state(false);
+    let importableForms: Array<{ id: string; title: string }> = $state([]);
+    let selectedImportFormId: string | null = $state(null);
+    let isImporting = $state(false);
+    let importFilter: "all" | "checked_in" = $state("checked_in");
+
+    async function loadImportableForms() {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+            alert("Please log in to import attendees from your forms.");
+            return;
+        }
+        const { data, error } = await supabase
+            .from("forms")
+            .select("id, title")
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false });
+        if (data) {
+            importableForms = data;
+            showImportModal = true;
+        }
+    }
+
+    async function importAttendees() {
+        if (!selectedImportFormId) return;
+        isImporting = true;
+
+        try {
+            // Get the form's name field
+            const { data: formData } = await supabase
+                .from("forms")
+                .select("checkin_name_field_id")
+                .eq("id", selectedImportFormId)
+                .single();
+
+            let query = supabase
+                .from("form_responses")
+                .select("answers")
+                .eq("form_id", selectedImportFormId);
+
+            if (importFilter === "checked_in") {
+                query = query.eq("checked_in", true);
+            }
+
+            const { data: responses } = await query;
+
+            if (responses && responses.length > 0) {
+                const nameFieldId = formData?.checkin_name_field_id;
+                const ObjectValues = (obj: any) => Object.values(obj || {});
+
+                const names = responses
+                    .map((r: any) => {
+                        // First try the configured name field
+                        if (
+                            nameFieldId &&
+                            r.answers &&
+                            r.answers[nameFieldId]
+                        ) {
+                            return String(r.answers[nameFieldId]);
+                        }
+
+                        // Fallback: try finding any string value in answers
+                        const values = ObjectValues(r.answers);
+                        const firstString = values.find(
+                            (v: any) => typeof v === "string" && v.length > 0,
+                        );
+                        return firstString ? String(firstString) : "";
+                    })
+                    .filter((n: string) => n.trim() !== "");
+
+                if (names.length > 0) {
+                    // Prepend to existing or replace depending on preference. Let's replace for a cleaner slate.
+                    batchNames = names.join("\n");
+                    showImportModal = false;
+                } else {
+                    alert(
+                        "No valid names could be extracted from the responses.",
+                    );
+                }
+            } else {
+                alert(
+                    importFilter === "checked_in"
+                        ? "No checked-in attendees found for this form yet."
+                        : "No responses found for this form yet.",
+                );
+            }
+        } catch (err) {
+            console.error("Import error:", err);
+            alert("Failed to import attendees.");
+        } finally {
+            isImporting = false;
+        }
+    }
 
     // --- State Definitions ---
     type ElementType = "text" | "image";
@@ -423,6 +521,15 @@
                             queued</span
                         >
                     </div>
+
+                    <!-- Import Attendees Button -->
+                    <button
+                        onclick={loadImportableForms}
+                        class="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-semibold transition-colors"
+                    >
+                        <i class="fas fa-file-import"></i>
+                        Import from Form
+                    </button>
                 </section>
             </div>
         </aside>
@@ -785,3 +892,98 @@
         </main>
     </div>
 </div>
+
+<!-- Import Attendees Modal -->
+{#if showImportModal}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Import attendees from form"
+    >
+        <div
+            class="bg-white rounded-2xl p-6 mx-4 max-w-md w-full shadow-2xl space-y-5"
+        >
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-slate-900">
+                    Import Attendees
+                </h3>
+                <button
+                    onclick={() => (showImportModal = false)}
+                    class="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                    aria-label="Close modal"
+                >
+                    <i class="fas fa-times text-slate-400"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <label class="block">
+                    <span
+                        class="text-xs font-semibold text-slate-600 block mb-1.5"
+                        >Select Form</span
+                    >
+                    <select
+                        bind:value={selectedImportFormId}
+                        class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                    >
+                        <option value={null}>Choose a form...</option>
+                        {#each importableForms as form}
+                            <option value={form.id}>{form.title}</option>
+                        {/each}
+                    </select>
+                </label>
+
+                <div>
+                    <span
+                        class="text-xs font-semibold text-slate-600 block mb-1.5"
+                        >Filter</span
+                    >
+                    <div class="flex gap-2">
+                        <button
+                            onclick={() => (importFilter = "checked_in")}
+                            class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-colors {importFilter ===
+                            'checked_in'
+                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}"
+                        >
+                            <i class="fas fa-check-circle mr-1"></i>
+                            Checked-in Only
+                        </button>
+                        <button
+                            onclick={() => (importFilter = "all")}
+                            class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-colors {importFilter ===
+                            'all'
+                                ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}"
+                        >
+                            <i class="fas fa-users mr-1"></i>
+                            All Responses
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button
+                    onclick={() => (showImportModal = false)}
+                    class="flex-1 py-2.5 px-4 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    onclick={importAttendees}
+                    disabled={!selectedImportFormId || isImporting}
+                    class="flex-1 py-2.5 px-4 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {#if isImporting}
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+                        Importing...
+                    {:else}
+                        Import Names
+                    {/if}
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}

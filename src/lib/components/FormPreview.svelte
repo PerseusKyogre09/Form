@@ -54,6 +54,8 @@
   export let backgroundImage: string = "";
   export let globalTextColor: string = ""; // Global text color override
   export let theme: Theme | undefined = undefined;
+  export let enableCheckin: boolean = false;
+  export let successUrl: string = "";
 
   let currentQuestionIndex = 0;
   let answers: Record<string, any> = {};
@@ -1284,10 +1286,9 @@
     }
   }
 
-
   // Helper to detect if device is mobile
   function isMobileDevice() {
-    return typeof window !== 'undefined' && window.innerWidth < 768;
+    return typeof window !== "undefined" && window.innerWidth < 768;
   }
 
   function handleKeyboardFlow(e: KeyboardEvent, questionId: string) {
@@ -1467,9 +1468,16 @@
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+        const submissionId = responseData.submissionId || null;
+
         // Mark as submitted in localStorage
         if (formId) {
           localStorage.setItem(`form_submitted_${formId}`, "true");
+          // Store submissionId for QR check-in
+          if (submissionId) {
+            localStorage.setItem(`form_submission_id_${formId}`, submissionId);
+          }
         }
 
         gsap.to(container, {
@@ -1667,6 +1675,20 @@
               You've already submitted this form. If you think this is a
               mistake, please contact the organisers.
             </p>
+            {#if enableCheckin && successUrl}
+              <div class="mt-8 flex justify-center">
+                <a
+                  href="{successUrl}?submissionId={localStorage.getItem(
+                    `form_submission_id_${formId}`,
+                  ) || ''}"
+                  class="inline-flex items-center gap-2 px-6 py-3 rounded-full text-white font-bold transition-transform hover:scale-105 shadow-md hover:shadow-lg"
+                  style="background: var(--form-accent);"
+                >
+                  <i class="fas fa-qrcode"></i>
+                  View Entry Pass
+                </a>
+              </div>
+            {/if}
           </div>
         </div>
       {:else if questions.length > 0}

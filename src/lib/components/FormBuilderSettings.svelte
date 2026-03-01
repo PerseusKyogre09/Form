@@ -1,7 +1,9 @@
 <script lang="ts">
     import ThemesModal from "./ThemesModal.svelte";
     import FormSharingModal from "./FormSharingModal.svelte";
-    import type { Form } from "../types";
+    import type { Form, Question } from "../types";
+    import { isQuestionElement } from "../types";
+    import { currentForm } from "../stores";
 
     let {
         currentFormData,
@@ -12,10 +14,12 @@
         updateBackgroundColor,
         handleBackgroundImageUpload,
         removeBackgroundImage,
-        copyToClipboard
-    } = $props()
+        copyToClipboard,
+    } = $props();
 
-    let activeTab = $state<"themes" | "background" | "settings" | "sharing">("themes");
+    let activeTab = $state<"themes" | "background" | "settings" | "sharing">(
+        "themes",
+    );
     let isSharingModalOpen = $state(false);
 
     function updateSlug(newSlug: string) {
@@ -337,6 +341,105 @@
                         </button>
                     </section>
 
+                    <!-- Event Check-in Section -->
+                    <section class="space-y-4 pt-4 border-t border-slate-100">
+                        <h4
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                            Event Check-in
+                        </h4>
+                        <button
+                            onclick={() => {
+                                currentForm.update((f) => ({
+                                    ...f,
+                                    enable_checkin: !f.enable_checkin,
+                                }));
+                                saveForm();
+                            }}
+                            class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.enable_checkin
+                                ? 'bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100'
+                                : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'}"
+                        >
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-qrcode text-lg"></i>
+                                <div class="flex flex-col items-start">
+                                    <span class="text-xs font-bold"
+                                        >{currentFormData?.enable_checkin
+                                            ? "Check-in Enabled"
+                                            : "Check-in Disabled"}</span
+                                    >
+                                    <span class="text-[10px] opacity-80"
+                                        >{currentFormData?.enable_checkin
+                                            ? "QR codes shown after submission"
+                                            : "Enable to show QR passes"}</span
+                                    >
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-6 rounded-full transition-colors {currentFormData?.enable_checkin
+                                    ? 'bg-blue-500'
+                                    : 'bg-slate-300'}"
+                            >
+                                <div
+                                    class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
+                                    style="transform: translateX({currentFormData?.enable_checkin
+                                        ? '18px'
+                                        : '2px'});"
+                                ></div>
+                            </div>
+                        </button>
+
+                        {#if currentFormData?.enable_checkin}
+                            <div class="space-y-3">
+                                <label class="block">
+                                    <span
+                                        class="text-xs font-bold text-slate-600 block mb-2"
+                                        >Participant Name Field</span
+                                    >
+                                    <select
+                                        value={currentFormData?.checkin_name_field_id ||
+                                            ""}
+                                        onchange={(e) => {
+                                            currentForm.update((f) => ({
+                                                ...f,
+                                                checkin_name_field_id:
+                                                    e.currentTarget.value,
+                                            }));
+                                            saveForm();
+                                        }}
+                                        class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-primary focus:bg-white outline-none font-medium transition-all"
+                                    >
+                                        <option value=""
+                                            >Select a field...</option
+                                        >
+                                        {#each (currentFormData?.questions || []).filter( (q: any) => isQuestionElement(q), ) as question}
+                                            <option value={question.id}
+                                                >{question.title}</option
+                                            >
+                                        {/each}
+                                    </select>
+                                    <p
+                                        class="text-[10px] text-slate-400 px-1 mt-1 leading-relaxed"
+                                    >
+                                        This field will be shown when scanning
+                                        QR codes and used for certificates.
+                                    </p>
+                                </label>
+
+                                {#if currentFormData?.id}
+                                    <a
+                                        href="/checkin/{currentFormData.id}"
+                                        target="_blank"
+                                        class="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-600 text-white font-semibold text-xs hover:bg-blue-700 transition-colors"
+                                    >
+                                        <i class="fas fa-camera"></i>
+                                        Open Scanner
+                                    </a>
+                                {/if}
+                            </div>
+                        {/if}
+                    </section>
+
                     <section class="space-y-4">
                         <h4
                             class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
@@ -393,7 +496,12 @@
 
                     <section class="space-y-4">
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Share this form with other registered users to collaborate. You can grant them <strong>Editor</strong> (can edit form and view responses) or <strong>Viewer</strong> (read-only) access.
+                            Share this form with other registered users to
+                            collaborate. You can grant them <strong
+                                >Editor</strong
+                            >
+                            (can edit form and view responses) or
+                            <strong>Viewer</strong> (read-only) access.
                         </p>
                         <button
                             onclick={() => (isSharingModalOpen = true)}
@@ -405,26 +513,46 @@
                     </section>
 
                     {#if currentFormData?.collaborators && currentFormData.collaborators.length > 0}
-                        <section class="space-y-4 pt-4 border-t border-slate-100">
-                            <h4 class="text-xs font-bold text-slate-600 uppercase">
-                                Active Collaborators ({currentFormData.collaborators.length})
+                        <section
+                            class="space-y-4 pt-4 border-t border-slate-100"
+                        >
+                            <h4
+                                class="text-xs font-bold text-slate-600 uppercase"
+                            >
+                                Active Collaborators ({currentFormData
+                                    .collaborators.length})
                             </h4>
                             <div class="space-y-2">
                                 {#each currentFormData.collaborators as collab}
-                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                    <div
+                                        class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                                    >
                                         <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-bold text-white">
-                                                {collab.user?.user_metadata?.username?.charAt(0).toUpperCase() ||
-                                                    collab.user?.email?.charAt(0).toUpperCase() ||
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-bold text-white"
+                                            >
+                                                {collab.user?.user_metadata?.username
+                                                    ?.charAt(0)
+                                                    .toUpperCase() ||
+                                                    collab.user?.email
+                                                        ?.charAt(0)
+                                                        .toUpperCase() ||
                                                     "U"}
                                             </div>
                                             <div>
-                                                <p class="text-xs font-semibold text-slate-900">
-                                                    {collab.user?.user_metadata?.username ||
-                                                        collab.user?.email?.split("@")[0] ||
+                                                <p
+                                                    class="text-xs font-semibold text-slate-900"
+                                                >
+                                                    {collab.user?.user_metadata
+                                                        ?.username ||
+                                                        collab.user?.email?.split(
+                                                            "@",
+                                                        )[0] ||
                                                         "User"}
                                                 </p>
-                                                <p class="text-[10px] text-slate-500 capitalize">
+                                                <p
+                                                    class="text-[10px] text-slate-500 capitalize"
+                                                >
                                                     {collab.role}
                                                 </p>
                                             </div>

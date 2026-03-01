@@ -32,7 +32,8 @@ export async function load({ params, cookies }) {
           background_color,
           background_image,
           theme,
-          global_text_color
+          global_text_color,
+          enable_checkin
         `
       )
       .eq('user_id', profileData.id)
@@ -76,7 +77,8 @@ export async function load({ params, cookies }) {
         backgroundColor: data.background_color || '#ffffff',
         backgroundImage: data.background_image || '',
         globalTextColor: data.global_text_color || '',
-        theme: data.theme || undefined
+        theme: data.theme || undefined,
+        enable_checkin: data.enable_checkin || false
       }
     };
   } catch (err) {

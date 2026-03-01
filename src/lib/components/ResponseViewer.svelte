@@ -8,6 +8,7 @@
 
   export let formId: string;
   export let questions: FormElement[] = [];
+  export let enableCheckin: boolean = false;
 
   let questionList: Question[] = [];
   $: questionList = questions.filter(isQuestionElement);
@@ -162,19 +163,21 @@
 
   async function downloadCSV() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
-      
+
       if (!accessToken) {
-        alert('Not authenticated. Please log in again.');
+        alert("Not authenticated. Please log in again.");
         return;
       }
 
       const response = await fetch(`/api/responses/${formId}/csv`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       if (!response.ok) {
@@ -185,7 +188,7 @@
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = `form-responses-${formId}.csv`;
       document.body.appendChild(link);
@@ -193,14 +196,14 @@
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Error downloading CSV:', err);
-      alert('Failed to download CSV. Please try again.');
+      console.error("Error downloading CSV:", err);
+      alert("Failed to download CSV. Please try again.");
     }
   }
 
   async function deleteAllResponses() {
     const confirmed = window.confirm(
-      `Are you sure you want to delete all ${totalCount} response(s)? This action cannot be undone and will free up storage space.`
+      `Are you sure you want to delete all ${totalCount} response(s)? This action cannot be undone and will free up storage space.`,
     );
 
     if (!confirmed) return;
@@ -229,6 +232,33 @@
       openPopoverId = null;
     } else {
       openPopoverId = id;
+    }
+  }
+
+  async function toggleCheckin(responseId: string, currentStatus: boolean) {
+    try {
+      // Optimistically update
+      const responseIndex = responses.findIndex((r) => r.id === responseId);
+      if (responseIndex !== -1) {
+        responses[responseIndex].checked_in = !currentStatus;
+      }
+
+      const { error } = await supabase
+        .from("form_responses")
+        .update({ checked_in: !currentStatus })
+        .eq("id", responseId);
+
+      if (error) {
+        throw error;
+      }
+    } catch (err) {
+      console.error("Error toggling checkin:", err);
+      // Revert optimistic update
+      const responseIndex = responses.findIndex((r) => r.id === responseId);
+      if (responseIndex !== -1) {
+        responses[responseIndex].checked_in = currentStatus;
+      }
+      alert("Failed to update check-in status.");
     }
   }
 </script>
@@ -399,6 +429,15 @@
                   {/if}
                 </th>
               {/each}
+              {#if enableCheckin}
+                <th
+                  class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[120px]"
+                >
+                  <div class="flex items-center justify-between group">
+                    <span class="flex items-center gap-2"> Checked In </span>
+                  </div>
+                </th>
+              {/if}
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
@@ -433,6 +472,27 @@
                     {/if}
                   </td>
                 {/each}
+                {#if enableCheckin}
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <button
+                      on:click={() =>
+                        toggleCheckin(response.id, !!response.checked_in)}
+                      class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {response.checked_in
+                        ? 'bg-green-500'
+                        : 'bg-gray-200'}"
+                      role="switch"
+                      aria-checked={response.checked_in}
+                    >
+                      <span class="sr-only">Toggle check-in</span>
+                      <span
+                        aria-hidden="true"
+                        class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {response.checked_in
+                          ? 'translate-x-2'
+                          : '-translate-x-2'}"
+                      ></span>
+                    </button>
+                  </td>
+                {/if}
               </tr>
             {/each}
           </tbody>

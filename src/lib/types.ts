@@ -142,6 +142,8 @@ export interface Form {
   theme?: Theme; // Optional theme configuration
   thankYouPage?: ThankYouPage; // Optional custom thank you page configuration
   collaborators?: FormCollaborator[]; // Shared users with access to this form
+  enable_checkin?: boolean; // Whether QR check-in is enabled for this form
+  checkin_name_field_id?: string; // ID of the question field used as participant name
 }
 
 export interface FormResponse {
@@ -149,6 +151,7 @@ export interface FormResponse {
   formId: string;
   timestamp: number;
   answers: Record<string, string | number | boolean | string[]>;
+  checked_in?: boolean;
 }
 
 export function isBlockElement(element: FormElement): element is BlockElement {

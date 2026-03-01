@@ -35,6 +35,8 @@
         backgroundImage={formData.backgroundImage || ""}
         theme={formData.theme}
         globalTextColor={formData.globalTextColor || ""}
+        enableCheckin={formData.enable_checkin || false}
+        successUrl={`/form/${$page.params.username}/${$page.params.slug}/success`}
         {onSubmit}
       />
     </div>

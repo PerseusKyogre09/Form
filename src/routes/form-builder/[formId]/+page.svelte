@@ -156,7 +156,7 @@
       const { data, error } = await supabase
         .from("forms")
         .select(
-          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page",
+          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page, enable_checkin, checkin_name_field_id",
         )
         .eq("id", $page.params.formId)
         .single();
@@ -281,7 +281,7 @@
         .from("forms")
         .upsert(formToSave)
         .select(
-          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page",
+          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page, enable_checkin, checkin_name_field_id",
         );
 
       if (error) {
@@ -898,6 +898,7 @@
           <ResponseViewer
             formId={currentFormData.id}
             questions={currentFormData.questions}
+            enableCheckin={currentFormData.enable_checkin}
           />
         {/if}
       {:else}

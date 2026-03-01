@@ -51,9 +51,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       insertData.device_id = device_id;
     }
 
-    const { error } = await supabase
+    const { data: insertedRow, error } = await supabase
       .from('form_responses')
-      .insert(insertData);
+      .insert(insertData)
+      .select('id')
+      .single();
 
     if (error) {
       // Check for unique constraint violation (duplicate device submission)
@@ -82,7 +84,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     await logRequest(ipHash, formId);
 
     console.log('Successfully saved response for form:', formId);
-    return json({ success: true });
+    return json({ success: true, submissionId: insertedRow?.id || null });
   } catch (error: any) {
     console.error('Unexpected error in response API:', error);
     return json({ error: 'Internal Server Error', message: error.message }, { status: 500 });
