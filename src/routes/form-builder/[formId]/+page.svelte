@@ -162,7 +162,26 @@
         .single();
 
       if (error) {
-        console.error("Error loading form:", error);
+        if (error.code === "PGRST116") {
+          // "JSON object requested, multiple (or no) rows returned"
+          // This means the form doesn't exist yet - initialize an empty one
+          console.log("Initializing new form:", $page.params.formId);
+          const newForm: Form = {
+            id: $page.params.formId || crypto.randomUUID(),
+            title: "Untitled Form",
+            questions: [],
+            published: false,
+            closed: false,
+            backgroundType: "color",
+            backgroundColor: "#ffffff",
+            backgroundImage: "",
+            slug: "",
+            theme: undefined,
+          };
+          currentForm.set(newForm);
+        } else {
+          console.error("Error loading form:", error);
+        }
       } else if (data) {
         console.log("Form loaded:", data.id);
 
@@ -256,8 +275,20 @@
       console.log("Saving form:", currentFormData.id, "for user:", user.id);
 
       // Prepare the form data for saving - convert camelCase to snake_case
+      const {
+        backgroundType,
+        backgroundColor,
+        backgroundImage,
+        globalTextColor,
+        thankYouPage,
+        questions,
+        collaborators,
+        user: _, // explicitly extracting out properties to ignore
+        ...rest
+      } = currentFormData as any;
+
       const formToSave = {
-        ...currentFormData,
+        ...rest,
         user_id: user.id,
         background_type: currentFormData.backgroundType || "color",
         background_color: currentFormData.backgroundColor || "#ffffff",
@@ -265,16 +296,6 @@
         global_text_color: currentFormData.globalTextColor || "",
         thank_you_page: currentFormData.thankYouPage || null,
       };
-
-      // Remove properties that shouldn't be saved to forms table
-      delete formToSave.backgroundType;
-      delete formToSave.backgroundColor;
-      delete formToSave.backgroundImage;
-      delete formToSave.globalTextColor;
-      delete formToSave.thankYouPage;
-      delete formToSave.questions;
-      delete formToSave.collaborators;
-      delete formToSave.user;
 
       // Use upsert directly with Supabase and select() to confirm save
       const { data, error } = await supabase
