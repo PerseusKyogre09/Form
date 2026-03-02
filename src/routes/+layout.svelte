@@ -20,7 +20,8 @@
 				currentPath === "/signup" ||
 				currentPath === "/unauthorized" ||
 				currentPath === "/certificate-generator" ||
-				currentPath.startsWith("/form/");
+				currentPath.startsWith("/form/") ||
+				currentPath.startsWith("/preview/");
 
 			// Protected route logic
 			if (!session && !isPublicRoute) {
@@ -48,7 +49,10 @@
 <svelte:head>
 	<title>Quill</title>
 	<link rel="icon" href={favicon} />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+	<link
+		rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+	/>
 </svelte:head>
 
 <NotificationContainer />

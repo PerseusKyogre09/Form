@@ -25,6 +25,7 @@
   let isSettingsOpen = false;
   let isSidebarOpen = true;
   let isRightSidebarOpen = true;
+  let previewIframeEl: HTMLIFrameElement;
 
   function toggleSidebar() {
     isSidebarOpen = !isSidebarOpen;
@@ -150,7 +151,32 @@
     currentFormData = { closed: false, ...value };
   });
 
+  // Send form data to the preview iframe
+  function sendFormDataToIframe() {
+    if (previewIframeEl && previewIframeEl.contentWindow && currentFormData) {
+      previewIframeEl.contentWindow.postMessage(
+        { type: "UPDATE_FORM_PREVIEW", data: currentFormData },
+        "*",
+      );
+    }
+  }
+
+  // Sync data to the iframe when it changes
+  $: if (previewIframeEl && currentFormData) {
+    sendFormDataToIframe();
+  }
+
   onMount(async () => {
+    // Listen for the iframe signaling it's ready to receive data
+    if (browser) {
+      window.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "PREVIEW_IFRAME_READY") {
+          // Send initial data as soon as the iframe is ready
+          sendFormDataToIframe();
+        }
+      });
+    }
+
     // Load form from Supabase directly
     try {
       const { data, error } = await supabase
@@ -214,6 +240,7 @@
           backgroundColor: data.background_color || "#ffffff",
           backgroundImage: data.background_image || "",
           globalTextColor: data.global_text_color || "",
+          thankYouPage: data.thank_you_page || undefined,
           theme: data.theme || undefined,
           questions: questionsData?.map((q) => q.data) || [],
           collaborators: collaboratorsData || [],
@@ -780,217 +807,106 @@
       ? 'lg:pl-64'
       : 'lg:pl-20'} {isRightSidebarOpen ? 'xl:pr-80' : 'xl:pr-0'}"
   >
-    <div class="max-w-[1400px] mx-auto px-6 py-8">
+    <div class="max-w-[1400px] mx-auto px-6 pt-8 pb-24 lg:pb-8">
       {#if loading}
         <div class="text-center py-12">
           <p class="text-gray-500">Loading form...</p>
         </div>
-      {:else if view === "preview"}
-        <!-- Device Preset Toolbar -->
-        <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-          <div
-            class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl flex-wrap"
-          >
-            {#each devicePresets as preset}
-              <button
-                on:click={() => selectPreset(preset)}
-                class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap
-                {selectedPreset === preset.name
-                  ? 'bg-white text-primary shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}"
-              >
-                <i class="fas {preset.icon} text-[10px]"></i>
-                {preset.name}
-              </button>
-            {/each}
-            {#if selectedPreset === "Custom"}
-              <span
-                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white text-primary shadow-sm flex items-center gap-1.5"
-              >
-                <i class="fas fa-arrows-alt text-[10px]"></i>
-                Custom
-              </span>
-            {/if}
-          </div>
-          <div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
-            {#if isFixedDevice || selectedPreset === "Custom"}
-              <span class="bg-slate-100 px-2 py-1 rounded">
-                {Math.round(customWidth)} × {Math.round(customHeight)}
-              </span>
-              {#if previewScale < 1}
-                <span class="bg-slate-100 px-2 py-1 rounded">
-                  {Math.round(previewScale * 100)}%
-                </span>
-              {/if}
-            {:else}
-              <span class="bg-slate-100 px-2 py-1 rounded">Responsive</span>
-            {/if}
-          </div>
-        </div>
-
-        <!-- Preview Container -->
-        <div
-          bind:this={previewContainerEl}
-          class="relative bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden"
-          style="height: calc(80vh - 60px);"
-        >
-          <!-- Dotted background pattern -->
-          <div
-            class="absolute inset-0 opacity-[0.03]"
-            style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 16px 16px;"
-          ></div>
-
-          {#if isFixedDevice || selectedPreset === "Custom"}
-            <!-- Fixed device frame -->
-            <div
-              class="relative bg-white rounded-lg shadow-2xl overflow-hidden"
-              style="width: {customWidth}px; height: {customHeight}px; transform: scale({previewScale}); transform-origin: center center;"
-            >
-              {#if currentFormData}
-                <FormPreview
-                  questions={currentFormData.questions}
-                  formId={currentFormData.id}
-                  isClosed={currentFormData.closed || false}
-                  backgroundType={currentFormData.backgroundType || "color"}
-                  backgroundColor={currentFormData.backgroundColor || "#ffffff"}
-                  backgroundImage={currentFormData.backgroundImage || ""}
-                  globalTextColor={currentFormData?.globalTextColor || ""}
-                  theme={currentFormData.theme}
-                  {onSubmit}
-                />
-              {/if}
-
-              <!-- Resize Handle -->
-              <button
-                on:mousedown={onResizeStart}
-                class="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize z-[60] group p-0 bg-transparent border-none"
-                aria-label="Drag to resize preview"
-              >
-                <svg
-                  class="w-full h-full text-slate-400 group-hover:text-primary transition-colors"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M14.5 17.5L17.5 14.5M9.5 17.5L17.5 9.5M4.5 17.5L17.5 4.5"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    fill="none"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          {:else}
-            <!-- Responsive: fill entire container -->
-            <div class="absolute inset-0 overflow-hidden">
-              {#if currentFormData}
-                <FormPreview
-                  questions={currentFormData.questions}
-                  formId={currentFormData.id}
-                  isClosed={currentFormData.closed || false}
-                  backgroundType={currentFormData.backgroundType || "color"}
-                  backgroundColor={currentFormData.backgroundColor || "#ffffff"}
-                  backgroundImage={currentFormData.backgroundImage || ""}
-                  globalTextColor={currentFormData?.globalTextColor || ""}
-                  theme={currentFormData.theme}
-                  {onSubmit}
-                />
-              {/if}
+      {:else}
+        {#if view === "preview"}
+          <!-- Preview is rendered as a fullscreen overlay below -->
+        {:else if view === "thankYou"}
+          <!-- Thank You Page Editor -->
+          {#if currentFormData}
+            <div class="space-y-6">
+              <ThankYouPageEditor
+                thankYouPage={currentFormData.thankYouPage}
+                onUpdate={(config) => {
+                  currentForm.update((f) => ({ ...f, thankYouPage: config }));
+                }}
+                {saveForm}
+              />
             </div>
           {/if}
-        </div>
-      {:else if view === "thankYou"}
-        <!-- Thank You Page Editor -->
-        {#if currentFormData}
-          <div class="space-y-6">
-            <ThankYouPageEditor
-              thankYouPage={currentFormData.thankYouPage}
-              onUpdate={(config) => {
-                currentForm.update((f) => ({ ...f, thankYouPage: config }));
-              }}
-              {saveForm}
+        {:else if view === "responses"}
+          <!-- Responses viewer -->
+          {#if currentFormData}
+            <ResponseViewer
+              formId={currentFormData.id}
+              questions={currentFormData.questions}
+              enableCheckin={currentFormData.enable_checkin}
             />
-          </div>
-        {/if}
-      {:else if view === "responses"}
-        <!-- Responses viewer -->
-        {#if currentFormData}
-          <ResponseViewer
-            formId={currentFormData.id}
-            questions={currentFormData.questions}
-            enableCheckin={currentFormData.enable_checkin}
-          />
-        {/if}
-      {:else}
-        <!-- Form builder layout -->
-        <main class="flex flex-col xl:flex-row gap-6 lg:gap-8 min-w-0">
-          <div class="flex-1 space-y-6 min-w-0">
-            <FormBuilder />
-          </div>
+          {/if}
+        {:else}
+          <!-- Form builder layout -->
+          <main class="flex flex-col xl:flex-row gap-6 lg:gap-8 min-w-0">
+            <div class="flex-1 space-y-6 min-w-0">
+              <FormBuilder />
+            </div>
 
-          <!-- Desktop Right Sidebar -->
-          <aside
-            class="hidden xl:flex fixed right-0 top-16 bottom-0 bg-white border-l border-slate-200 flex-col transition-all duration-300 z-40 {isRightSidebarOpen
-              ? 'w-80'
-              : 'w-0 overflow-hidden border-none'}"
-          >
-            <FormBuilderSettings
-              {currentFormData}
-              {shareLink}
-              {saveForm}
-              {toggleFormStatus}
-              {updateBackgroundColor}
-              {updateGlobalTextColor}
-              {handleBackgroundImageUpload}
-              {removeBackgroundImage}
-              {copyToClipboard}
-            />
-          </aside>
-        </main>
-
-        <!-- Mobile Settings Drawer -->
-        {#if isSettingsOpen}
-          <div class="fixed inset-0 z-[60] lg:hidden">
-            <!-- Backdrop -->
-            <div
-              class="absolute inset-0 bg-black/20 backdrop-blur-sm"
-              on:click={() => (isSettingsOpen = false)}
-            ></div>
-
-            <!-- Drawer -->
-            <div
-              class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
+            <!-- Desktop Right Sidebar -->
+            <aside
+              class="hidden xl:flex fixed right-0 top-16 bottom-0 bg-white border-l border-slate-200 flex-col transition-all duration-300 z-40 {isRightSidebarOpen
+                ? 'w-80'
+                : 'w-0 overflow-hidden border-none'}"
             >
-              <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg font-bold text-slate-900">Settings</h2>
-                <button
-                  on:click={() => (isSettingsOpen = false)}
-                  class="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                >
-                  <span class="fas fa-times text-slate-500 text-xl"></span>
-                </button>
-              </div>
+              <FormBuilderSettings
+                {currentFormData}
+                {shareLink}
+                {saveForm}
+                {toggleFormStatus}
+                {updateBackgroundColor}
+                {updateGlobalTextColor}
+                {handleBackgroundImageUpload}
+                {removeBackgroundImage}
+                {copyToClipboard}
+              />
+            </aside>
+          </main>
 
-              <div class="space-y-6">
-                <FormBuilderSettings
-                  {currentFormData}
-                  {shareLink}
-                  {saveForm}
-                  {toggleFormStatus}
-                  {updateBackgroundColor}
-                  {updateGlobalTextColor}
-                  {handleBackgroundImageUpload}
-                  {removeBackgroundImage}
-                  {copyToClipboard}
-                />
+          <!-- Mobile Settings Drawer -->
+          {#if isSettingsOpen}
+            <div class="fixed inset-0 z-[60] lg:hidden">
+              <!-- Backdrop -->
+              <div
+                class="absolute inset-0 bg-black/20 backdrop-blur-sm"
+                on:click={() => (isSettingsOpen = false)}
+              ></div>
+
+              <!-- Drawer -->
+              <div
+                class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
+              >
+                <div class="flex items-center justify-between mb-6">
+                  <h2 class="text-lg font-bold text-slate-900">Settings</h2>
+                  <button
+                    on:click={() => (isSettingsOpen = false)}
+                    class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                  >
+                    <span class="fas fa-times text-slate-500 text-xl"></span>
+                  </button>
+                </div>
+
+                <div class="space-y-6">
+                  <FormBuilderSettings
+                    {currentFormData}
+                    {shareLink}
+                    {saveForm}
+                    {toggleFormStatus}
+                    {updateBackgroundColor}
+                    {updateGlobalTextColor}
+                    {handleBackgroundImageUpload}
+                    {removeBackgroundImage}
+                    {copyToClipboard}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          {/if}
         {/if}
 
-        <!-- Mobile Bottom Navigation -->
-        {#if !loading && view}
+        <!-- Mobile Bottom Navigation (hidden during preview overlay) -->
+        {#if view && view !== "preview"}
           <div
             class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-2 z-50 flex justify-around items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
           >
@@ -1040,3 +956,346 @@
     </div>
   </div>
 </div>
+
+<!-- Fullscreen Preview Overlay (Figma-style) -->
+{#if view === "preview" && currentFormData}
+  <div class="preview-overlay">
+    <!-- Top Toolbar -->
+    <div class="preview-toolbar">
+      <div class="preview-toolbar-left">
+        <button
+          on:click={() => (view = "edit")}
+          class="preview-close-btn"
+          aria-label="Close preview"
+          title="Close preview"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <span class="preview-title">Preview</span>
+      </div>
+
+      <div class="preview-toolbar-center">
+        <div class="preview-device-pills">
+          {#each devicePresets as preset}
+            <button
+              on:click={() => selectPreset(preset)}
+              class="preview-device-btn {selectedPreset === preset.name
+                ? 'active'
+                : ''}"
+            >
+              <i class="fas {preset.icon}"></i>
+              <span class="preview-device-label">{preset.name}</span>
+            </button>
+          {/each}
+          {#if selectedPreset === "Custom"}
+            <span class="preview-device-btn active">
+              <i class="fas fa-arrows-alt"></i>
+              <span class="preview-device-label">Custom</span>
+            </span>
+          {/if}
+        </div>
+      </div>
+
+      <div class="preview-toolbar-right">
+        {#if isFixedDevice || selectedPreset === "Custom"}
+          <span class="preview-dimensions">
+            {Math.round(customWidth)} × {Math.round(customHeight)}
+          </span>
+          {#if previewScale < 1}
+            <span class="preview-dimensions">
+              {Math.round(previewScale * 100)}%
+            </span>
+          {/if}
+        {:else}
+          <span class="preview-dimensions">Responsive</span>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Canvas Area -->
+    <div bind:this={previewContainerEl} class="preview-canvas">
+      <!-- Dotted background pattern -->
+      <div class="preview-dots"></div>
+
+      {#if isFixedDevice || selectedPreset === "Custom"}
+        <!-- Fixed device frame -->
+        <div
+          class="preview-device-frame"
+          style="width: {customWidth}px; height: {customHeight}px; transform: scale({previewScale}); transform-origin: center center;"
+        >
+          <div class="preview-device-inner">
+            <iframe
+              bind:this={previewIframeEl}
+              src="/preview/{$page.params.formId}"
+              class="w-full h-full border-none bg-transparent"
+              title="Form Preview"
+            ></iframe>
+          </div>
+
+          <!-- Resize Handle -->
+          <button
+            on:mousedown={onResizeStart}
+            class="preview-resize-handle"
+            aria-label="Drag to resize preview"
+          >
+            <svg
+              class="w-full h-full text-white/40 hover:text-white/80 transition-colors"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M14.5 17.5L17.5 14.5M9.5 17.5L17.5 9.5M4.5 17.5L17.5 4.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                fill="none"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      {:else}
+        <!-- Responsive: fill available canvas area -->
+        <div class="preview-responsive-frame">
+          <div class="preview-device-inner">
+            <iframe
+              bind:this={previewIframeEl}
+              src="/preview/{$page.params.formId}"
+              class="w-full h-full border-none bg-transparent"
+              title="Form Preview"
+            ></iframe>
+          </div>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
+
+<style>
+  /* ===== Fullscreen Preview Overlay ===== */
+  .preview-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background-color: #f1f5f9; /* changed from #0f172a to a neutral light color so dark forms stand out */
+    display: flex;
+    flex-direction: column;
+    animation: previewFadeIn 0.2s ease-out;
+  }
+
+  @keyframes previewFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* --- Toolbar --- */
+  .preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    padding: 0 16px;
+    background: #1e293b;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    gap: 8px;
+    position: relative;
+    z-index: 500; /* High z-index to stay above the form preview elements */
+  }
+
+  .preview-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .preview-toolbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .preview-toolbar-center::-webkit-scrollbar {
+    display: none;
+  }
+
+  .preview-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .preview-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s ease;
+  }
+  .preview-close-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #f1f5f9;
+  }
+
+  .preview-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+    letter-spacing: 0.01em;
+  }
+
+  .preview-device-pills {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 3px;
+    border-radius: 10px;
+  }
+
+  .preview-device-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .preview-device-btn:hover {
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .preview-device-btn.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+  }
+  .preview-device-btn i {
+    font-size: 10px;
+  }
+
+  .preview-dimensions {
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      monospace;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  /* --- Canvas --- */
+  .preview-canvas {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 24px;
+    z-index: 1; /* Below the toolbar */
+  }
+
+  .preview-dots {
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  /* --- Device Frames --- */
+  .preview-device-frame {
+    position: relative;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 80px rgba(99, 102, 241, 0.05);
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  .preview-device-inner {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+    z-index: 11;
+  }
+
+  .preview-responsive-frame {
+    position: absolute;
+    inset: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  .preview-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    z-index: 60;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+
+  /* --- Mobile adjustments --- */
+  @media (max-width: 768px) {
+    .preview-toolbar {
+      padding: 0 8px;
+      height: 46px;
+    }
+    .preview-title {
+      display: none;
+    }
+    .preview-device-label {
+      display: none;
+    }
+    .preview-device-btn {
+      padding: 5px 8px;
+    }
+    .preview-canvas {
+      padding: 12px;
+    }
+    .preview-responsive-frame {
+      inset: 12px;
+    }
+    .preview-dimensions {
+      display: none;
+    }
+  }
+</style>
