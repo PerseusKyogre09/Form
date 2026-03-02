@@ -274,10 +274,7 @@
       if (currentFormData && currentFormData.published) {
         const protocol =
           typeof window !== "undefined" ? window.location.protocol : "http:";
-        const host =
-          typeof window !== "undefined"
-            ? window.location.host
-            : "localhost:5173";
+        const host = typeof window !== "undefined" ? window.location.host : "";
         const slug = currentFormData.slug || currentFormData.id;
         shareLink = `${protocol}//${host}/form/${username || currentFormData.user_id}/${slug}`;
       }
@@ -536,8 +533,7 @@
     if (!currentFormData || !username) return;
     const protocol =
       typeof window !== "undefined" ? window.location.protocol : "http:";
-    const host =
-      typeof window !== "undefined" ? window.location.host : "localhost:5173";
+    const host = typeof window !== "undefined" ? window.location.host : "";
 
     // Use username and slug for the new share link format
     const slug = currentFormData.slug || currentFormData.id;
