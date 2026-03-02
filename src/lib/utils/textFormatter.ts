@@ -65,13 +65,13 @@ export function stripFormatting(text: string): string {
  */
 export function getTextSizeClass(size: string = 'xl'): string {
     const sizeMap: Record<string, string> = {
-        'sm': 'text-xs md:text-sm',
-        'base': 'text-sm md:text-base',
-        'lg': 'text-base md:text-lg',
+        'sm': 'text-[10px] md:text-sm',
+        'base': 'text-xs md:text-base',
+        'lg': 'text-sm md:text-lg',
         'xl': 'text-base md:text-xl',
         '2xl': 'text-lg md:text-2xl',
         '3xl': 'text-xl md:text-3xl',
-        '4xl': 'text-2xl md:text-4xl',
+        '4xl': 'text-xl md:text-4xl',
     };
 
     return sizeMap[size] || sizeMap['xl'];

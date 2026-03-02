@@ -141,6 +141,7 @@
 
     if (e.key === "Enter") {
       e.preventDefault();
+      e.stopPropagation(); // Prevent global handler from advancing the form
       if (filteredCountries.length > 0) {
         phoneCountries[questionId] =
           filteredCountries[highlightedCountryIndex].code;
@@ -148,6 +149,13 @@
         countrySearchQuery = "";
         highlightedCountryIndex = 0;
         validateCurrentQuestion();
+        // Auto-focus the phone number input
+        setTimeout(() => {
+          const telInput = container?.querySelector(
+            'input[type="tel"]',
+          ) as HTMLElement;
+          if (telInput) telInput.focus();
+        }, 50);
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -178,6 +186,45 @@
       // Clear any previous validation errors since we just selected a country
       validationError = "";
     }
+    // Auto-focus the phone number input
+    setTimeout(() => {
+      const telInput = container?.querySelector(
+        'input[type="tel"]',
+      ) as HTMLElement;
+      if (telInput) telInput.focus();
+    }, 50);
+  }
+
+  // Keyboard handler for the country selector button itself (when focused but dropdown is closed)
+  function handleCountrySelectorButtonKeydown(
+    e: KeyboardEvent,
+    questionId: string,
+  ) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      validateAndAdvance();
+    } else if (e.key === "Backspace") {
+      e.preventDefault();
+      e.stopPropagation();
+      prevQuestion();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === " ") {
+      // Act like a native select: open the dropdown on space or arrows
+      e.preventDefault();
+      e.stopPropagation();
+      if (openCountryDropdown !== questionId) {
+        openCountryDropdown = questionId;
+        countrySearchQuery = "";
+        highlightedCountryIndex = 0;
+        // Focus search input after dropdown renders
+        setTimeout(() => {
+          const searchInput = container?.querySelector(
+            'input[placeholder="Search country..."]',
+          ) as HTMLElement;
+          if (searchInput) searchInput.focus();
+        }, 50);
+      }
+    }
   }
 
   function animateIn() {
@@ -189,6 +236,12 @@
         scale: 1,
         duration: 0.5,
         ease: "cubic.out",
+        onComplete: () => {
+          // Auto-focus the appropriate input after transition
+          if (!isMobileDevice()) {
+            focusCurrentInput();
+          }
+        },
       });
     }
 
@@ -205,6 +258,50 @@
         nextQuestion();
       }, delay * 1000);
     }
+  }
+
+  // Focus the appropriate input element for the current question
+  async function focusCurrentInput() {
+    await tick();
+    if (!container) return;
+
+    if (currentQuestion) {
+      const type = currentQuestion.type;
+      if (
+        type === "text" ||
+        type === "long-text" ||
+        type === "email" ||
+        type === "number"
+      ) {
+        // Focus the text input or textarea
+        const input = container.querySelector(
+          'input:not([type="checkbox"]):not([type="radio"]):not([type="date"]):not([type="hidden"]), textarea',
+        ) as HTMLElement;
+        if (input) input.focus();
+      } else if (type === "phone") {
+        // Focus the country selector button first
+        const button = container.querySelector("button") as HTMLElement;
+        if (button) button.focus();
+      } else if (type === "date") {
+        const input = container.querySelector(
+          'input[type="date"]',
+        ) as HTMLElement;
+        if (input) input.focus();
+      } else if (
+        type === "multiple-choice" ||
+        type === "checkboxes" ||
+        type === "yes-no" ||
+        type === "rating" ||
+        type === "dropdown"
+      ) {
+        // Focus the options container or select element
+        const focusable = container.querySelector(
+          '[role="radiogroup"], [role="group"], select',
+        ) as HTMLElement;
+        if (focusable) focusable.focus();
+      }
+    }
+    // For block elements, don't focus anything — the global handler covers it
   }
 
   // Theme-related elements that need cleanup
@@ -1240,22 +1337,144 @@
     // Note: Arrow Up/Down are handled by native date picker, we don't override
   }
 
-  // Special handler for radio/checkbox/select - simplified
+  // Special handler for radio/checkbox/select with letter/number shortcuts
+  // Arrow keys navigate through options, Enter advances to next question
+  let highlightedOptionIndex = 0; // Track which option is highlighted
+
   function handleSelectionKeyboard(e: KeyboardEvent) {
+    if (!currentQuestion) return;
+
+    // For dropdowns, let native select element handle everything except Enter/Backspace
+    if (currentQuestion.type === "dropdown") {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        validateAndAdvance();
+      } else if (e.key === "Backspace") {
+        e.preventDefault();
+        prevQuestion();
+      }
+      return;
+    }
+
+    const options = currentQuestion.options || [];
+
     // Enter key - move to next question
     if (e.key === "Enter") {
       e.preventDefault();
       validateAndAdvance();
+      return;
     }
-    // Arrow Up - navigate to previous question
-    else if (e.key === "ArrowUp") {
+    // Backspace - go to previous question
+    if (e.key === "Backspace") {
       e.preventDefault();
       prevQuestion();
+      return;
     }
-    // Arrow Down - navigate to next question
-    else if (e.key === "ArrowDown") {
+
+    // Arrow Up/Down - cycle through options (NOT navigate questions)
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      validateAndAdvance();
+      if (options.length === 0) return;
+
+      if (e.key === "ArrowDown") {
+        highlightedOptionIndex = (highlightedOptionIndex + 1) % options.length;
+      } else {
+        highlightedOptionIndex =
+          (highlightedOptionIndex - 1 + options.length) % options.length;
+      }
+
+      // Select the highlighted option
+      if (
+        currentQuestion.type === "multiple-choice" ||
+        currentQuestion.type === "yes-no"
+      ) {
+        answers[currentQuestion.id] = options[highlightedOptionIndex];
+        validateCurrentQuestion();
+      }
+      // For checkboxes, arrow keys just move the highlight, Space toggles
+      // For rating, arrow keys change the rating
+      if (currentQuestion.type === "rating") {
+        const rating = highlightedOptionIndex + 1; // 1-indexed
+        if (rating >= 1 && rating <= 5) {
+          answers[currentQuestion.id] = rating;
+          validateCurrentQuestion();
+        }
+      }
+      return;
+    }
+
+    // Space - toggle checkbox option at the highlighted index
+    if (e.key === " " && currentQuestion.type === "checkboxes") {
+      e.preventDefault();
+      if (options.length === 0) return;
+      if (!answers[currentQuestion.id]) answers[currentQuestion.id] = [];
+      const arr = answers[currentQuestion.id] as string[];
+      const option = options[highlightedOptionIndex];
+      const optionIndex = arr.indexOf(option);
+      if (optionIndex >= 0) {
+        arr.splice(optionIndex, 1);
+      } else {
+        arr.push(option);
+      }
+      answers[currentQuestion.id] = [...arr];
+      validateCurrentQuestion();
+      return;
+    }
+
+    // Letter shortcuts (A-Z) - select only, no auto-advance
+    if (!isMobileDevice() && e.key.length === 1 && /^[a-zA-Z]$/.test(e.key)) {
+      const index = e.key.toLowerCase().charCodeAt(0) - 97;
+
+      // Y/N shortcuts for yes-no
+      if (currentQuestion.type === "yes-no") {
+        if (e.key.toLowerCase() === "y") {
+          e.preventDefault();
+          answers[currentQuestion.id] = "Yes";
+          validateCurrentQuestion();
+          return;
+        } else if (e.key.toLowerCase() === "n") {
+          e.preventDefault();
+          answers[currentQuestion.id] = "No";
+          validateCurrentQuestion();
+          return;
+        }
+      }
+
+      if (index >= 0 && index < options.length) {
+        e.preventDefault();
+        highlightedOptionIndex = index;
+        if (currentQuestion.type === "multiple-choice") {
+          answers[currentQuestion.id] = options[index];
+          validateCurrentQuestion();
+        } else if (currentQuestion.type === "checkboxes") {
+          // Toggle the checkbox
+          if (!answers[currentQuestion.id]) answers[currentQuestion.id] = [];
+          const arr = answers[currentQuestion.id] as string[];
+          const optionIndex = arr.indexOf(options[index]);
+          if (optionIndex >= 0) {
+            arr.splice(optionIndex, 1);
+          } else {
+            arr.push(options[index]);
+          }
+          answers[currentQuestion.id] = [...arr];
+          validateCurrentQuestion();
+        }
+      }
+      return;
+    }
+
+    // Number shortcuts (1-5) for rating - select only, no auto-advance
+    if (
+      !isMobileDevice() &&
+      currentQuestion.type === "rating" &&
+      /^[1-5]$/.test(e.key)
+    ) {
+      e.preventDefault();
+      const rating = parseInt(e.key);
+      answers[currentQuestion.id] = rating;
+      highlightedOptionIndex = rating - 1;
+      validateCurrentQuestion();
+      return;
     }
   }
 
@@ -1363,6 +1582,195 @@
       nextQuestion();
     }
     // On mobile, allow default behavior (new line)
+  }
+
+  // Global keyboard handler to catch keys when no specific input is focused
+  function handleGlobalKeydown(e: KeyboardEvent) {
+    // Skip on mobile devices
+    if (isMobileDevice()) return;
+
+    // Skip if user is typing in an input, textarea, or select
+    const target = e.target as HTMLElement;
+    const tagName = target?.tagName?.toLowerCase();
+    if (tagName === "input" || tagName === "textarea" || tagName === "select")
+      return;
+
+    // Skip if the target already has a role (i.e. handleSelectionKeyboard is handling it)
+    if (target?.getAttribute?.("role")) return;
+
+    // Skip if form is closed, already submitted, or no questions
+    if (
+      isClosed ||
+      alreadySubmitted ||
+      questions.length === 0 ||
+      !currentElement
+    )
+      return;
+
+    // Skip if submitting
+    if (isSubmitting) return;
+
+    // Determine if current question is a choice-type where arrows should cycle options
+    const isChoiceType =
+      currentQuestion &&
+      (currentQuestion.type === "multiple-choice" ||
+        currentQuestion.type === "checkboxes" ||
+        currentQuestion.type === "yes-no" ||
+        currentQuestion.type === "rating");
+
+    // Enter - advance to next question or submit
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (hasNextVisibleQuestion) {
+        validateAndAdvance();
+      } else if (canAdvanceValue) {
+        submitForm();
+      }
+      return;
+    }
+
+    // Arrow keys: on choice questions cycle options, otherwise navigate questions
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (isChoiceType) {
+        // Cycle through options
+        const options = currentQuestion!.options || [];
+        const ratingOptions = 5; // for rating questions
+        const count =
+          currentQuestion!.type === "rating" ? ratingOptions : options.length;
+        if (count === 0) return;
+
+        if (e.key === "ArrowDown") {
+          highlightedOptionIndex = (highlightedOptionIndex + 1) % count;
+        } else {
+          highlightedOptionIndex = (highlightedOptionIndex - 1 + count) % count;
+        }
+
+        // Select the highlighted option
+        if (
+          currentQuestion!.type === "multiple-choice" ||
+          currentQuestion!.type === "yes-no"
+        ) {
+          answers[currentQuestion!.id] = options[highlightedOptionIndex];
+          validateCurrentQuestion();
+        } else if (currentQuestion!.type === "rating") {
+          answers[currentQuestion!.id] = highlightedOptionIndex + 1;
+          validateCurrentQuestion();
+        }
+        // For checkboxes, arrows just move highlight — Space toggles
+      } else {
+        // Non-choice question: navigate between questions
+        if (e.key === "ArrowDown") {
+          validateAndAdvance();
+        } else {
+          prevQuestion();
+        }
+      }
+      return;
+    }
+
+    // Backspace - go to previous question
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      prevQuestion();
+      return;
+    }
+
+    // Space - toggle checkbox at highlighted index
+    if (
+      e.key === " " &&
+      isChoiceType &&
+      currentQuestion!.type === "checkboxes"
+    ) {
+      e.preventDefault();
+      const options = currentQuestion!.options || [];
+      if (options.length === 0) return;
+      if (!answers[currentQuestion!.id]) answers[currentQuestion!.id] = [];
+      const arr = answers[currentQuestion!.id] as string[];
+      const option = options[highlightedOptionIndex];
+      const optionIndex = arr.indexOf(option);
+      if (optionIndex >= 0) {
+        arr.splice(optionIndex, 1);
+      } else {
+        arr.push(option);
+      }
+      answers[currentQuestion!.id] = [...arr];
+      validateCurrentQuestion();
+      return;
+    }
+
+    // Tab - if on a selection question, focus the options container
+    if (e.key === "Tab" && currentQuestion) {
+      const type = currentQuestion.type;
+      if (
+        type === "multiple-choice" ||
+        type === "checkboxes" ||
+        type === "yes-no" ||
+        type === "rating"
+      ) {
+        e.preventDefault();
+        const focusable = container?.querySelector(
+          '[role="radiogroup"], [role="group"]',
+        ) as HTMLElement;
+        if (focusable) focusable.focus();
+        return;
+      }
+    }
+
+    // Letter shortcuts (A-Z) for selection questions when nothing is focused
+    if (currentQuestion && e.key.length === 1 && /^[a-zA-Z]$/.test(e.key)) {
+      const options = currentQuestion.options || [];
+      const index = e.key.toLowerCase().charCodeAt(0) - 97;
+
+      if (currentQuestion.type === "yes-no") {
+        if (e.key.toLowerCase() === "y") {
+          e.preventDefault();
+          answers[currentQuestion.id] = "Yes";
+          validateCurrentQuestion();
+          return;
+        } else if (e.key.toLowerCase() === "n") {
+          e.preventDefault();
+          answers[currentQuestion.id] = "No";
+          validateCurrentQuestion();
+          return;
+        }
+      }
+
+      if (index >= 0 && index < options.length) {
+        e.preventDefault();
+        highlightedOptionIndex = index;
+        if (currentQuestion.type === "multiple-choice") {
+          answers[currentQuestion.id] = options[index];
+          validateCurrentQuestion();
+        } else if (currentQuestion.type === "checkboxes") {
+          if (!answers[currentQuestion.id]) answers[currentQuestion.id] = [];
+          const arr = answers[currentQuestion.id] as string[];
+          const optionIndex = arr.indexOf(options[index]);
+          if (optionIndex >= 0) {
+            arr.splice(optionIndex, 1);
+          } else {
+            arr.push(options[index]);
+          }
+          answers[currentQuestion.id] = [...arr];
+          validateCurrentQuestion();
+        }
+        return;
+      }
+    }
+
+    // Number shortcuts (1-5) for rating - select only
+    if (
+      currentQuestion &&
+      currentQuestion.type === "rating" &&
+      /^[1-5]$/.test(e.key)
+    ) {
+      e.preventDefault();
+      const rating = parseInt(e.key);
+      answers[currentQuestion.id] = rating;
+      highlightedOptionIndex = rating - 1;
+      validateCurrentQuestion();
+      return;
+    }
   }
 
   function prevQuestion() {
@@ -1582,7 +1990,19 @@
   $: if (progressBar) {
     animateProgress(progressBar, progress, 0.6);
   }
+
+  // Auto-focus the current input whenever the question changes
+  $: if (browser && currentQuestionIndex !== undefined && formReady) {
+    // Small delay to let the GSAP entrance animation start and DOM update
+    setTimeout(() => {
+      if (!isMobileDevice()) {
+        focusCurrentInput();
+      }
+    }, 600);
+  }
 </script>
+
+<svelte:window on:keydown={handleGlobalKeydown} />
 
 {#if isLoadingColors && backgroundType === "image" && backgroundImage}
   <!-- Loading Screen while extracting colors -->
@@ -1709,7 +2129,7 @@
         <div
           class={theme && theme.id === "ide-dark"
             ? "fixed inset-0 flex flex-col justify-center items-center"
-            : "min-h-screen flex flex-col justify-center items-center px-6 py-20 md:px-6 md:py-20 safe-area-pb"}
+            : "min-h-screen flex flex-col justify-center items-center px-6 pt-10 pb-32 md:px-6 md:py-20 safe-area-pb"}
         >
           <div
             bind:this={container}
@@ -2075,13 +2495,29 @@
                                       : currentQuestion.id;
                                   countrySearchQuery = "";
                                   highlightedCountryIndex = 0;
+                                  // Focus search input if opening
+                                  if (openCountryDropdown) {
+                                    setTimeout(() => {
+                                      const searchInput =
+                                        container?.querySelector(
+                                          'input[placeholder="Search country..."]',
+                                        ) as HTMLElement;
+                                      if (searchInput) searchInput.focus();
+                                    }, 50);
+                                  }
                                 }}
+                                on:keydown={(e) =>
+                                  handleCountrySelectorButtonKeydown(
+                                    e,
+                                    currentQuestion.id,
+                                  )}
                                 class="text-lg outline-none border-b-2 border-t-0 border-l-0 border-r-0 focus:border-[var(--form-accent)] focus:outline-none focus:ring-0 px-0 py-4 transition-all duration-200 min-w-max bg-transparent {validationError
                                   ? 'border-orange-400'
                                   : 'border-slate-300'}"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
                                   'var(--form-text-primary)'};"
+                                aria-label="Select Country"
                               >
                                 {#if phoneCountries[currentQuestion.id]}
                                   {countryOptions.find(
@@ -2209,8 +2645,9 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
-                              Down Arrow to continue • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Press Enter to
+                              open country, Tab to enter number • Enter to
+                              continue
                             </p>
                           {/if}
                         </div>
@@ -2245,12 +2682,14 @@
                         </div>
                       {:else if currentQuestion.type === "multiple-choice"}
                         <div
-                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2"
+                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 focus:outline-none"
                           on:keydown={handleSelectionKeyboard}
+                          role="radiogroup"
+                          tabindex="0"
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex items-center px-4 py-4 md:px-6 md:py-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
+                              class="flex items-center px-4 py-3 md:px-6 md:py-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
                               style="background: {answers[
                                 currentQuestion.id
                               ] === option
@@ -2311,8 +2750,8 @@
                             style="color: var(--form-text-secondary); opacity: 0.6;"
                             class="text-xs mt-4"
                           >
-                            <i class="fas fa-keyboard mr-1"></i>Press Enter or
-                            Down Arrow to continue • Up Arrow to go back
+                            <i class="fas fa-keyboard mr-1"></i>A, B, C... or ↑↓
+                            to select • Enter to continue
                           </p>
                         </div>
                       {:else if currentQuestion.type === "dropdown"}
@@ -2369,19 +2808,22 @@
                             <p
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
-                              <i class="fas fa-keyboard mr-1"></i>Press Enter or
-                              Down Arrow to continue • Up Arrow to go back
+                              <i class="fas fa-keyboard mr-1"></i>Type or use ↑↓
+                              to select • Enter to continue
                             </p>
                           {/if}
                         </div>
                       {:else if currentQuestion.type === "checkboxes"}
                         <div
-                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2"
+                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 focus:outline-none"
                           on:keydown={handleSelectionKeyboard}
+                          role="group"
+                          aria-label="Select multiple options"
+                          tabindex="0"
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
+                              class="flex items-center px-4 py-3 md:p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
                               style="background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1);"
                             >
                               <div
@@ -2423,18 +2865,20 @@
                             style="color: var(--form-text-secondary); opacity: 0.6;"
                             class="text-xs mt-4"
                           >
-                            <i class="fas fa-keyboard mr-1"></i>Press Enter or
-                            Down Arrow to continue • Up Arrow to go back
+                            <i class="fas fa-keyboard mr-1"></i>A, B, C... to
+                            toggle • Space to check • Enter to continue
                           </p>
                         </div>
                       {:else if currentQuestion.type === "yes-no"}
                         <div
-                          class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                          class="grid grid-cols-1 md:grid-cols-2 gap-4 focus:outline-none"
                           on:keydown={handleSelectionKeyboard}
+                          role="radiogroup"
+                          tabindex="0"
                         >
                           {#each ["Yes", "No"] as option}
                             <label
-                              class="flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
+                              class="flex items-center justify-center px-4 py-3 md:p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
                               style="background: {answers[
                                 currentQuestion.id
                               ] === option
@@ -2470,14 +2914,17 @@
                           style="color: var(--form-text-secondary); opacity: 0.6;"
                           class="text-xs mt-4 text-center"
                         >
-                          <i class="fas fa-keyboard mr-1"></i>Press Enter or
-                          Down Arrow to continue • Up Arrow to go back
+                          <i class="fas fa-keyboard mr-1"></i>Press Y or N to
+                          select • Enter to continue
                         </p>
                       {:else if currentQuestion.type === "rating"}
                         <div class="flex flex-col gap-6">
                           <div
-                            class="flex gap-6 justify-center py-6"
+                            class="flex gap-6 justify-center py-6 focus:outline-none"
                             on:keydown={handleSelectionKeyboard}
+                            role="group"
+                            aria-label="Rate your experience"
+                            tabindex="0"
                           >
                             {#each [1, 2, 3, 4, 5] as rating}
                               <button
@@ -2487,10 +2934,10 @@
                                   answers[currentQuestion.id] = rating;
                                   validateCurrentQuestion();
                                 }}
-                                class="transition-all duration-200 cursor-pointer text-3xl md:text-5xl {answers[
+                                class="transition-all duration-200 cursor-pointer text-2xl md:text-5xl {answers[
                                   currentQuestion.id
                                 ] >= rating
-                                  ? 'scale-125 drop-shadow-lg'
+                                  ? 'scale-110 md:scale-125 drop-shadow-lg'
                                   : 'opacity-40 hover:opacity-100 scale-100 hover:scale-110'}"
                                 style="color: {answers[currentQuestion.id] >=
                                 rating
@@ -2507,8 +2954,8 @@
                             style="color: var(--form-text-secondary); opacity: 0.6;"
                             class="text-xs text-center"
                           >
-                            <i class="fas fa-keyboard mr-1"></i>Press Enter or
-                            Down Arrow to continue • Up Arrow to go back
+                            <i class="fas fa-keyboard mr-1"></i>Press 1-5 or ↑↓
+                            to rate • Enter to continue
                           </p>
                         </div>
                       {/if}
@@ -2588,6 +3035,7 @@
             <button
               on:click={prevQuestion}
               disabled={currentQuestionIndex === 0}
+              aria-label="Previous question"
               class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 text-slate-700 dark:text-slate-200"
             >
               <i class="fas fa-chevron-up text-lg"></i>
@@ -2595,6 +3043,7 @@
             <button
               on:click={nextQuestion}
               disabled={!canAdvanceValue || !hasNextVisibleQuestion}
+              aria-label="Next question"
               class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 text-slate-700 dark:text-slate-200"
             >
               <i class="fas fa-chevron-down text-lg"></i>
@@ -2657,7 +3106,9 @@
     </div>
 
     <!-- Beta notice -->
-    <div class="fixed bottom-4 left-4 text-xs text-gray-500 opacity-70 z-50">
+    <div
+      class="hidden md:block fixed bottom-4 left-4 text-xs text-gray-500 opacity-70 z-50"
+    >
       This form is in beta. Report errors to Pradeepto Pal
     </div>
   </div>
