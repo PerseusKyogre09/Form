@@ -2681,11 +2681,10 @@
                           {/if}
                         </div>
                       {:else if currentQuestion.type === "multiple-choice"}
-                        <div
+                        <fieldset
                           class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 focus:outline-none"
                           on:keydown={handleSelectionKeyboard}
-                          role="radiogroup"
-                          tabindex="0"
+                          aria-label="Select multiple options"
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
@@ -2753,7 +2752,7 @@
                             <i class="fas fa-keyboard mr-1"></i>A, B, C... or ↑↓
                             to select • Enter to continue
                           </p>
-                        </div>
+                        </fieldset>
                       {:else if currentQuestion.type === "dropdown"}
                         <div>
                           <select
@@ -2814,12 +2813,10 @@
                           {/if}
                         </div>
                       {:else if currentQuestion.type === "checkboxes"}
-                        <div
+                        <fieldset
                           class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 focus:outline-none"
                           on:keydown={handleSelectionKeyboard}
-                          role="group"
                           aria-label="Select multiple options"
-                          tabindex="0"
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
@@ -2868,13 +2865,12 @@
                             <i class="fas fa-keyboard mr-1"></i>A, B, C... to
                             toggle • Space to check • Enter to continue
                           </p>
-                        </div>
+                        </fieldset>
                       {:else if currentQuestion.type === "yes-no"}
-                        <div
+                        <fieldset
                           class="grid grid-cols-1 md:grid-cols-2 gap-4 focus:outline-none"
                           on:keydown={handleSelectionKeyboard}
-                          role="radiogroup"
-                          tabindex="0"
+                          aria-label="Select Yes or No"
                         >
                           {#each ["Yes", "No"] as option}
                             <label
@@ -2909,7 +2905,7 @@
                               >
                             </label>
                           {/each}
-                        </div>
+                        </fieldset>
                         <p
                           style="color: var(--form-text-secondary); opacity: 0.6;"
                           class="text-xs mt-4 text-center"
@@ -2919,12 +2915,10 @@
                         </p>
                       {:else if currentQuestion.type === "rating"}
                         <div class="flex flex-col gap-6">
-                          <div
+                          <fieldset
                             class="flex gap-6 justify-center py-6 focus:outline-none"
                             on:keydown={handleSelectionKeyboard}
-                            role="group"
                             aria-label="Rate your experience"
-                            tabindex="0"
                           >
                             {#each [1, 2, 3, 4, 5] as rating}
                               <button
@@ -2949,7 +2943,7 @@
                                 <i class="fas fa-star"></i>
                               </button>
                             {/each}
-                          </div>
+                          </fieldset>
                           <p
                             style="color: var(--form-text-secondary); opacity: 0.6;"
                             class="text-xs text-center"

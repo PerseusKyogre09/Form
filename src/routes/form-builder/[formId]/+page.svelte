@@ -655,10 +655,10 @@
 </script>
 
 <div
-  class="min-h-screen bg-background text-slate-900 transition-colors duration-200 font-sans"
+  class="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-gray-100 transition-colors duration-200 font-sans"
 >
   <header
-    class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-slate-200"
+    class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-slate-200 dark:border-gray-800 transition-colors"
   >
     <div
       class="max-w-[1400px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between relative"
@@ -666,10 +666,11 @@
       <div class="flex items-center gap-2 md:gap-4 flex-1 justify-start">
         <button
           on:click={goBack}
-          class="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0"
+          class="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-full transition-colors shrink-0"
           aria-label="Go Back"
         >
-          <span class="fas fa-arrow-left text-slate-600"></span>
+          <span class="fas fa-arrow-left text-slate-600 dark:text-slate-400"
+          ></span>
         </button>
         <input
           type="text"
@@ -679,7 +680,7 @@
             currentForm.update((f) => ({ ...f, title: newTitle }));
           }}
           placeholder="Untitled Form"
-          class="text-lg font-semibold tracking-tight text-slate-900 bg-transparent border-none focus:ring-0 p-0 w-full md:w-64 placeholder:text-slate-400 min-w-[50px] overflow-hidden text-ellipsis whitespace-nowrap"
+          class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white bg-transparent border-none focus:ring-0 p-0 w-full md:w-64 placeholder:text-slate-400 dark:placeholder:text-gray-500 min-w-[50px] overflow-hidden text-ellipsis whitespace-nowrap"
         />
       </div>
 
@@ -707,7 +708,7 @@
         <!-- Desktop Right Sidebar Toggle -->
         <button
           on:click={toggleRightSidebar}
-          class="hidden xl:flex items-center justify-center p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-all active:scale-95"
+          class="hidden xl:flex items-center justify-center p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg text-slate-600 dark:text-slate-400 transition-all active:scale-95"
           aria-label="Toggle Settings Sidebar"
           title="Toggle Settings Sidebar"
         >
@@ -721,10 +722,11 @@
         <!-- Mobile Settings Button -->
         <button
           on:click={() => (isSettingsOpen = true)}
-          class="p-2 hover:bg-slate-100 rounded-lg xl:hidden"
+          class="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg xl:hidden"
           aria-label="Open Form Settings"
         >
-          <span class="fas fa-cog text-slate-600 text-xl"></span>
+          <span class="fas fa-cog text-slate-600 dark:text-slate-400 text-xl"
+          ></span>
         </button>
       </div>
     </div>
@@ -732,7 +734,7 @@
 
   <!-- Desktop Sidebar -->
   <aside
-    class="hidden lg:flex fixed left-0 top-16 bottom-0 bg-white border-r border-slate-200 flex-col transition-all duration-300 z-40 {isSidebarOpen
+    class="hidden lg:flex fixed left-0 top-16 bottom-0 bg-white dark:bg-gray-900 border-r border-slate-200 dark:border-gray-800 flex-col transition-all duration-300 z-40 {isSidebarOpen
       ? 'w-64'
       : 'w-20'}"
   >
@@ -741,8 +743,8 @@
         on:click={() => (view = "edit")}
         class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
         'edit'
-          ? 'bg-indigo-50 text-indigo-600'
-          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
       >
         <i class="fas fa-edit w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -754,8 +756,8 @@
         on:click={() => (view = "preview")}
         class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
         'preview'
-          ? 'bg-indigo-50 text-indigo-600'
-          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
       >
         <i class="fas fa-eye w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -767,8 +769,8 @@
         on:click={() => (view = "thankYou")}
         class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
         'thankYou'
-          ? 'bg-indigo-50 text-indigo-600'
-          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
       >
         <i class="fas fa-heart w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -780,8 +782,8 @@
         on:click={() => (view = "responses")}
         class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
         'responses'
-          ? 'bg-indigo-50 text-indigo-600'
-          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}"
+          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
       >
         <i class="fas fa-chart-bar w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -791,10 +793,10 @@
     </div>
 
     <!-- Collapse Toggle -->
-    <div class="p-4 border-t border-slate-100">
+    <div class="p-4 border-t border-slate-100 dark:border-gray-800">
       <button
         on:click={toggleSidebar}
-        class="w-full flex items-center justify-center py-3 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all font-medium text-sm"
+        class="w-full flex items-center justify-center py-3 rounded-xl text-slate-400 dark:text-gray-500 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-600 dark:hover:text-gray-300 transition-all font-medium text-sm"
         aria-label="Toggle Sidebar"
       >
         <i class="fas fa-bars"></i>
@@ -810,7 +812,7 @@
     <div class="max-w-[1400px] mx-auto px-6 pt-8 pb-24 lg:pb-8">
       {#if loading}
         <div class="text-center py-12">
-          <p class="text-gray-500">Loading form...</p>
+          <p class="text-gray-500 dark:text-gray-400">Loading form...</p>
         </div>
       {:else}
         {#if view === "preview"}
@@ -846,7 +848,7 @@
 
             <!-- Desktop Right Sidebar -->
             <aside
-              class="hidden xl:flex fixed right-0 top-16 bottom-0 bg-white border-l border-slate-200 flex-col transition-all duration-300 z-40 {isRightSidebarOpen
+              class="hidden xl:flex fixed right-0 top-16 bottom-0 bg-white dark:bg-gray-900 border-l border-slate-200 dark:border-gray-800 flex-col transition-all duration-300 z-40 {isRightSidebarOpen
                 ? 'w-80'
                 : 'w-0 overflow-hidden border-none'}"
             >
@@ -871,19 +873,29 @@
               <div
                 class="absolute inset-0 bg-black/20 backdrop-blur-sm"
                 on:click={() => (isSettingsOpen = false)}
+                on:keydown={(e) =>
+                  e.key === "Enter" && (isSettingsOpen = false)}
+                role="button"
+                tabindex="0"
+                aria-label="Close settings pane"
               ></div>
 
               <!-- Drawer -->
               <div
-                class="absolute inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
+                class="absolute inset-y-0 right-0 w-full max-w-xs bg-white dark:bg-gray-900 shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
               >
                 <div class="flex items-center justify-between mb-6">
-                  <h2 class="text-lg font-bold text-slate-900">Settings</h2>
+                  <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+                    Settings
+                  </h2>
                   <button
                     on:click={() => (isSettingsOpen = false)}
-                    class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    class="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                    aria-label="Close settings pane"
                   >
-                    <span class="fas fa-times text-slate-500 text-xl"></span>
+                    <span
+                      class="fas fa-times text-slate-500 dark:text-slate-400 text-xl"
+                    ></span>
                   </button>
                 </div>
 
@@ -908,7 +920,7 @@
         <!-- Mobile Bottom Navigation (hidden during preview overlay) -->
         {#if view && view !== "preview"}
           <div
-            class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-2 z-50 flex justify-around items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
+            class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-slate-200 dark:border-gray-800 px-6 py-2 z-50 flex justify-around items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-colors"
           >
             <button
               class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===

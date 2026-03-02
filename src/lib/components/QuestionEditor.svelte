@@ -213,7 +213,7 @@
 </script>
 
 <div
-  class="bg-surface-light bg-surface p-4 sm:p-8 rounded-xl border border-slate-200 custom-shadow group transition-all duration-200"
+  class="bg-white dark:bg-gray-900 p-4 sm:p-8 rounded-xl border border-slate-200 dark:border-gray-800 custom-shadow group transition-all duration-200"
 >
   <div
     class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4"
@@ -222,7 +222,7 @@
       class="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0"
     >
       <div
-        class="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400 shrink-0"
+        class="cursor-grab active:cursor-grabbing text-slate-300 dark:text-gray-600 hover:text-slate-400 dark:hover:text-gray-500 shrink-0"
         draggable="true"
         on:dragstart={(e) => {
           if (e.dataTransfer) {
@@ -242,7 +242,7 @@
         <select
           bind:value={question.type}
           on:change={updateQuestion}
-          class="appearance-none bg-slate-50 bg-slate-50 border-none rounded-lg py-1.5 pl-3 pr-8 text-sm font-medium focus:ring-0 cursor-pointer text-slate-700"
+          class="appearance-none bg-slate-50 dark:bg-gray-800 border-none rounded-lg py-1.5 pl-3 pr-8 text-sm font-medium focus:ring-0 cursor-pointer text-slate-700 dark:text-gray-200"
         >
           <option value="text">Short Text</option>
           <option value="long-text">Long Text</option>
@@ -257,7 +257,7 @@
           <option value="rating">Rating</option>
         </select>
         <span
-          class="fas fa-chevron-down absolute right-2 top-2.5 text-slate-400 pointer-events-none text-xs leading-none"
+          class="fas fa-chevron-down absolute right-2 top-2.5 text-slate-400 dark:text-gray-500 pointer-events-none text-xs leading-none"
         ></span>
       </div>
     </div>
@@ -269,13 +269,15 @@
           type="checkbox"
           bind:checked={question.required}
           on:change={updateQuestion}
-          class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+          class="w-4 h-4 rounded border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-primary focus:ring-primary"
         />
-        <span class="text-sm font-medium text-slate-600">Required</span>
+        <span class="text-sm font-medium text-slate-600 dark:text-gray-300"
+          >Required</span
+        >
       </label>
       <button
         on:click={() => dispatch("delete")}
-        class="text-slate-400 hover:text-red-500 transition-colors p-2"
+        class="text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors p-2"
         aria-label="Delete question"
       >
         <span class="fas fa-trash text-lg"></span>
@@ -287,7 +289,7 @@
     <input
       bind:value={question.title}
       on:input={updateQuestion}
-      class="w-full max-w-full bg-transparent border-none p-0 text-xl font-semibold focus:ring-0 placeholder:text-slate-300 text-slate-900 break-words"
+      class="w-full max-w-full bg-transparent border-none p-0 text-xl font-semibold focus:ring-0 placeholder:text-slate-300 dark:placeholder-gray-600 text-slate-900 dark:text-white break-words"
       placeholder="Question Title (use _italic_, *bold*, __underline__, ~strikethrough~)"
       type="text"
     />
@@ -296,14 +298,17 @@
     <div
       class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
     >
-      <div class="text-xs text-slate-500 italic flex-1">
-        💡 Use <code class="bg-slate-100 px-1 rounded">_text_</code> italic,
-        <code class="bg-slate-100 px-1 rounded">*text*</code> bold
+      <div class="text-xs text-slate-500 dark:text-gray-400 italic flex-1">
+        💡 Use <code class="bg-slate-100 dark:bg-gray-800 px-1 rounded"
+          >_text_</code
+        >
+        italic,
+        <code class="bg-slate-100 dark:bg-gray-800 px-1 rounded">*text*</code> bold
       </div>
       <button
         type="button"
         on:click={() => (showStylingPanel = !showStylingPanel)}
-        class="text-xs font-semibold text-primary hover:text-indigo-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+        class="text-xs font-semibold text-primary dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
       >
         <span class="fas fa-{showStylingPanel ? 'chevron-up' : 'palette'}"
         ></span>
@@ -313,9 +318,11 @@
 
     <!-- Styling Controls (Collapsible) -->
     {#if showStylingPanel}
-      <div class="bg-slate-50 rounded-lg p-4 space-y-4 border border-slate-200">
+      <div
+        class="bg-slate-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-4 border border-slate-200 dark:border-gray-700"
+      >
         <div
-          class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-3"
+          class="text-xs font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wide mb-3"
         >
           📝 Text Styling
         </div>
@@ -323,13 +330,14 @@
         <div class="grid grid-cols-3 gap-3">
           <!-- Font Family -->
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1.5"
+            <label
+              class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1.5"
               >Font</label
             >
             <select
               bind:value={question.fontFamily}
               on:change={updateQuestion}
-              class="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary"
+              class="w-full text-sm border border-slate-300 dark:border-gray-600 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value={undefined}>Default</option>
               <option value="serif">Serif (Elegant)</option>
@@ -340,13 +348,14 @@
 
           <!-- Font Size -->
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1.5"
+            <label
+              class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1.5"
               >Size</label
             >
             <select
               bind:value={question.fontSize}
               on:change={updateQuestion}
-              class="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 bg-white focus:ring-2 focus:ring-primary focus:border-primary"
+              class="w-full text-sm border border-slate-300 dark:border-gray-600 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value={undefined}>Default (XL)</option>
               <option value="sm">Small</option>
@@ -361,7 +370,8 @@
 
           <!-- Text Alignment -->
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1.5"
+            <label
+              class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1.5"
               >Align</label
             >
             <div class="flex gap-1">
@@ -371,10 +381,10 @@
                   question.textAlign = "left";
                   updateQuestion();
                 }}
-                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 rounded-lg transition-colors {question.textAlign ===
+                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 dark:border-gray-600 rounded-lg transition-colors {question.textAlign ===
                   'left' || !question.textAlign
                   ? 'bg-primary text-white border-primary'
-                  : 'bg-white hover:bg-slate-50'}"
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700'}"
               >
                 <span class="fas fa-align-left"></span>
               </button>
@@ -384,10 +394,10 @@
                   question.textAlign = "center";
                   updateQuestion();
                 }}
-                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 rounded-lg transition-colors {question.textAlign ===
+                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 dark:border-gray-600 rounded-lg transition-colors {question.textAlign ===
                 'center'
                   ? 'bg-primary text-white border-primary'
-                  : 'bg-white hover:bg-slate-50'}"
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700'}"
               >
                 <span class="fas fa-align-center"></span>
               </button>
@@ -397,10 +407,10 @@
                   question.textAlign = "right";
                   updateQuestion();
                 }}
-                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 rounded-lg transition-colors {question.textAlign ===
+                class="flex-1 py-1.5 px-2 text-xs border border-slate-300 dark:border-gray-600 rounded-lg transition-colors {question.textAlign ===
                 'right'
                   ? 'bg-primary text-white border-primary'
-                  : 'bg-white hover:bg-slate-50'}"
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-700'}"
               >
                 <span class="fas fa-align-right"></span>
               </button>
@@ -410,44 +420,56 @@
 
         <!-- Question Label (e.g. "QUESTION 01 — 05") -->
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1.5">
-            Question Label <span class="text-slate-400">(optional)</span>
+          <label
+            class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1.5"
+          >
+            Question Label <span class="text-slate-400 dark:text-gray-500"
+              >(optional)</span
+            >
           </label>
           <input
             type="text"
             bind:value={question.questionLabel}
             on:input={updateQuestion}
             placeholder="e.g., QUESTION 01 — 05"
-            class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400"
+            class="w-full text-sm border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400 dark:placeholder-gray-500"
           />
         </div>
 
         <!-- Helper Text -->
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1.5">
-            Helper Text <span class="text-slate-400">(optional)</span>
+          <label
+            class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1.5"
+          >
+            Helper Text <span class="text-slate-400 dark:text-gray-500"
+              >(optional)</span
+            >
           </label>
           <input
             type="text"
             bind:value={question.helperText}
             on:input={updateQuestion}
             placeholder="Subtitle or description below the question"
-            class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400"
+            class="w-full text-sm border border-slate-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400 dark:placeholder-gray-500"
           />
         </div>
 
         <!-- Accent Color -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1.5">
-              Accent Color <span class="text-slate-400">(italic)</span>
+            <label
+              class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1.5"
+            >
+              Accent Color <span class="text-slate-400 dark:text-gray-500"
+                >(italic)</span
+              >
             </label>
             <div class="flex gap-2">
               <input
                 type="color"
                 bind:value={question.accentColor}
                 on:input={updateQuestion}
-                class="h-9 w-12 rounded cursor-pointer border border-slate-300 p-0.5"
+                class="h-9 w-12 rounded cursor-pointer border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-0.5"
               />
               <button
                 type="button"
@@ -455,7 +477,7 @@
                   question.accentColor = undefined;
                   updateQuestion();
                 }}
-                class="text-xs text-slate-400 hover:text-red-500 underline"
+                class="text-xs text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 underline"
               >
                 Reset
               </button>
@@ -464,15 +486,19 @@
 
           <!-- Text Color Override -->
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1.5">
-              Text Color <span class="text-slate-400">(override)</span>
+            <label
+              class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1.5"
+            >
+              Text Color <span class="text-slate-400 dark:text-gray-500"
+                >(override)</span
+              >
             </label>
             <div class="flex gap-2">
               <input
                 type="color"
                 bind:value={question.textColor}
                 on:input={updateQuestion}
-                class="h-9 w-12 rounded cursor-pointer border border-slate-300 p-0.5"
+                class="h-9 w-12 rounded cursor-pointer border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-0.5"
               />
               <button
                 type="button"
@@ -480,7 +506,7 @@
                   question.textColor = undefined;
                   updateQuestion();
                 }}
-                class="text-xs text-slate-400 hover:text-red-500 underline"
+                class="text-xs text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 underline"
               >
                 Reset
               </button>
@@ -491,7 +517,9 @@
     {/if}
 
     {#if question.type === "multiple-choice" || question.type === "dropdown" || question.type === "checkboxes"}
-      <div class="bg-slate-50 bg-slate-50 rounded-lg p-4 space-y-3">
+      <div
+        class="bg-slate-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-3 border border-slate-100 dark:border-gray-700/50"
+      >
         {#each question.options || [] as option, i}
           <div class="flex items-center gap-2">
             <span
@@ -499,17 +527,17 @@
                 ? 'fa-circle'
                 : question.type === 'checkboxes'
                   ? 'fa-square'
-                  : 'fa-caret-right'} text-slate-300 text-sm"
+                  : 'fa-caret-right'} text-slate-300 dark:text-gray-600 text-sm"
             ></span>
             <input
               bind:value={option}
               on:input={updateQuestion}
-              class="flex-1 bg-transparent border-none text-sm text-slate-700 focus:ring-0 p-0"
+              class="flex-1 bg-transparent border-none text-sm text-slate-700 dark:text-gray-200 placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:ring-0 p-0"
               placeholder="Option {i + 1}"
             />
             <button
               on:click={() => removeOption(i)}
-              class="text-slate-400 hover:text-red-500"
+              class="text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400"
             >
               <span class="fas fa-times text-sm"></span>
             </button>
@@ -517,7 +545,7 @@
         {/each}
         <button
           on:click={addOption}
-          class="flex items-center gap-2 text-primary font-medium text-sm mt-2 hover:underline"
+          class="flex items-center gap-2 text-primary dark:text-blue-400 font-medium text-sm mt-2 hover:underline"
         >
           <span class="fas fa-plus text-sm"></span>
           Add Option
@@ -525,29 +553,29 @@
       </div>
     {:else if question.type === "number"}
       <div class="grid grid-cols-2 gap-4">
-        <div class="bg-slate-50 bg-slate-50 rounded-lg p-3">
+        <div class="bg-slate-50 dark:bg-gray-800/50 rounded-lg p-3">
           <label
-            class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1"
+            class="text-xs font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wide block mb-1"
             >Min Value</label
           >
           <input
             type="number"
             bind:value={question.min}
             on:input={updateQuestion}
-            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700"
+            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700 dark:text-gray-200 placeholder:text-slate-400 dark:placeholder-gray-500"
             placeholder="No Min"
           />
         </div>
-        <div class="bg-slate-50 bg-slate-50 rounded-lg p-3">
+        <div class="bg-slate-50 dark:bg-gray-800/50 rounded-lg p-3">
           <label
-            class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1"
+            class="text-xs font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wide block mb-1"
             >Max Value</label
           >
           <input
             type="number"
             bind:value={question.max}
             on:input={updateQuestion}
-            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700"
+            class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700 dark:text-gray-200 placeholder:text-slate-400 dark:placeholder-gray-500"
             placeholder="No Max"
           />
         </div>
@@ -556,13 +584,13 @@
       <div class="relative group/placeholder">
         <input
           disabled
-          class="w-full bg-slate-50 bg-slate-50 border-slate-200 focus:border-primary focus:ring-0 rounded-lg p-4 transition-all text-slate-500 cursor-not-allowed disabled:bg-slate-100 placeholder:text-slate-400"
+          class="w-full bg-slate-50 dark:bg-gray-800 border-slate-200 dark:border-gray-700 focus:border-primary focus:ring-0 rounded-lg p-4 transition-all text-slate-500 dark:text-gray-400 cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-gray-800/50 placeholder:text-slate-400 dark:placeholder-gray-500"
           placeholder={question.placeholder || "Answer will appear here..."}
           type="text"
         />
         <!-- Helper text to indicate this is a preview -->
         <div
-          class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 italic pointer-events-none opacity-50"
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-gray-500 italic pointer-events-none opacity-50"
         >
           Preview
         </div>
@@ -575,7 +603,7 @@
           id="placeholder-{question.id}"
           bind:value={question.placeholder}
           on:input={updateQuestion}
-          class="w-full bg-transparent border-none p-0 text-sm text-slate-500 focus:ring-0 placeholder:text-slate-400"
+          class="w-full bg-transparent border-none p-0 text-sm text-slate-500 dark:text-gray-400 focus:ring-0 placeholder:text-slate-400 dark:placeholder-gray-500"
           placeholder="Edit placeholder text (optional)..."
           type="text"
         />
@@ -585,17 +613,17 @@
     <!-- Conditional Logic -->
     {#if getConditionalQuestions().length > 0}
       <div
-        class="bg-emerald-50/50 rounded-lg p-4 border border-emerald-100 mt-4"
+        class="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/30 mt-4"
       >
         <div class="flex items-center justify-between mb-3">
           <span
-            class="text-xs font-bold text-emerald-600 uppercase tracking-wide"
+            class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide"
           >
             Show if
           </span>
           <button
             on:click={clearCondition}
-            class="text-emerald-300 hover:text-emerald-500 text-xs"
+            class="text-emerald-300 dark:text-emerald-600 hover:text-emerald-500 dark:hover:text-emerald-400 text-xs"
             disabled={!question.condition}
           >
             <span class="fas fa-times text-sm"></span>
@@ -606,7 +634,7 @@
           <!-- Question Selector -->
           <div class="flex flex-col gap-1">
             <label
-              class="text-[10px] font-bold text-emerald-600/50 uppercase sm:hidden"
+              class="text-[10px] font-bold text-emerald-600/50 dark:text-emerald-400/50 uppercase sm:hidden"
               >Select Question</label
             >
             <select
@@ -618,7 +646,7 @@
                   setCondition(qId, "equals", options[0] || "");
                 }
               }}
-              class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+              class="text-sm bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 dark:text-gray-200 w-full"
             >
               <option value="">Select question...</option>
               {#each getConditionalQuestions() as q}
@@ -632,7 +660,7 @@
           <!-- Operator Selector -->
           <div class="flex flex-col gap-1">
             <label
-              class="text-[10px] font-bold text-emerald-600/50 uppercase sm:hidden"
+              class="text-[10px] font-bold text-emerald-600/50 dark:text-emerald-400/50 uppercase sm:hidden"
               >Operator</label
             >
             <select
@@ -646,7 +674,7 @@
                   );
                 }
               }}
-              class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+              class="text-sm bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 dark:text-gray-200 w-full"
               disabled={!question.condition?.questionId}
             >
               <option value="equals">equals</option>
@@ -658,7 +686,7 @@
           <!-- Value Selector -->
           <div class="flex flex-col gap-1">
             <label
-              class="text-[10px] font-bold text-emerald-600/50 uppercase sm:hidden"
+              class="text-[10px] font-bold text-emerald-600/50 dark:text-emerald-400/50 uppercase sm:hidden"
               >Value</label
             >
             {#if question.condition?.questionId}
@@ -677,7 +705,7 @@
                       );
                     }
                   }}
-                  class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+                  class="text-sm bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 dark:text-gray-200 w-full"
                 >
                   {#each options as option}
                     <option value={option}>{option}</option>
@@ -697,12 +725,12 @@
                     }
                   }}
                   placeholder="Enter value..."
-                  class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+                  class="text-sm bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 dark:text-gray-200 w-full"
                 />
               {/if}
             {:else}
               <div
-                class="h-[38px] bg-slate-50 border border-slate-100 rounded-lg flex items-center px-3 italic text-slate-400 text-xs"
+                class="h-[38px] bg-slate-50 dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-lg flex items-center px-3 italic text-slate-400 dark:text-gray-500 text-xs"
               >
                 Value...
               </div>
@@ -715,7 +743,9 @@
     <!-- Constraints Area -->
     {#if (question.constraints && question.constraints.length > 0) || getAvailableConstraints().length > 0}
       {#each question.constraints || [] as constraint (constraint.id)}
-        <div class="bg-indigo-50/50 rounded-lg p-4 border border-indigo-100">
+        <div
+          class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800/30"
+        >
           <div class="flex items-center justify-between mb-2">
             <span
               class="text-xs font-bold text-indigo-400 uppercase tracking-wide"
@@ -726,7 +756,7 @@
             </span>
             <button
               on:click={() => removeConstraint(constraint.id)}
-              class="text-indigo-300 hover:text-indigo-500"
+              class="text-indigo-300 dark:text-indigo-600 hover:text-indigo-500 dark:hover:text-indigo-400"
             >
               <span class="fas fa-times text-sm"></span>
             </button>
@@ -739,7 +769,7 @@
                   constraint,
                   (e.target as HTMLSelectElement).value,
                 )}
-              class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900"
+              class="w-full bg-slate-50 dark:bg-gray-800 border-indigo-200 dark:border-indigo-800/50 rounded-lg text-sm focus:ring-primary text-slate-900 dark:text-white"
             >
               <option value="edu">Educational (.edu, .edu.in, .ac.in)</option>
               <option value="work">Work/Corporate</option>
@@ -758,14 +788,14 @@
                   .filter((d) => d);
                 updateConstraintValue(constraint, domains);
               }}
-              class="w-full bg-slate-50 bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 placeholder:text-slate-400"
+              class="w-full bg-slate-50 dark:bg-gray-800 border-indigo-200 dark:border-indigo-800/50 rounded-lg text-sm focus:ring-primary text-slate-900 dark:text-white p-2 placeholder:text-slate-400 dark:placeholder-gray-500"
             />
           {:else if constraint.type === "number-format"}
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label
                   for="format-type"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Format Type</label
                 >
                 <select
@@ -785,7 +815,7 @@
                       length: defaultLength,
                     });
                   }}
-                  class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-slate-50 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary transition-all text-slate-900"
+                  class="w-full text-sm border border-slate-300 dark:border-gray-700 rounded-lg px-3 py-2.5 bg-slate-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition-all text-slate-900 dark:text-white"
                 >
                   <option value="pin">PIN Code (4 digits)</option>
                   <option value="aadhar">Aadhar (12 digits)</option>
@@ -795,7 +825,7 @@
               <div>
                 <label
                   for="required-digits"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Required Digits</label
                 >
                 <input
@@ -819,7 +849,7 @@
                     updateConstraintValue(constraint, { type, length });
                   }}
                   placeholder="Number of digits"
-                  class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900"
+                  class="w-full text-sm border border-slate-300 dark:border-gray-700 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -836,7 +866,7 @@
                     description: (e.target as HTMLInputElement).value,
                   });
                 }}
-                class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 placeholder:text-slate-400"
+                class="w-full bg-slate-50 dark:bg-gray-800 border-indigo-200 dark:border-indigo-800/50 rounded-lg text-sm focus:ring-primary text-slate-900 dark:text-white p-2 placeholder:text-slate-400 dark:placeholder-gray-500"
               />
               <input
                 type="text"
@@ -849,7 +879,7 @@
                     description: currentValue?.description || "",
                   });
                 }}
-                class="w-full bg-slate-50 border-indigo-200 rounded-lg text-sm focus:ring-primary text-slate-900 p-2 font-mono placeholder:text-slate-400"
+                class="w-full bg-slate-50 dark:bg-gray-800 border-indigo-200 dark:border-indigo-800/50 rounded-lg text-sm focus:ring-primary text-slate-900 dark:text-white p-2 font-mono placeholder:text-slate-400 dark:placeholder-gray-500"
               />
             </div>
           {:else if constraint.type === "selection-count"}
@@ -857,7 +887,7 @@
               <div>
                 <label
                   for="min-select-{constraint.id}"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Min Selections</label
                 >
                 <input
@@ -877,7 +907,7 @@
               <div>
                 <label
                   for="max-select-{constraint.id}"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Max Selections</label
                 >
                 <input
@@ -900,7 +930,7 @@
               <div>
                 <label
                   for="min-date-{constraint.id}"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Min Date</label
                 >
                 <input
@@ -918,7 +948,7 @@
               <div>
                 <label
                   for="max-date-{constraint.id}"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Max Date</label
                 >
                 <input
@@ -939,7 +969,7 @@
               <div>
                 <label
                   for="min-len-{constraint.id}"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Min Characters</label
                 >
                 <input
@@ -958,7 +988,7 @@
               <div>
                 <label
                   for="max-len-{constraint.id}"
-                  class="block text-xs font-medium text-slate-600 mb-2"
+                  class="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-2"
                   >Max Characters</label
                 >
                 <input
@@ -983,24 +1013,24 @@
   </div>
 
   <div
-    class="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-slate-100 pt-6 gap-6"
+    class="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-slate-100 dark:border-gray-800 pt-6 gap-6"
   >
     <div class="relative w-full sm:w-auto">
       <button
         on:click={() => (showConstraintDropdown = !showConstraintDropdown)}
-        class="flex items-center justify-center sm:justify-start gap-1.5 text-primary font-semibold hover:bg-indigo-50 px-3 py-2 sm:py-1.5 rounded-lg transition-colors text-sm w-full sm:w-auto border border-primary/20 sm:border-transparent"
+        class="flex items-center justify-center sm:justify-start gap-1.5 text-primary dark:text-indigo-400 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-3 py-2 sm:py-1.5 rounded-lg transition-colors text-sm w-full sm:w-auto border border-primary/20 dark:border-indigo-500/30 sm:border-transparent dark:sm:border-transparent"
       >
         <span class="fas fa-plus-circle text-base"></span>
         Add constraint
       </button>
       {#if showConstraintDropdown}
         <div
-          class="absolute bottom-full mb-2 sm:bottom-auto sm:top-full left-0 mt-2 w-full sm:w-56 bg-white bg-surface border border-slate-200 rounded-lg shadow-xl z-20 overflow-hidden"
+          class="absolute bottom-full mb-2 sm:bottom-auto sm:top-full left-0 mt-2 w-full sm:w-56 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden"
         >
           {#each getAvailableConstraints() as constraint}
             <button
               on:click={() => addConstraint(constraint.value)}
-              class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 transition-colors border-b border-slate-100 last:border-0"
+              class="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-gray-700 text-sm text-slate-700 dark:text-gray-200 transition-colors border-b border-slate-100 dark:border-gray-700 last:border-0"
             >
               {constraint.label}
             </button>
@@ -1010,16 +1040,16 @@
     </div>
 
     <div
-      class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto bg-slate-50 sm:bg-transparent p-3 sm:p-0 rounded-lg sm:rounded-none"
+      class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto bg-slate-50 dark:bg-gray-800/50 sm:bg-transparent dark:sm:bg-transparent p-3 sm:p-0 rounded-lg sm:rounded-none"
     >
       <span
-        class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase sm:mr-2"
+        class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase sm:mr-2"
         >Exit Animation</span
       >
       <select
         bind:value={question.exitAnimation}
         on:change={updateQuestion}
-        class="bg-white sm:bg-slate-50 border border-slate-200 sm:border-none rounded-lg text-xs font-medium focus:ring-0 cursor-pointer text-slate-600 dark:text-slate-300 py-1.5 px-2"
+        class="bg-white dark:bg-gray-800 sm:bg-slate-50 dark:sm:bg-gray-800/50 border border-slate-200 dark:border-gray-700 sm:border-none text-xs font-medium focus:ring-0 cursor-pointer text-slate-600 dark:text-gray-300 py-1.5 px-2"
       >
         <option value={undefined}>None</option>
         {#each animationOptions as option}

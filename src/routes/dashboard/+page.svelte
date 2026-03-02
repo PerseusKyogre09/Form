@@ -240,12 +240,6 @@
     }
   }
 
-  // handleLogout is now managed in DashboardHeader.svelte
-  // async function handleLogout() {
-  //   await supabase.auth.signOut();
-  //   goto("/login");
-  // }
-
   function formatDate(dateString: string | undefined): string {
     if (!dateString) return "Recently edited";
     const date = new Date(dateString);
@@ -263,7 +257,9 @@
   }
 </script>
 
-<div class="min-h-screen bg-[#F8F9FA] font-sans text-slate-900">
+<div
+  class="min-h-screen bg-[#F8F9FA] dark:bg-gray-950 font-sans text-slate-900 dark:text-gray-100 transition-colors"
+>
   <DashboardHeader />
 
   <!-- Main Content -->
@@ -275,43 +271,44 @@
       <div class="flex flex-col gap-5">
         <div>
           <h1
-            class="text-4xl font-serif font-bold text-slate-900 mb-3 tracking-tight"
+            class="text-4xl font-serif font-bold text-slate-900 dark:text-white mb-3 tracking-tight"
           >
             {activeTab === "personal" ? "My Forms" : "Workspace"}
           </h1>
           <div
-            class="flex items-center gap-3 text-sm font-medium text-gray-500"
+            class="flex items-center gap-3 text-sm font-medium text-gray-500 dark:text-gray-400"
           >
             <span class="flex items-center gap-2 px-1">
               <i
                 class="fas {activeTab === 'personal'
                   ? 'fa-user'
-                  : 'fa-users'} text-gray-400"
+                  : 'fa-users'} text-gray-400 dark:text-gray-500"
               ></i>
               {activeTab === "personal" ? "Personal Forms" : "Shared with Me"}
             </span>
-            <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+            <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"
+            ></span>
             <span>{filteredForms.length} Forms</span>
           </div>
         </div>
 
         <!-- View Toggle -->
-        <div class="flex bg-gray-100/80 p-1 rounded-lg w-fit">
+        <div class="flex bg-gray-100/80 dark:bg-gray-800 p-1 rounded-lg w-fit">
           <button
             onclick={() => (activeTab = "personal")}
             class="px-4 py-1.5 {activeTab === 'personal'
-              ? 'bg-white rounded-md shadow-sm text-slate-800'
-              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
+              ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
+              : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'} text-sm font-medium transition-all"
             >Personal</button
           >
           <button
             onclick={() => (activeTab = "workspace")}
             class="px-4 py-1.5 {activeTab === 'workspace'
-              ? 'bg-white rounded-md shadow-sm text-slate-800'
-              : 'text-gray-500 hover:text-slate-700'} text-sm font-medium transition-all"
+              ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
+              : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'} text-sm font-medium transition-all"
             >Workspace{#if sharedForms.length > 0}
               <span
-                class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full"
+                class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-full"
               >
                 {sharedForms.length}
               </span>
@@ -324,18 +321,18 @@
       <div class="flex items-center gap-3 w-full md:w-auto">
         <div class="relative flex-1 md:w-80 group">
           <i
-            class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors"
+            class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-indigo-500 transition-colors"
           ></i>
           <input
             type="text"
             placeholder="Search forms..."
             bind:value={searchQuery}
-            class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-gray-400"
+            class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
           {#if searchQuery}
             <button
               onclick={() => (searchQuery = "")}
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               aria-label="Clear search"
             >
               <i class="fas fa-times-circle"></i>
@@ -343,7 +340,7 @@
           {/if}
         </div>
         <button
-          class="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all"
+          class="p-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 hover:border-indigo-200 dark:hover:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
           aria-label="Filter forms"
         >
           <i class="fas fa-filter"></i>
@@ -356,9 +353,11 @@
       <div class="flex items-center justify-center py-32">
         <div class="flex flex-col items-center gap-4">
           <div
-            class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"
+            class="w-10 h-10 border-4 border-indigo-100 dark:border-indigo-900 border-t-indigo-600 rounded-full animate-spin"
           ></div>
-          <p class="text-slate-500 font-medium">Loading your workspace...</p>
+          <p class="text-slate-500 dark:text-gray-400 font-medium">
+            Loading your workspace...
+          </p>
         </div>
       </div>
     {:else}
@@ -369,21 +368,21 @@
         {#if activeTab === "personal" && !searchQuery}
           <a
             href="/form-builder"
-            class="group relative bg-[#F8FAFC] rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-[320px] text-center p-6 order-last md:order-none"
+            class="group relative bg-[#F8FAFC] dark:bg-gray-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-[320px] text-center p-6 order-last md:order-none"
           >
             <div
-              class="w-16 h-16 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-indigo-500 group-hover:scale-110 group-hover:shadow-md transition-all duration-300"
+              class="w-16 h-16 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-slate-100 dark:border-gray-700 flex items-center justify-center text-slate-300 dark:text-gray-500 group-hover:text-indigo-500 group-hover:scale-110 group-hover:shadow-md transition-all duration-300"
             >
               <i class="fas fa-plus text-2xl"></i>
             </div>
             <div>
               <h3
-                class="text-lg font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors"
+                class="text-lg font-bold text-slate-800 dark:text-gray-200 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
               >
                 Create New Form
               </h3>
               <p
-                class="text-sm text-slate-400 px-4 group-hover:text-slate-500 transition-colors"
+                class="text-sm text-slate-400 dark:text-gray-500 px-4 group-hover:text-slate-500 dark:group-hover:text-gray-400 transition-colors"
               >
                 Start from a blank canvas or choose a template
               </p>
@@ -393,7 +392,7 @@
 
         {#each filteredForms as form (form.id)}
           <div
-            class="form-card group relative bg-white rounded-2xl p-4 border border-gray-200/60 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all duration-300 cursor-pointer flex flex-col h-[320px]"
+            class="form-card group relative bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-200/60 dark:border-gray-800 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/5 hover:border-indigo-100 dark:hover:border-indigo-800 transition-all duration-300 cursor-pointer flex flex-col h-[320px]"
             role="button"
             tabindex="0"
             onclick={() => navigateToBuilder(form)}
@@ -401,7 +400,7 @@
           >
             <!-- Thumbnail Area -->
             <div
-              class="relative h-40 w-full rounded-xl overflow-hidden mb-4 border border-gray-100/50"
+              class="relative h-40 w-full rounded-xl overflow-hidden mb-4 border border-gray-100/50 dark:border-gray-800"
               style="background: {generateGradient(form.title)}"
             >
               <!-- Decorative elements -->
@@ -435,14 +434,14 @@
 
                   <!-- Dropdown menu -->
                   <div
-                    class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 transform origin-top-right scale-95 group-hover/menu:scale-100"
+                    class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 transform origin-top-right scale-95 group-hover/menu:scale-100"
                   >
                     <button
                       onclick={(e) => {
                         e.stopPropagation();
                         deleteForm(form.id, form.title);
                       }}
-                      class="w-full text-left px-4 py-2.5 text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium text-sm rounded-lg"
+                      class="w-full text-left px-4 py-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 font-medium text-sm rounded-lg"
                     >
                       <i class="fas fa-trash w-4"></i> Delete Form
                     </button>
@@ -472,13 +471,13 @@
             <!-- Content -->
             <div class="flex-1 flex flex-col">
               <h3
-                class="font-bold text-slate-800 text-lg leading-tight mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors"
+                class="font-bold text-slate-800 dark:text-gray-100 text-lg leading-tight mb-2 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
               >
                 {form.title}
               </h3>
 
               <div
-                class="flex items-center gap-4 text-xs font-medium text-gray-400 mb-auto"
+                class="flex items-center gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 mb-auto"
               >
                 <div class="flex items-center gap-1.5">
                   <i class="fas fa-list-ul"></i>
@@ -492,14 +491,14 @@
 
               <!-- Actions -->
               <div
-                class="flex items-center gap-3 pt-4 border-t border-gray-50 mt-4"
+                class="flex items-center gap-3 pt-4 border-t border-gray-50 dark:border-gray-800 mt-4"
               >
                 <button
                   onclick={(e) => {
                     e.stopPropagation();
                     navigateToBuilder(form);
                   }}
-                  class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-100 text-indigo-600 bg-indigo-50/50 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 font-semibold text-sm transition-all duration-200"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 font-semibold text-sm transition-all duration-200"
                 >
                   <i class="fas fa-pen-to-square"></i> Edit Form
                 </button>
@@ -507,7 +506,7 @@
                   onclick={(e) => {
                     e.stopPropagation(); /* Future Analytics nav */
                   }}
-                  class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-slate-700 hover:bg-gray-100 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                  class="w-10 h-10 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
                   aria-label="View analytics"
                 >
                   <i class="far fa-chart-bar text-lg"></i>
@@ -521,15 +520,18 @@
       {#if searchQuery && filteredForms.length === 0}
         <div class="text-center py-20">
           <div class="mb-4">
-            <i class="fas fa-search text-5xl text-gray-200"></i>
+            <i class="fas fa-search text-5xl text-gray-200 dark:text-gray-700"
+            ></i>
           </div>
-          <h3 class="text-xl font-bold text-slate-800 mb-2">No forms found</h3>
-          <p class="text-slate-400">
+          <h3 class="text-xl font-bold text-slate-800 dark:text-gray-200 mb-2">
+            No forms found
+          </h3>
+          <p class="text-slate-400 dark:text-gray-500">
             Try adjusting your search query for "{searchQuery}"
           </p>
           <button
             onclick={() => (searchQuery = "")}
-            class="mt-6 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors"
+            class="mt-6 text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
           >
             Clear Search
           </button>
@@ -540,13 +542,14 @@
             <i
               class="fas {activeTab === 'personal'
                 ? 'fa-file-circle-plus'
-                : 'fa-handshake'} text-5xl text-gray-200"
-            ></i>
+                : 'fa-handshake'} text-5xl text-gray-200 dark:text-gray-700"
+            >
+            </i>
           </div>
-          <h3 class="text-xl font-bold text-slate-800 mb-2">
+          <h3 class="text-xl font-bold text-slate-800 dark:text-gray-200 mb-2">
             {activeTab === "personal" ? "No forms yet" : "No shared forms yet"}
           </h3>
-          <p class="text-slate-400">
+          <p class="text-slate-400 dark:text-gray-500">
             {activeTab === "personal"
               ? "Create your first form to get started"
               : "Forms shared with you will appear here"}
@@ -567,7 +570,7 @@
           <button
             onclick={() => loadMoreForms(userId)}
             disabled={loadingMore}
-            class="px-6 py-2.5 bg-white border border-gray-200 text-slate-600 rounded-full font-medium shadow-sm hover:border-indigo-300 hover:text-indigo-600 transition-all disabled:opacity-50"
+            class="px-6 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-slate-600 dark:text-gray-300 rounded-full font-medium shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all disabled:opacity-50"
           >
             {#if loadingMore}
               <i class="fas fa-spinner fa-spin mr-2"></i> Loading...

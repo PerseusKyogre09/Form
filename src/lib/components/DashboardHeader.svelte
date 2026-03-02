@@ -31,7 +31,9 @@
     }
 </script>
 
-<header class="bg-white border-b border-gray-100 sticky top-0 z-50 shrink-0">
+<header
+    class="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50 shrink-0 transition-colors"
+>
     <div
         class="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between"
     >
@@ -44,19 +46,19 @@
                     class="w-7 h-7 sm:w-8 sm:h-8 group-hover:scale-105 transition-transform"
                 />
                 <span
-                    class="text-lg sm:text-xl font-bold text-slate-800 tracking-tight hidden min-[400px]:inline"
+                    class="text-lg sm:text-xl font-bold text-slate-800 dark:text-white tracking-tight hidden min-[400px]:inline"
                     >Quill</span
                 >
             </a>
 
             <!-- Global App Tabs -->
-            <div class="flex bg-gray-100/80 p-1 rounded-lg">
+            <div class="flex bg-gray-100/80 dark:bg-gray-800 p-1 rounded-lg">
                 <a
                     href="/dashboard"
                     class="px-2.5 sm:px-4 py-1 sm:py-1.5 transition-all text-xs sm:text-sm font-medium {currentPath ===
                         '/dashboard' || currentPath.startsWith('/form-builder')
-                        ? 'bg-white rounded-md shadow-sm text-slate-800'
-                        : 'text-gray-500 hover:text-slate-700'}"
+                        ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}"
                 >
                     My Forms
                 </a>
@@ -64,8 +66,8 @@
                     href="/certificate-generator"
                     class="px-2.5 sm:px-4 py-1 sm:py-1.5 transition-all text-xs sm:text-sm font-medium flex items-center gap-2 {currentPath ===
                     '/certificate-generator'
-                        ? 'bg-white rounded-md shadow-sm text-slate-800'
-                        : 'text-gray-500 hover:text-slate-700'}"
+                        ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}"
                 >
                     Certificate
                 </a>
@@ -78,7 +80,7 @@
             {#if currentPath === "/dashboard"}
                 <a
                     href="/form-builder"
-                    class="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558DD] text-white text-sm font-medium rounded-lg transition-colors shadow-md shadow-indigo-100"
+                    class="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558DD] text-white text-sm font-medium rounded-lg transition-colors shadow-md shadow-indigo-100 dark:shadow-indigo-900/30"
                 >
                     <i class="fas fa-plus"></i>
                     <span>New Form</span>
@@ -89,7 +91,7 @@
             {#if user}
                 <div class="relative group cursor-pointer ml-1 sm:ml-2">
                     <Avatar.Root
-                        class="h-8 w-8 sm:h-9 sm:h-9 border-2 border-white shadow-sm rounded-full overflow-hidden transition-transform hover:scale-105"
+                        class="h-8 w-8 sm:h-9 sm:h-9 border-2 border-white dark:border-gray-700 shadow-sm rounded-full overflow-hidden transition-transform hover:scale-105"
                     >
                         <Avatar.Image
                             src={user.user_metadata?.avatar_url ||
@@ -98,7 +100,7 @@
                             class="h-full w-full object-cover"
                         />
                         <Avatar.Fallback
-                            class="flex items-center justify-center w-full h-full bg-indigo-50 text-indigo-600 font-bold text-xs"
+                            class="flex items-center justify-center w-full h-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 font-bold text-xs"
                         >
                             {user.email?.charAt(0).toUpperCase() || "U"}
                         </Avatar.Fallback>
@@ -106,18 +108,18 @@
 
                     <!-- Profile Menu -->
                     <div
-                        class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right group-hover:scale-100 scale-95"
+                        class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right group-hover:scale-100 scale-95"
                     >
                         <div class="p-2">
                             <a
                                 href="/profile"
-                                class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                                class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                             >
                                 <i class="fas fa-user w-4"></i> Profile
                             </a>
                             <button
                                 onclick={handleLogout}
-                                class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             >
                                 <i class="fas fa-sign-out-alt w-4"></i> Logout
                             </button>

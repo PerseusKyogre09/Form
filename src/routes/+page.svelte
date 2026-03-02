@@ -113,9 +113,13 @@
   <meta property="og:type" content="website" />
 </svelte:head>
 
-<div class="min-h-screen bg-white overflow-hidden text-black font-sans">
+<div
+  class="min-h-screen bg-white dark:bg-gray-950 overflow-hidden text-black dark:text-white font-sans transition-colors"
+>
   <!-- Nav -->
-  <nav class="fixed top-0 w-full z-50 bg-white border-b border-black/10">
+  <nav
+    class="fixed top-0 w-full z-50 bg-white dark:bg-gray-950 border-b border-black/10 dark:border-white/10 transition-colors"
+  >
     <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <img src={favicon} alt="Quill" class="w-6 h-6" />
@@ -126,20 +130,20 @@
         {#if user}
           <a
             href="/dashboard"
-            class="text-sm font-medium text-black hover:text-black/70 transition-colors"
+            class="text-sm font-medium text-black dark:text-gray-300 hover:text-black/70 dark:hover:text-white transition-colors"
             >Dashboard</a
           >
         {:else}
           <a
             href="/login"
-            class="text-sm font-medium text-black hover:text-black/70 transition-colors"
+            class="text-sm font-medium text-black dark:text-gray-300 hover:text-black/70 dark:hover:text-white transition-colors"
             >Log in</a
           >
           <Button.Root
             href="/login"
-            class="rounded-lg bg-black text-white shadow-sm hover:bg-black/90 inline-flex
+            class="rounded-lg bg-black dark:bg-white text-white dark:text-black shadow-sm hover:bg-black/90 dark:hover:bg-gray-100 inline-flex
 	h-9 items-center justify-center px-5 text-sm
-	font-medium active:scale-[0.98] active:transition-all"
+	font-medium active:scale-[0.98] active:transition-all transition-colors"
           >
             Create a form
           </Button.Root>
@@ -157,14 +161,14 @@
             class="text-5xl md:text-6xl font-black tracking-tight mb-6 leading-[1.1] perspective-[500px]"
           >
             <div class="hero-line-rotate">Google Forms works.</div>
-            <div class="hero-typewriter text-black/60 mt-2">
+            <div class="hero-typewriter text-black/60 dark:text-gray-400 mt-2">
               It just doesn't feel <br class="hidden md:inline" /> good.
             </div>
           </h1>
 
           <p
             in:fly={{ y: 20, duration: 800, delay: 150 }}
-            class="max-w-xl text-lg md:text-xl text-black/70 mb-8 leading-relaxed font-medium"
+            class="max-w-xl text-lg md:text-xl text-black/70 dark:text-gray-300 mb-8 leading-relaxed font-medium"
           >
             Quill makes forms that feel <span class="font-bold">fast</span>,
             <span class="font-bold">intentional</span>, and
@@ -177,15 +181,15 @@
           >
             <Button.Root
               href={user ? "/dashboard" : "/login"}
-              class="rounded-lg bg-black text-white shadow-sm hover:bg-black/90 inline-flex
+              class="rounded-lg bg-black dark:bg-white text-white dark:text-black shadow-sm hover:bg-black/90 dark:hover:bg-gray-100 inline-flex
 	h-11 items-center justify-center px-6 text-sm
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all transition-colors"
             >
               Try a live demo
             </Button.Root>
             <Button.Root
               href={user ? "/dashboard" : "/login"}
-              class="rounded-lg border border-black text-black bg-white hover:bg-black hover:text-white inline-flex
+              class="rounded-lg border border-black dark:border-white text-black dark:text-white bg-white dark:bg-gray-950 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black inline-flex
 	h-11 items-center justify-center px-6 text-sm
 	font-semibold active:scale-[0.98] active:transition-all transition-colors"
             >
@@ -202,7 +206,7 @@
           <img
             src="https://via.placeholder.com/600x500/000000/ffffff?text=Form+Preview+GIF"
             alt="Form preview animation"
-            class="w-full rounded-lg shadow-2xl border border-black/10"
+            class="w-full rounded-lg shadow-2xl border border-black/10 dark:border-white/10 dark:opacity-80 transition-opacity"
           />
         </div>
       </div>
@@ -210,28 +214,34 @@
   </section>
 
   <!-- The Problem Section -->
-  <section class="border-t border-black/10 py-20">
+  <section
+    class="border-t border-black/10 dark:border-white/10 py-20 transition-colors"
+  >
     <div class="max-w-7xl mx-auto px-6">
       <div class="mb-16 animate-on-scroll">
         <h2 class="text-4xl md:text-5xl font-black tracking-tight mb-4">
           Most forms feel like paperwork.
         </h2>
-        <p class="text-lg text-black/60">Here's the difference.</p>
+        <p class="text-lg text-black/60 dark:text-gray-400">
+          Here's the difference.
+        </p>
       </div>
 
       <div class="grid lg:grid-cols-2 gap-12">
         <!-- Google Forms style (cluttered) -->
         <div class="space-y-4 animate-on-scroll">
-          <h3 class="text-lg font-bold text-black/70">The typical form</h3>
+          <h3 class="text-lg font-bold text-black/70 dark:text-gray-300">
+            The typical form
+          </h3>
           <div
-            class="bg-gray-50 border border-black/10 rounded-lg p-8 space-y-4"
+            class="bg-gray-50 dark:bg-gray-900 border border-black/10 dark:border-white/10 rounded-lg p-8 space-y-4 transition-colors"
           >
             <div class="space-y-2">
               <label class="text-sm font-medium">What's your name?</label>
               <input
                 type="text"
                 placeholder="Name"
-                class="w-full border border-black/10 rounded px-3 py-2 text-sm"
+                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm transition-colors"
                 disabled
               />
             </div>
@@ -240,7 +250,7 @@
               <input
                 type="email"
                 placeholder="Email"
-                class="w-full border border-black/10 rounded px-3 py-2 text-sm"
+                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm transition-colors"
                 disabled
               />
             </div>
@@ -249,7 +259,7 @@
               <input
                 type="text"
                 placeholder="Company"
-                class="w-full border border-black/10 rounded px-3 py-2 text-sm"
+                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm transition-colors"
                 disabled
               />
             </div>
@@ -257,22 +267,22 @@
               <label class="text-sm font-medium">Message</label>
               <textarea
                 placeholder="Type your message..."
-                class="w-full border border-black/10 rounded px-3 py-2 text-sm h-20"
+                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm h-20 transition-colors"
                 disabled
               ></textarea>
             </div>
             <div class="flex gap-2">
               <button
-                class="bg-black/20 text-black/50 px-4 py-2 rounded text-sm font-medium"
+                class="bg-black/20 dark:bg-white/20 text-black/50 dark:text-white/50 px-4 py-2 rounded text-sm font-medium transition-colors"
                 disabled>Cancel</button
               >
               <button
-                class="bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium"
+                class="bg-blue-500 dark:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
                 disabled>Submit</button
               >
             </div>
           </div>
-          <ul class="space-y-2 text-sm text-black/60">
+          <ul class="space-y-2 text-sm text-black/60 dark:text-gray-400">
             <li>• Everything visible at once</li>
             <li>• Scanning fatigue</li>
             <li>• Looks like work</li>
@@ -285,9 +295,9 @@
           <img
             src={quillScreenshot}
             alt="Quill form experience"
-            class="w-full rounded-lg shadow-lg border border-black/10"
+            class="w-full rounded-lg shadow-lg border border-black/10 dark:border-white/10 dark:opacity-90 transition-opacity"
           />
-          <ul class="space-y-2 text-sm text-black/60">
+          <ul class="space-y-2 text-sm text-black/60 dark:text-gray-400">
             <li>• One thing at a time</li>
             <li>• Focused conversation</li>
             <li>• Feels intentional</li>
@@ -298,7 +308,7 @@
   </section>
 
   <!-- Experience Section -->
-  <section class="py-20 bg-white">
+  <section class="py-20 bg-white dark:bg-gray-950 transition-colors">
     <div class="max-w-7xl mx-auto px-6">
       <div class="mb-16 animate-on-scroll">
         <h2 class="text-4xl md:text-5xl font-black tracking-tight">
@@ -312,13 +322,15 @@
           class="space-y-4 feature-item opacity-0"
           style="--tw-translate-x: 30px;"
         >
-          <div class="text-5xl font-black text-black/10">→</div>
+          <div class="text-5xl font-black text-black/10 dark:text-white/10">
+            →
+          </div>
           <h3 class="text-2xl font-bold">Username-based URLs</h3>
-          <p class="text-black/70">
+          <p class="text-black/70 dark:text-gray-300">
             No random IDs. Just your name and the form slug. Share it anywhere.
           </p>
           <code
-            class="block bg-black/5 border border-black/10 rounded px-4 py-3 text-sm font-mono text-black/70"
+            class="block bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded px-4 py-3 text-sm font-mono text-black/70 dark:text-gray-400 transition-colors"
           >
             quill.com/user/feedback
           </code>
@@ -329,13 +341,15 @@
           class="space-y-4 feature-item opacity-0"
           style="--tw-translate-x: 30px;"
         >
-          <div class="text-5xl font-black text-black/10">⌨</div>
+          <div class="text-5xl font-black text-black/10 dark:text-white/10">
+            ⌨
+          </div>
           <h3 class="text-2xl font-bold">Keyboard-first navigation</h3>
-          <p class="text-black/70">
+          <p class="text-black/70 dark:text-gray-300">
             Tab through. Hit enter. No mouse needed. Fast and intentional.
           </p>
           <div
-            class="bg-black/5 border border-black/10 rounded px-4 py-3 text-sm text-black/60"
+            class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded px-4 py-3 text-sm text-black/60 dark:text-gray-400 transition-colors"
           >
             Tab ↹ Next • Enter ↵ Submit • Esc Back
           </div>
@@ -346,9 +360,11 @@
           class="space-y-4 feature-item opacity-0"
           style="--tw-translate-x: 30px;"
         >
-          <div class="text-5xl font-black text-black/10">✨</div>
+          <div class="text-5xl font-black text-black/10 dark:text-white/10">
+            ✨
+          </div>
           <h3 class="text-2xl font-bold">Smooth question transitions</h3>
-          <p class="text-black/70">
+          <p class="text-black/70 dark:text-gray-300">
             Each question flows naturally. No jarring page reloads or jumps.
           </p>
         </div>
@@ -358,9 +374,11 @@
           class="space-y-4 feature-item opacity-0"
           style="--tw-translate-x: 30px;"
         >
-          <div class="text-5xl font-black text-black/10">🔗</div>
+          <div class="text-5xl font-black text-black/10 dark:text-white/10">
+            🔗
+          </div>
           <h3 class="text-2xl font-bold">Share a link, collect responses</h3>
-          <p class="text-black/70">
+          <p class="text-black/70 dark:text-gray-300">
             No signups. No accounts. Just a link. That's it.
           </p>
         </div>
@@ -369,7 +387,9 @@
   </section>
 
   <!-- Built For Section -->
-  <section class="py-20 border-t border-black/10">
+  <section
+    class="py-20 border-t border-black/10 dark:border-white/10 transition-colors"
+  >
     <div class="max-w-7xl mx-auto px-6">
       <h2
         class="text-4xl md:text-5xl font-black tracking-tight mb-12 animate-on-scroll"
@@ -379,28 +399,34 @@
 
       <div class="grid md:grid-cols-2 gap-8">
         <div
-          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
         >
           <h3 class="text-xl font-bold mb-2">College clubs</h3>
-          <p class="text-black/60">Sign-ups, feedback, event RSVPs.</p>
+          <p class="text-black/60 dark:text-gray-400">
+            Sign-ups, feedback, event RSVPs.
+          </p>
         </div>
         <div
-          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
         >
           <h3 class="text-xl font-bold mb-2">Hackathons</h3>
-          <p class="text-black/60">Registration, idea voting, feedback.</p>
+          <p class="text-black/60 dark:text-gray-400">
+            Registration, idea voting, feedback.
+          </p>
         </div>
         <div
-          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
         >
           <h3 class="text-xl font-bold mb-2">Recruiter pipelines</h3>
-          <p class="text-black/60">Applications, referrals, surveys.</p>
+          <p class="text-black/60 dark:text-gray-400">
+            Applications, referrals, surveys.
+          </p>
         </div>
         <div
-          class="border border-black/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 transition-colors cursor-default"
+          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
         >
           <h3 class="text-xl font-bold mb-2">Internal tools</h3>
-          <p class="text-black/60">
+          <p class="text-black/60 dark:text-gray-400">
             Feedback, requests, quick data collection.
           </p>
         </div>
@@ -419,9 +445,9 @@
       </p>
       <Button.Root
         href={user ? "/dashboard" : "/login"}
-        class="rounded-lg bg-white text-black shadow-sm hover:bg-white/90 inline-flex
+        class="rounded-lg bg-white dark:bg-gray-100 text-black shadow-sm hover:bg-white/90 inline-flex
 	h-12 items-center justify-center px-8 text-base
-	font-semibold active:scale-[0.98] active:transition-all"
+	font-semibold active:scale-[0.98] active:transition-all transition-colors"
       >
         Create a form now
       </Button.Root>

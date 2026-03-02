@@ -67,12 +67,12 @@
 </script>
 
 <div
-  class="bg-surface-light bg-surface p-8 rounded-xl border border-slate-200 custom-shadow group transition-all duration-200"
+  class="bg-white dark:bg-gray-900 p-8 rounded-xl border border-slate-200 dark:border-gray-800 custom-shadow group transition-all duration-200"
 >
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
       <div
-        class="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400"
+        class="cursor-grab active:cursor-grabbing text-slate-300 dark:text-gray-600 hover:text-slate-400 dark:hover:text-gray-500"
         draggable="true"
         on:dragstart={(e) => {
           if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
@@ -85,7 +85,7 @@
       >
         <span class="fas fa-grip-vertical"></span>
       </div>
-      <div class="flex items-center gap-2 text-slate-500">
+      <div class="flex items-center gap-2 text-slate-500 dark:text-gray-400">
         <span class="fas fa-newspaper text-lg"></span>
         <span class="text-sm font-semibold uppercase tracking-wide"
           >Content Block</span
@@ -118,7 +118,7 @@
       <div class="space-y-2">
         <label
           for="headerText"
-          class="text-xs font-semibold text-slate-500 uppercase tracking-wide"
+          class="text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wide"
           >Header Text</label
         >
         <input
@@ -127,24 +127,24 @@
           bind:value={block.headerText}
           on:change={updateBlock}
           placeholder="Optional header text"
-          class="w-full max-w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400 break-words"
+          class="w-full max-w-full text-sm border border-slate-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder-gray-500 break-words"
         />
       </div>
 
       <!-- Show Card Toggle -->
       <div class="space-y-2">
         <label
-          class="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wide cursor-pointer"
+          class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wide cursor-pointer"
         >
           <input
             type="checkbox"
             bind:checked={block.showCard}
             on:change={updateBlock}
-            class="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer accent-blue-600"
+            class="w-4 h-4 rounded border-slate-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 cursor-pointer accent-blue-600 dark:accent-blue-500 bg-white dark:bg-gray-900"
           />
           Show Card Styling
         </label>
-        <p class="text-xs text-slate-400 ml-6">
+        <p class="text-xs text-slate-400 dark:text-gray-500 ml-6">
           Uncheck for IDE theme floating style (no card container)
         </p>
       </div>
@@ -153,7 +153,7 @@
       <div class="space-y-2">
         <label
           for="mainText"
-          class="text-xs font-semibold text-slate-500 uppercase tracking-wide"
+          class="text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wide"
           >Main Text</label
         >
         <textarea
@@ -162,7 +162,7 @@
           on:change={updateBlock}
           placeholder="Main content for the block"
           rows="4"
-          class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400 resize-none"
+          class="w-full text-sm border border-slate-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder-gray-500 resize-none"
         ></textarea>
       </div>
 
@@ -170,7 +170,7 @@
       <div class="space-y-2">
         <label
           for="footerText"
-          class="text-xs font-semibold text-slate-500 uppercase tracking-wide"
+          class="text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wide"
           >Footer Text</label
         >
         <input
@@ -179,7 +179,7 @@
           bind:value={block.footerText}
           on:change={updateBlock}
           placeholder="Optional footer text"
-          class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400"
+          class="w-full text-sm border border-slate-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 dark:bg-gray-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder-gray-500"
         />
       </div>
     </div>
@@ -191,7 +191,7 @@
           <!-- Image Upload -->
           <div class="space-y-2">
             <label
-              class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+              class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
               >Image</label
             >
             {#if !block.imageUrl}
@@ -199,7 +199,7 @@
                 type="file"
                 accept="image/*"
                 on:change={handleImageUpload}
-                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                class="w-full text-sm border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-400 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50"
               />
             {:else}
               <div class="flex items-center gap-3">
@@ -224,7 +224,7 @@
           <!-- Background Color -->
           <div class="space-y-2">
             <label
-              class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+              class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
               >Background Color</label
             >
             <div class="flex gap-2">
@@ -232,14 +232,14 @@
                 type="color"
                 bind:value={block.backgroundColor}
                 on:change={updateBlock}
-                class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                class="w-12 h-10 border border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer bg-white dark:bg-gray-800"
               />
               <input
                 type="text"
                 bind:value={block.backgroundColor}
                 on:change={updateBlock}
                 placeholder="#ffffff or transparent"
-                class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-gray-50"
+                class="flex-1 text-sm border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
             <div class="mt-2 text-right">
@@ -249,7 +249,7 @@
                   block.backgroundColor = "transparent";
                   updateBlock();
                 }}
-                class="text-xs text-slate-500 hover:text-slate-800 underline transition-colors"
+                class="text-xs text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200 underline transition-colors"
               >
                 Set to Transparent
               </button>
@@ -259,7 +259,7 @@
           <!-- Text Color Override -->
           <div class="space-y-2">
             <label
-              class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+              class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
               >Text Color (Override)</label
             >
             <div class="flex gap-2">
@@ -267,7 +267,7 @@
                 type="color"
                 bind:value={block.textColor}
                 on:change={updateBlock}
-                class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                class="w-12 h-10 border border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer bg-white dark:bg-gray-800"
               />
               <button
                 type="button"
@@ -275,7 +275,7 @@
                   block.textColor = undefined;
                   updateBlock();
                 }}
-                class="text-xs text-slate-400 hover:text-red-500 underline"
+                class="text-xs text-slate-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 underline"
               >
                 Reset
               </button>
@@ -286,13 +286,13 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div class="space-y-2">
               <label
-                class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
                 >Entry Animation</label
               >
               <select
                 bind:value={block.entryAnimation}
                 on:change={updateBlock}
-                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                class="w-full text-sm border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               >
                 <option value={undefined}>None</option>
                 {#each animationOptions as option}
@@ -304,13 +304,13 @@
             <!-- Exit Animation -->
             <div class="space-y-2">
               <label
-                class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
                 >Exit Animation</label
               >
               <select
                 bind:value={block.exitAnimation}
                 on:change={updateBlock}
-                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                class="w-full text-sm border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               >
                 <option value={undefined}>None</option>
                 {#each animationOptions as option}
@@ -323,19 +323,21 @@
           <!-- Auto-advance -->
           <div class="space-y-2">
             <label
-              class="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer"
+              class="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide cursor-pointer"
             >
               <input
                 type="checkbox"
                 bind:checked={block.enableAutoAdvance}
                 on:change={updateBlock}
-                class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600"
+                class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 cursor-pointer accent-blue-600 dark:accent-blue-500 bg-white dark:bg-gray-900"
               />
               Auto-advance to next element
             </label>
             {#if block.enableAutoAdvance}
               <div class="space-y-1">
-                <label for="delay" class="block text-xs text-gray-600"
+                <label
+                  for="delay"
+                  class="block text-xs text-gray-600 dark:text-gray-400"
                   >Delay (seconds)</label
                 >
                 <input
@@ -345,7 +347,7 @@
                   step="0.5"
                   bind:value={block.autoAdvanceDelay}
                   on:change={updateBlock}
-                  class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-gray-50"
+                  class="w-full text-sm border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
                 />
               </div>
             {/if}
@@ -356,8 +358,12 @@
   </div>
 
   <!-- Preview -->
-  <div class="space-y-2 mt-6 pt-6 border-t border-gray-200">
-    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+  <div
+    class="space-y-2 mt-6 pt-6 border-t border-gray-200 dark:border-gray-800"
+  >
+    <p
+      class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
+    >
       Preview
     </p>
     {#if block.showCard === false}
@@ -403,8 +409,8 @@
       <!-- Card Style Preview (with or without IDE theme) -->
       <div
         class="block-preview rounded-lg border {block.showCard === false
-          ? 'border-gray-600'
-          : 'border-gray-200'} p-4 min-h-[120px] flex flex-col"
+          ? 'border-gray-600 dark:border-gray-500'
+          : 'border-gray-200 dark:border-gray-700'} p-4 min-h-[120px] flex flex-col"
         style="background-color: {block.backgroundColor || '#ffffff'};"
       >
         {#if block.headerText}

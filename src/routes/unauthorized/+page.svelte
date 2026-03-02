@@ -7,12 +7,12 @@
 </script>
 
 <div
-	class="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8"
+	class="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors"
 >
 	<div class="max-w-md w-full space-y-8 text-center">
 		<div>
 			<svg
-				class="mx-auto h-20 w-20 text-red-500 mb-4"
+				class="mx-auto h-20 w-20 text-red-500 dark:text-red-400 mb-4"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -24,18 +24,22 @@
 					d="M12 9v2m0 4v2m0 4v2m0-12a9 9 0 110-18 9 9 0 010 18z"
 				/>
 			</svg>
-			<h1 class="text-4xl font-extrabold text-white mb-2">Unauthorized Access</h1>
-			<p class="text-xl text-gray-400 mb-8">Turn Back</p>
+			<h1 class="text-4xl font-extrabold text-white mb-2">
+				Unauthorized Access
+			</h1>
+			<p class="text-xl text-gray-400 dark:text-gray-500 mb-8">
+				Turn Back
+			</p>
 		</div>
 
 		<div class="space-y-4">
-			<p class="text-gray-300 text-sm">
-				You do not have permission to access this application. Please contact the administrator if you
-				believe this is an error.
+			<p class="text-gray-300 dark:text-gray-400 text-sm">
+				You do not have permission to access this application. Please
+				contact the administrator if you believe this is an error.
 			</p>
 			<button
 				on:click={handleLogout}
-				class="w-full flex justify-center py-3 px-4 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors active:scale-[0.98]"
+				class="w-full flex justify-center py-3 px-4 rounded-xl bg-red-600 dark:bg-red-700 text-white font-semibold hover:bg-red-700 dark:hover:bg-red-600 transition-colors active:scale-[0.98]"
 			>
 				Sign Out
 			</button>

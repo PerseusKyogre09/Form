@@ -6,6 +6,7 @@
 	import { goto } from "$app/navigation";
 	import { page } from "$app/stores";
 	import NotificationContainer from "$lib/components/NotificationContainer.svelte";
+	import { themePreference, applyTheme } from "$lib/stores/theme";
 
 	let { children } = $props();
 
@@ -36,6 +37,31 @@
 			) {
 				goto("/dashboard");
 				return;
+			}
+
+			// Load theme preference from profile when user is logged in
+			if (
+				session &&
+				(event === "SIGNED_IN" || event === "INITIAL_SESSION")
+			) {
+				try {
+					const { data: profile } = await supabase
+						.from("profiles")
+						.select("theme_preference")
+						.eq("id", session.user.id)
+						.single();
+
+					if (profile?.theme_preference) {
+						const pref = profile.theme_preference as
+							| "light"
+							| "dark"
+							| "auto";
+						themePreference.set(pref);
+						applyTheme(pref);
+					}
+				} catch (e) {
+					// Profile may not exist yet, use default
+				}
 			}
 
 			// If we are logged in and at root, we STAY at root (user wants this)

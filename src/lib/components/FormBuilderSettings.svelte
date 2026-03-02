@@ -30,9 +30,13 @@
     }
 </script>
 
-<div class="flex flex-col h-full bg-white border-l border-slate-200">
+<div
+    class="flex flex-col h-full bg-white dark:bg-gray-900 border-l border-slate-200 dark:border-gray-800"
+>
     <!-- Persistent Top Header -->
-    <div class="p-6 border-b border-slate-100 space-y-4 bg-slate-50/50">
+    <div
+        class="p-6 border-b border-slate-100 dark:border-gray-800 space-y-4 bg-slate-50/50 dark:bg-gray-900/50"
+    >
         <div class="space-y-3">
             <h3
                 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1"
@@ -43,7 +47,7 @@
             {#if shareLink && currentFormData?.published}
                 <div class="flex gap-2">
                     <input
-                        class="flex-1 text-xs bg-white border border-slate-200 rounded-lg py-2 px-3 focus:ring-1 focus:ring-primary outline-none truncate"
+                        class="flex-1 text-xs bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg py-2 px-3 focus:ring-1 focus:ring-primary outline-none truncate"
                         readonly
                         type="text"
                         value={shareLink}
@@ -63,23 +67,24 @@
                     <a
                         href={shareLink}
                         target="_blank"
-                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 bg-white hover:border-primary transition-all text-center no-underline shadow-sm group"
+                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary transition-all text-center no-underline shadow-sm group"
                     >
                         <span
                             class="fas fa-external-link-alt text-slate-400 group-hover:text-primary text-xs"
                         ></span>
                         <span
-                            class="text-[10px] font-bold text-slate-600 group-hover:text-slate-900"
+                            class="text-[10px] font-bold text-slate-600 dark:text-gray-300 group-hover:text-slate-900 dark:group-hover:text-white"
                             >Preview</span
                         >
                     </a>
                 {:else}
                     <button
-                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed shadow-none"
+                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 opacity-50 cursor-not-allowed shadow-none"
                     >
                         <span class="fas fa-eye-slash text-slate-400 text-xs"
                         ></span>
-                        <span class="text-[10px] font-bold text-slate-500"
+                        <span
+                            class="text-[10px] font-bold text-slate-500 dark:text-gray-400"
                             >Unpublished</span
                         >
                     </button>
@@ -87,7 +92,7 @@
 
                 <button
                     onclick={saveForm}
-                    class="flex items-center justify-center gap-2 p-3 rounded-xl bg-black text-white hover:opacity-90 transition-all shadow-sm"
+                    class="flex items-center justify-center gap-2 p-3 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition-all shadow-sm"
                 >
                     <span class="fas fa-save text-xs"></span>
                     <span class="text-[10px] font-bold">Save</span>
@@ -100,7 +105,7 @@
     <div class="flex-1 flex overflow-hidden">
         <!-- Tab Sidebar (Vertical Icons) -->
         <div
-            class="w-16 border-r border-slate-100 flex flex-col items-center py-6 gap-4 bg-slate-50/30"
+            class="w-16 border-r border-slate-100 dark:border-gray-800 flex flex-col items-center py-6 gap-4 bg-slate-50/30 dark:bg-gray-900/30"
         >
             <button
                 onclick={() => (activeTab = "themes")}
@@ -156,7 +161,9 @@
             {#if activeTab === "themes"}
                 <div class="space-y-6">
                     <header>
-                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                        <h3
+                            class="text-sm font-bold text-slate-900 dark:text-white mb-1"
+                        >
                             Themes
                         </h3>
                         <p class="text-xs text-slate-500">
@@ -168,7 +175,9 @@
             {:else if activeTab === "background"}
                 <div class="space-y-8">
                     <header>
-                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                        <h3
+                            class="text-sm font-bold text-slate-900 dark:text-white mb-1"
+                        >
                             Appearance
                         </h3>
                         <p class="text-xs text-slate-500">
@@ -185,7 +194,7 @@
                         </h4>
                         <div class="relative group">
                             <div
-                                class="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 overflow-hidden overflow-ellipsis transition-all group-hover:border-primary/50"
+                                class="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 flex flex-col items-center justify-center gap-2 overflow-hidden overflow-ellipsis transition-all group-hover:border-primary/50"
                             >
                                 {#if currentFormData?.backgroundImage}
                                     <img
@@ -198,22 +207,22 @@
                                     >
                                         <button
                                             onclick={removeBackgroundImage}
-                                            class="p-2 bg-white rounded-lg shadow-sm text-red-500 hover:bg-red-50 transition-colors"
+                                            class="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                                             aria-label="Remove background image"
                                         >
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                         <span
-                                            class="text-[10px] font-bold text-slate-600 bg-white/80 px-2 py-0.5 rounded shadow-sm"
+                                            class="text-[10px] font-bold text-slate-600 dark:text-gray-200 bg-white/80 dark:bg-gray-800/80 px-2 py-0.5 rounded shadow-sm"
                                             >Image Uploaded</span
                                         >
                                     </div>
                                 {:else}
                                     <i
-                                        class="fas fa-cloud-upload-alt text-slate-300 text-2xl group-hover:text-primary transition-colors"
+                                        class="fas fa-cloud-upload-alt text-slate-300 dark:text-gray-600 text-2xl group-hover:text-primary transition-colors"
                                     ></i>
                                     <span
-                                        class="text-[10px] font-bold text-slate-400 group-hover:text-slate-600"
+                                        class="text-[10px] font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-gray-300"
                                         >Click to upload</span
                                     >
                                 {/if}
@@ -235,7 +244,7 @@
                             Background Color
                         </h4>
                         <div
-                            class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100"
+                            class="flex items-center gap-4 bg-slate-50 dark:bg-gray-800 p-3 rounded-xl border border-slate-100 dark:border-gray-700"
                         >
                             <input
                                 type="color"
@@ -245,11 +254,11 @@
                                     updateBackgroundColor(
                                         e.currentTarget.value,
                                     )}
-                                class="w-10 h-10 p-0.5 rounded-lg border border-slate-200 cursor-pointer bg-white"
+                                class="w-10 h-10 p-0.5 rounded-lg border border-slate-200 dark:border-gray-600 cursor-pointer bg-white dark:bg-gray-700"
                             />
                             <div class="flex flex-col">
                                 <span
-                                    class="text-xs font-bold text-slate-700 uppercase"
+                                    class="text-xs font-bold text-slate-700 dark:text-gray-200 uppercase"
                                     >{currentFormData?.backgroundColor ||
                                         "#ffffff"}</span
                                 >
@@ -298,7 +307,9 @@
             {:else if activeTab === "settings"}
                 <div class="space-y-8">
                     <header>
-                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                        <h3
+                            class="text-sm font-bold text-slate-900 dark:text-white mb-1"
+                        >
                             Configuration
                         </h3>
                         <p class="text-xs text-slate-500">
@@ -315,8 +326,8 @@
                         <button
                             onclick={toggleFormStatus}
                             class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.closed
-                                ? 'bg-orange-50 border-orange-100 text-orange-700 hover:bg-orange-100'
-                                : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100'}"
+                                ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-100 dark:border-orange-800 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50'
+                                : 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'}"
                         >
                             <div class="flex items-center gap-3">
                                 <i
@@ -357,8 +368,8 @@
                                 saveForm();
                             }}
                             class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.enable_checkin
-                                ? 'bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100'
-                                : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'}"
+                                ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                                : 'bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-gray-700'}"
                         >
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-qrcode text-lg"></i>
@@ -407,7 +418,7 @@
                                             }));
                                             saveForm();
                                         }}
-                                        class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-primary focus:bg-white outline-none font-medium transition-all"
+                                        class="w-full text-xs bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-gray-900 outline-none font-medium transition-all"
                                     >
                                         <option value=""
                                             >Select a field...</option
@@ -458,7 +469,7 @@
                                     onchange={(e) =>
                                         updateSlug(e.currentTarget.value)}
                                     placeholder="my-cool-form"
-                                    class="w-full max-w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-white outline-none font-medium transition-all"
+                                    class="w-full max-w-full text-xs bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-gray-900 outline-none font-medium transition-all"
                                 />
                             </div>
                             <p
@@ -469,9 +480,11 @@
                         </div>
                     </section>
 
-                    <section class="space-y-4 pt-4 border-t border-slate-100">
+                    <section
+                        class="space-y-4 pt-4 border-t border-slate-100 dark:border-gray-800"
+                    >
                         <button
-                            class="w-full flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-white hover:border-primary transition-all group"
+                            class="w-full flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary transition-all group"
                         >
                             <span
                                 class="fas fa-trash-alt text-slate-300 group-hover:text-red-500 transition-colors"
@@ -486,7 +499,9 @@
             {:else if activeTab === "sharing"}
                 <div class="space-y-8">
                     <header>
-                        <h3 class="text-sm font-bold text-slate-900 mb-1">
+                        <h3
+                            class="text-sm font-bold text-slate-900 dark:text-white mb-1"
+                        >
                             Share Form
                         </h3>
                         <p class="text-xs text-slate-500">
@@ -525,7 +540,7 @@
                             <div class="space-y-2">
                                 {#each currentFormData.collaborators as collab}
                                     <div
-                                        class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                                        class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg"
                                     >
                                         <div class="flex items-center gap-3">
                                             <div

@@ -1,3 +1,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Smooth theme transition */
+  html {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Dark mode base overrides */
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html.dark body {
+    background-color: #030712; /* gray-950 */
+    color: #f3f4f6; /* gray-100 */
+  }
+
+  /* Form element defaults in dark mode */
+  html.dark input,
+  html.dark textarea,
+  html.dark select {
+    color-scheme: dark;
+  }
+
+  /* Scrollbar styling for dark mode */
+  html.dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  html.dark ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+}

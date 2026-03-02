@@ -1,7 +1,7 @@
 <!-- src/lib/components/FormBuilder.svelte -->
 <script lang="ts">
   import { currentForm } from "../stores";
-  import type { Question, FormElement, BlockElement } from "../types";
+  import type { Question, FormElement, BlockElement, Theme } from "../types";
   import { isBlockElement } from "../types";
   import QuestionEditor from "./QuestionEditor.svelte";
   import BlockEditor from "./BlockEditor.svelte";
@@ -32,7 +32,7 @@
         type === "checkboxes"
           ? ["Option 1", "Option 2"]
           : undefined,
-    };
+    } as unknown as FormElement;
     form.questions = [...form.questions, newQuestion];
     currentForm.set(form);
   }
@@ -56,7 +56,10 @@
   }
 
   function addBlock() {
-    form.questions = [...form.questions, createBlock()];
+    form.questions = [
+      ...form.questions,
+      createBlock() as unknown as FormElement,
+    ];
     currentForm.set(form);
   }
 
@@ -124,9 +127,12 @@
     <!-- Added padding bottom for floating buttons if needed, or just spacing -->
     {#each form.questions as element, idx (element.id)}
       <div
+        role="button"
+        tabindex="0"
         on:dragover={handleDragOver}
         on:drop={(e) => handleDrop(e, idx)}
-        class="transition-opacity duration-200 {draggedIndex === idx
+        class="transition-opacity duration-200 cursor-default {draggedIndex ===
+        idx
           ? 'opacity-50'
           : ''}"
       >
@@ -140,9 +146,11 @@
           />
         {:else}
           <QuestionEditor
-            question={element}
+            question={element as Question}
             questionNumber={getQuestionNumber(idx)}
-            allQuestions={form.questions.filter((q) => !('kind' in q))}
+            allQuestions={form.questions.filter(
+              (q) => !isBlockElement(q),
+            ) as Question[]}
             on:update={updateForm}
             on:delete={() => deleteElement(element.id)}
             on:dragstart={(e) => handleDragStart(e.detail, idx)}
@@ -154,17 +162,19 @@
 
     {#if form.questions.length === 0}
       <div
-        class="border-2 border-dashed border-slate-200 rounded-xl p-12 text-center bg-slate-50"
+        class="border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-xl p-12 text-center bg-slate-50 dark:bg-gray-900/50"
       >
         <div
-          class="mb-4 bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto"
+          class="mb-4 bg-slate-100 dark:bg-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto"
         >
-          <span class="fas fa-file-circle-plus text-3xl text-slate-400"></span>
+          <span
+            class="fas fa-file-circle-plus text-3xl text-slate-400 dark:text-gray-500"
+          ></span>
         </div>
-        <h3 class="text-lg font-semibold text-slate-900 mb-1">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">
           Start building your form
         </h3>
-        <p class="text-slate-500 mb-6">
+        <p class="text-slate-500 dark:text-gray-400 mb-6">
           Add questions or content blocks to get started.
         </p>
       </div>
@@ -180,101 +190,123 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            class="bg-white border border-slate-200 rounded-xl shadow-xl w-64 py-2 z-50 max-h-[80vh] overflow-y-auto"
+            class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl shadow-xl w-64 py-2 z-50 max-h-[80vh] overflow-y-auto"
             side="bottom"
             sideOffset={12}
             align="start"
           >
             <div
-              class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+              class="px-4 py-2 text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wider"
             >
               Input Fields
             </div>
             <DropdownMenu.Item
               onSelect={() => addQuestion("text")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-align-left text-slate-400 text-xl"></span> Short
-              Text
+              <span
+                class="fas fa-align-left text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Short Text
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("long-text")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-align-justify text-slate-400 text-xl"></span> Long
-              Text
+              <span
+                class="fas fa-align-justify text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Long Text
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("number")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-hashtag text-slate-400 text-xl"></span> Number
+              <span
+                class="fas fa-hashtag text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Number
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("email")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-envelope text-slate-400 text-xl"></span> Email
+              <span
+                class="fas fa-envelope text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Email
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("phone")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-phone text-slate-400 text-xl"></span> Phone Number
+              <span
+                class="fas fa-phone text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Phone Number
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("date")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-calendar text-slate-400 text-xl"></span> Date
+              <span
+                class="fas fa-calendar text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Date
             </DropdownMenu.Item>
 
-            <DropdownMenu.Separator class="my-2 h-px bg-slate-100" />
+            <DropdownMenu.Separator
+              class="my-2 h-px bg-slate-100 dark:bg-gray-800"
+            />
             <div
-              class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+              class="px-4 py-2 text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wider"
             >
               Selection
             </div>
 
             <DropdownMenu.Item
               onSelect={() => addQuestion("multiple-choice")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-list-ul text-slate-400 text-xl"></span> Multiple
-              Choice
+              <span
+                class="fas fa-list-ul text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Multiple Choice
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("dropdown")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-caret-square-down text-slate-400 text-xl"
+              <span
+                class="fas fa-caret-square-down text-slate-400 dark:text-gray-500 text-xl"
               ></span> Dropdown
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("checkboxes")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-check-square text-slate-400 text-xl"></span> Checkboxes
+              <span
+                class="fas fa-check-square text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Checkboxes
             </DropdownMenu.Item>
 
-            <DropdownMenu.Separator class="my-2 h-px bg-slate-100" />
+            <DropdownMenu.Separator
+              class="my-2 h-px bg-slate-100 dark:bg-gray-800"
+            />
             <div
-              class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+              class="px-4 py-2 text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wider"
             >
               Special
             </div>
 
             <DropdownMenu.Item
               onSelect={() => addQuestion("yes-no")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-thumbs-up text-slate-400 text-xl"></span> Yes/No
+              <span
+                class="fas fa-thumbs-up text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Yes/No
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("rating")}
-              class="px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors flex items-center gap-3"
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
             >
-              <span class="fas fa-star text-slate-400 text-xl"></span> Rating
+              <span
+                class="fas fa-star text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Rating
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
@@ -282,7 +314,7 @@
 
       <button
         on:click={addBlock}
-        class="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all active:scale-95"
+        class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-gray-800 transition-all active:scale-95"
       >
         <span class="fas fa-shapes"></span>
         Add Block

@@ -105,7 +105,7 @@
     <div
       class={inline
         ? "w-full"
-        : "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"}
+        : "fixed inset-0 bg-black/50 dark:bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm"}
       on:click={inline ? undefined : closeModal}
       on:keydown={(e) => !inline && e.key === "Escape" && closeModal()}
       role={inline ? undefined : "dialog"}
@@ -115,28 +115,30 @@
       <div
         class={inline
           ? "w-full"
-          : "bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"}
+          : "bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-transparent dark:border-gray-800 transition-colors"}
         on:click={(e) => !inline && e.stopPropagation()}
         role={inline ? undefined : "document"}
       >
         {#if !inline}
           <div
-            class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10"
+            class="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 z-10 transition-colors"
           >
             <div class="flex items-center justify-between">
-              <h2 class="text-xl font-bold text-gray-900">
-                <i class="fas fa-palette mr-2 text-purple-600"></i>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                <i
+                  class="fas fa-palette mr-2 text-purple-600 dark:text-purple-400"
+                ></i>
                 Select a Theme
               </h2>
               <button
                 on:click={closeModal}
-                class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl leading-none transition-colors"
                 aria-label="Close modal"
               >
                 ×
               </button>
             </div>
-            <p class="text-sm text-gray-600 mt-1">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Choose a theme to change the overall look and feel of your form
             </p>
           </div>
@@ -149,8 +151,8 @@
                 on:click={() => selectTheme(theme)}
                 class="relative border-2 rounded-lg p-4 transition-all hover:shadow-lg w-full {currentFormData
                   ?.theme?.id === theme.id
-                  ? 'border-purple-600 bg-purple-50'
-                  : 'border-slate-200 bg-white hover:border-slate-300'}"
+                  ? 'border-purple-600 dark:border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                  : 'border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-slate-300 dark:hover:border-gray-600'}"
               >
                 {#if currentFormData?.theme?.id === theme.id}
                   <div
@@ -161,11 +163,15 @@
                 {/if}
 
                 <div class="text-left">
-                  <h3 class="font-bold text-slate-900 text-sm mb-1">
+                  <h3
+                    class="font-bold text-slate-900 dark:text-white text-sm mb-1"
+                  >
                     {theme.name}
                   </h3>
                   {#if theme.description}
-                    <p class="text-xs text-slate-500 mb-3 line-clamp-2">
+                    <p
+                      class="text-xs text-slate-500 dark:text-gray-400 mb-3 line-clamp-2"
+                    >
                       {theme.description}
                     </p>
                   {/if}
@@ -177,7 +183,7 @@
                         {#if colorValue}
                           <div class="flex flex-col items-center gap-1">
                             <div
-                              class="w-6 h-6 rounded border border-gray-200 shadow-sm"
+                              class="w-6 h-6 rounded border border-gray-200 dark:border-gray-600 shadow-sm"
                               style="background-color: {colorValue}"
                               title={colorName}
                             ></div>
@@ -192,9 +198,9 @@
           </div>
 
           <div
-            class="p-4 bg-indigo-50/50 rounded-lg border border-indigo-100/50"
+            class="p-4 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100/50 dark:border-indigo-800/30 transition-colors"
           >
-            <p class="text-xs text-indigo-700">
+            <p class="text-xs text-indigo-700 dark:text-indigo-400">
               <i class="fas fa-info-circle mr-1"></i>
               <strong>Tip:</strong> You can still customize colors separately after
               selecting a theme.
@@ -204,11 +210,11 @@
 
         {#if !inline}
           <div
-            class="border-t border-gray-200 bg-gray-50 px-6 py-4 rounded-b-lg"
+            class="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 px-6 py-4 rounded-b-lg transition-colors"
           >
             <button
               on:click={closeModal}
-              class="w-full px-4 py-2 bg-gray-200 text-gray-900 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Close
             </button>

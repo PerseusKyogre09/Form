@@ -14,9 +14,7 @@
   // Parse the title to extract code structure
   function parseCodeTitle(title: string) {
     // Pattern: const event = "Geek Room Recruitment";
-    const match = title.match(
-      /^(const|let|var)\s+(\w+)\s*=\s*["\'](.+?)["\']/
-    );
+    const match = title.match(/^(const|let|var)\s+(\w+)\s*=\s*["\'](.+?)["\']/);
     if (match) {
       return {
         keyword: match[1],
@@ -74,7 +72,10 @@
 </script>
 
 <!-- IDE Theme Block - No Card Container, Floating Content - Responsive & Full Screen -->
-<div class="w-full h-screen overflow-hidden flex items-center justify-center" style="background: transparent;">
+<div
+  class="w-full h-screen overflow-hidden flex items-center justify-center"
+  style="background: transparent;"
+>
   <!-- Semi-transparent glowing logo background -->
   {#if element.imageUrl}
     <div
@@ -91,21 +92,34 @@
   {/if}
 
   <!-- Main content floating over background - scales to cover 70-80% of screen -->
-  <div class="relative z-10 flex flex-col items-center justify-center w-11/12 max-w-4xl max-h-[80vh] px-4 md:px-8 lg:px-12">
+  <div
+    class="relative z-10 flex flex-col items-center justify-center w-11/12 max-w-4xl max-h-[80vh] px-4 md:px-8 lg:px-12"
+  >
     <!-- Title as Code - Responsive sizing -->
     {#if codeTitle}
       <!-- Structured code syntax highlighting -->
-      <div class="w-full text-center font-mono text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight break-words" style="font-family: 'JetBrains Mono', monospace;">
-        <span style="color: #a0a0a0;">const</span>
-        <span style="color: #e0e0e0;"> </span>
-        <span style="color: #ce9178;">{codeTitle.variable}</span>
-        <span style="color: #a0a0a0;"> = </span>
-        <span style="color: #14b8a6;">"</span>{codeTitle.stringValue}<span style="color: #14b8a6;">"</span>
-        <span style="color: #a0a0a0;">;</span>
+      <div
+        class="w-full text-center font-mono text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight break-words"
+        style="font-family: 'JetBrains Mono', monospace;"
+      >
+        <span class="text-slate-500 dark:text-gray-500">const</span>
+        <span> </span>
+        <span class="text-orange-600 dark:text-orange-300"
+          >{codeTitle.variable}</span
+        >
+        <span class="text-slate-500 dark:text-gray-500"> = </span>
+        <span class="text-teal-600 dark:text-teal-400">"</span
+        >{codeTitle.stringValue}<span class="text-teal-600 dark:text-teal-400"
+          >"</span
+        >
+        <span class="text-slate-500 dark:text-gray-500">;</span>
       </div>
     {:else}
       <!-- Fallback: plain code-styled title -->
-      <div class="w-full text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight" style="color: #e0e0e0; font-family: 'JetBrains Mono', monospace;">
+      <div
+        class="w-full text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight text-slate-800 dark:text-gray-200"
+        style="font-family: 'JetBrains Mono', monospace;"
+      >
         {getTitleForDisplay()}
       </div>
     {/if}
@@ -115,14 +129,16 @@
 
     <!-- Welcome text with typing animation - Responsive sizing -->
     {#if element.text}
-      <div class="relative w-full text-center min-h-[2rem] md:min-h-[3rem] lg:min-h-[4rem] flex items-center justify-center">
+      <div
+        class="relative w-full text-center min-h-[2rem] md:min-h-[3rem] lg:min-h-[4rem] flex items-center justify-center"
+      >
         <div
-          class="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-relaxed"
-          style="color: #ffffff; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;"
+          class="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-relaxed text-slate-800 dark:text-white"
+          style="font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;"
         >
           {displayedText}
           <span
-            class="inline-block w-1.5 md:w-2 bg-white ml-3 md:ml-4 align-text-top"
+            class="inline-block w-1.5 md:w-2 bg-slate-800 dark:bg-white ml-3 md:ml-4 align-text-top"
             style="height: 1em; animation: blink 0.7s infinite;"
           ></span>
         </div>
@@ -134,8 +150,11 @@
 
     <!-- Signature as code comment - Responsive sizing -->
     {#if element.footerText}
-      <div class="w-full text-center text-xs sm:text-sm md:text-base lg:text-lg" style="color: #808080; font-family: 'JetBrains Mono', monospace;">
-        <span style="color: #6a9fb5;">// </span>
+      <div
+        class="w-full text-center text-xs sm:text-sm md:text-base lg:text-lg text-slate-500 dark:text-gray-500"
+        style="font-family: 'JetBrains Mono', monospace;"
+      >
+        <span class="text-blue-400 dark:text-blue-500">// </span>
         {element.footerText}
       </div>
     {/if}
@@ -168,4 +187,3 @@
     }
   }
 </style>
-

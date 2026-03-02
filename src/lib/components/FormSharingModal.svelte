@@ -2,7 +2,7 @@
   import type { Form, FormCollaborator } from "$lib/types";
   import { supabase } from "$lib/supabaseClient";
 
-  let { form, isOpen = false } = $props();
+  let { form, isOpen = $bindable(false) } = $props();
 
   let searchQuery = $state("");
   let searchResults = $state<any[]>([]);
@@ -197,14 +197,16 @@
   >
     <!-- Modal Content -->
     <div
-      class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col"
+      class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col"
       onclick={(e) => e.stopPropagation()}
       role="dialog"
     >
       <!-- Header -->
-      <div class="p-6 border-b border-slate-100">
+      <div class="p-6 border-b border-slate-100 dark:border-gray-800">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-bold text-slate-900">Share Form</h2>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+            Share Form
+          </h2>
           <button
             onclick={closeModal}
             class="text-slate-400 hover:text-slate-600 transition-colors"
@@ -223,8 +225,8 @@
         {#if showMessage}
           <div
             class="p-3 rounded-lg text-sm font-medium {messageType === 'success'
-              ? 'bg-emerald-50 text-emerald-700'
-              : 'bg-red-50 text-red-700'}"
+              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+              : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'}"
           >
             {message}
           </div>
@@ -245,7 +247,7 @@
                 placeholder="Search by username or email..."
                 bind:value={searchQuery}
                 oninput={searchUsers}
-                class="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                class="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:bg-gray-900 focus:border-transparent transition-all"
               />
               {#if loading}
                 <div
@@ -260,7 +262,7 @@
             <div class="flex gap-2">
               <select
                 bind:value={selectedRole}
-                class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                class="flex-1 px-3 py-2 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="viewer">Viewer (Read-only)</option>
                 <option value="editor">Editor (Can edit)</option>
@@ -273,7 +275,7 @@
             <div class="space-y-2">
               {#each searchResults as user (user.id)}
                 <div
-                  class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                  class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div class="flex items-center gap-3 min-w-0">
                     <div
@@ -282,7 +284,9 @@
                       {user.username?.charAt(0).toUpperCase() || "U"}
                     </div>
                     <div class="min-w-0">
-                      <p class="text-xs font-semibold text-slate-900 truncate">
+                      <p
+                        class="text-xs font-semibold text-slate-900 dark:text-white truncate"
+                      >
                         {user.username}
                       </p>
                       <p class="text-[10px] text-slate-500 truncate">
@@ -319,7 +323,9 @@
         </div>
 
         <!-- Collaborators List -->
-        <div class="space-y-3 border-t border-slate-100 pt-6">
+        <div
+          class="space-y-3 border-t border-slate-100 dark:border-gray-800 pt-6"
+        >
           <label class="text-xs font-bold text-slate-600 uppercase"
             >Collaborators ({collaborators.length})</label
           >
@@ -332,17 +338,25 @@
             <div class="space-y-2">
               {#each collaborators as collab (collab.id)}
                 <div
-                  class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                  class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg"
                 >
                   <div class="flex items-center gap-3 min-w-0">
                     <div
-                      class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                      class="w-8 h-8 rounded-full bg-slate-300 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
                     >
-                      {collab.user?.username?.charAt(0).toUpperCase() || "U"}
+                      {collab.user?.user_metadata?.username
+                        ?.charAt(0)
+                        .toUpperCase() ||
+                        collab.user?.email?.charAt(0).toUpperCase() ||
+                        "U"}
                     </div>
                     <div class="min-w-0">
-                      <p class="text-xs font-semibold text-slate-900 truncate">
-                        {collab.user?.username || "Collaborator"}
+                      <p
+                        class="text-xs font-semibold text-slate-900 dark:text-white truncate"
+                      >
+                        {collab.user?.user_metadata?.username ||
+                          collab.user?.email?.split("@")[0] ||
+                          "Collaborator"}
                       </p>
                       <p class="text-[10px] text-slate-500 truncate italic">
                         Access: {collab.role}
@@ -357,7 +371,7 @@
                           collab.user_id,
                           e.currentTarget.value as "viewer" | "editor",
                         )}
-                      class="px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                      class="px-2 py-1.5 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 text-slate-900 dark:text-white rounded text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="viewer">Viewer</option>
                       <option value="editor">Editor</option>
@@ -384,10 +398,12 @@
       </div>
 
       <!-- Footer -->
-      <div class="p-4 border-t border-slate-100 flex justify-end">
+      <div
+        class="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end"
+      >
         <button
           onclick={closeModal}
-          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-semibold text-sm transition-colors"
+          class="px-4 py-2 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-800 dark:text-gray-200 rounded-lg font-semibold text-sm transition-colors"
         >
           Close
         </button>

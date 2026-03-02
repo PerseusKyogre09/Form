@@ -23,6 +23,20 @@
     let avatarFile: File | null = null;
     let avatarPreview = "";
 
+    import {
+        themePreference as themeStore,
+        applyTheme,
+    } from "$lib/stores/theme";
+
+    // Subscribe to theme store and reflect changes
+    $: themePreference = $themeStore;
+
+    function handleThemeChange() {
+        // Live update theme on selection change
+        themeStore.set(themePreference as "light" | "dark" | "auto");
+        applyTheme(themePreference as "light" | "dark" | "auto");
+    }
+
     onMount(async () => {
         const {
             data: { session },
@@ -160,16 +174,20 @@
     }
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+<div
+    class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors"
+>
     <!-- Header -->
-    <header class="border-b border-slate-200 sticky top-0 bg-white/80 backdrop-blur-md z-50 shadow-sm">
+    <header
+        class="border-b border-slate-200 dark:border-gray-800 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50 shadow-sm transition-colors"
+    >
         <div
             class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"
         >
             <div class="flex items-center gap-4">
                 <button
                     onclick={() => goto("/dashboard")}
-                    class="text-slate-500 hover:text-slate-900 transition-colors p-2 hover:bg-slate-100 rounded-lg"
+                    class="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg"
                     title="Back to Dashboard"
                 >
                     <svg
@@ -187,8 +205,14 @@
                     >
                 </button>
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Your Profile</h1>
-                    <p class="text-sm text-slate-500">Manage your account and settings</p>
+                    <h1
+                        class="text-2xl font-bold text-slate-900 dark:text-white"
+                    >
+                        Your Profile
+                    </h1>
+                    <p class="text-sm text-slate-500 dark:text-gray-400">
+                        Manage your account and settings
+                    </p>
                 </div>
             </div>
         </div>
@@ -205,10 +229,16 @@
         {:else}
             <div class="space-y-8">
                 <!-- Avatar & Basic Info Section -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-32"></div>
+                <div
+                    class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden transition-colors"
+                >
+                    <div
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 h-32"
+                    ></div>
                     <div class="px-8 pb-8">
-                        <div class="flex flex-col sm:flex-row gap-6 items-start">
+                        <div
+                            class="flex flex-col sm:flex-row gap-6 items-start"
+                        >
                             <!-- Avatar -->
                             <div class="mt-0 sm:mt-0 relative -mt-16">
                                 <div
@@ -222,13 +252,17 @@
                                         />
                                     {:else}
                                         {displayName
-                                            ? displayName.charAt(0).toUpperCase()
-                                            : user?.email?.charAt(0).toUpperCase() || "U"}
+                                            ? displayName
+                                                  .charAt(0)
+                                                  .toUpperCase()
+                                            : user?.email
+                                                  ?.charAt(0)
+                                                  .toUpperCase() || "U"}
                                     {/if}
                                 </div>
                                 <label
                                     for="avatar-input"
-                                    class="absolute bottom-2 right-2 bg-slate-900 hover:bg-slate-800 text-white p-2 rounded-lg cursor-pointer transition-colors shadow-lg"
+                                    class="absolute bottom-2 right-2 bg-slate-900 dark:bg-gray-800 hover:bg-slate-800 dark:hover:bg-gray-700 border border-transparent dark:border-gray-600 text-white p-2 rounded-lg cursor-pointer transition-colors shadow-lg"
                                     title="Change avatar"
                                 >
                                     <svg
@@ -241,7 +275,10 @@
                                         stroke-width="2"
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        ><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /></svg>
+                                        ><path
+                                            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                                        /></svg
+                                    >
                                 </label>
                                 <input
                                     type="file"
@@ -254,16 +291,26 @@
 
                             <!-- Name Info -->
                             <div class="flex-1 pt-4">
-                                <h2 class="text-3xl font-bold text-slate-900">
-                                    {displayName || user?.email?.split("@")[0] || "Welcome"}
+                                <h2
+                                    class="text-3xl font-bold text-slate-900 dark:text-white"
+                                >
+                                    {displayName ||
+                                        user?.email?.split("@")[0] ||
+                                        "Welcome"}
                                 </h2>
-                                <p class="text-slate-600 mt-1">
+                                <p
+                                    class="text-slate-600 dark:text-gray-400 mt-1"
+                                >
                                     {username
                                         ? `quill.geekroom-srmist.co.in/form/${username}`
                                         : "Set a username to get started"}
                                 </p>
                                 {#if user?.email}
-                                    <p class="text-sm text-slate-500 mt-2">{user.email}</p>
+                                    <p
+                                        class="text-sm text-slate-500 dark:text-gray-500 mt-2"
+                                    >
+                                        {user.email}
+                                    </p>
                                 {/if}
                             </div>
                         </div>
@@ -271,10 +318,20 @@
                 </div>
 
                 <!-- Main Form -->
-                <form onsubmit={(e) => { e.preventDefault(); updateProfile(); }} class="space-y-6">
+                <form
+                    onsubmit={(e) => {
+                        e.preventDefault();
+                        updateProfile();
+                    }}
+                    class="space-y-6"
+                >
                     <!-- Basic Information -->
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-                        <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+                    <div
+                        class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm p-8 transition-colors"
+                    >
+                        <h3
+                            class="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2"
+                        >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="20"
@@ -285,7 +342,10 @@
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                ><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                                ><path
+                                    d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                                /><circle cx="12" cy="7" r="4" /></svg
+                            >
                             Basic Information
                         </h3>
 
@@ -294,7 +354,7 @@
                             <div>
                                 <label
                                     for="displayName"
-                                    class="block text-sm font-medium text-slate-700 mb-2"
+                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
                                     >Display Name</label
                                 >
                                 <input
@@ -302,9 +362,11 @@
                                     id="displayName"
                                     bind:value={displayName}
                                     placeholder="Your full name"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
-                                <p class="text-xs text-slate-500 mt-1">
+                                <p
+                                    class="text-xs text-slate-500 dark:text-gray-400 mt-1"
+                                >
                                     How your name appears to others
                                 </p>
                             </div>
@@ -313,7 +375,7 @@
                             <div>
                                 <label
                                     for="username"
-                                    class="block text-sm font-medium text-slate-700 mb-2"
+                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
                                     >Username</label
                                 >
                                 <input
@@ -321,11 +383,16 @@
                                     id="username"
                                     bind:value={username}
                                     placeholder="Choose a username"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                                 {#if username}
-                                    <p class="text-xs text-blue-600 mt-1 font-medium">
-                                        ✓ quill.com/form/<span class="font-semibold">{username}</span>
+                                    <p
+                                        class="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium"
+                                    >
+                                        ✓ quill.com/form/<span
+                                            class="font-semibold"
+                                            >{username}</span
+                                        >
                                     </p>
                                 {/if}
                             </div>
@@ -334,7 +401,7 @@
                             <div class="sm:col-span-2">
                                 <label
                                     for="bio"
-                                    class="block text-sm font-medium text-slate-700 mb-2"
+                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
                                     >Bio</label
                                 >
                                 <textarea
@@ -342,9 +409,11 @@
                                     bind:value={bio}
                                     placeholder="Tell us about yourself..."
                                     rows="3"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none dark:placeholder:text-gray-500"
                                 ></textarea>
-                                <p class="text-xs text-slate-500 mt-1">
+                                <p
+                                    class="text-xs text-slate-500 dark:text-gray-400 mt-1"
+                                >
                                     {bio.length} / 500 characters
                                 </p>
                             </div>
@@ -353,7 +422,7 @@
                             <div>
                                 <label
                                     for="location"
-                                    class="block text-sm font-medium text-slate-700 mb-2"
+                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
                                     >Location</label
                                 >
                                 <input
@@ -361,7 +430,7 @@
                                     id="location"
                                     bind:value={location}
                                     placeholder="City, Country"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                             </div>
 
@@ -369,7 +438,7 @@
                             <div>
                                 <label
                                     for="website"
-                                    class="block text-sm font-medium text-slate-700 mb-2"
+                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
                                     >Website</label
                                 >
                                 <input
@@ -377,15 +446,19 @@
                                     id="website"
                                     bind:value={website}
                                     placeholder="https://example.com"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <!-- Social Links -->
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-                        <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+                    <div
+                        class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm p-8 transition-colors"
+                    >
+                        <h3
+                            class="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2"
+                        >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="20"
@@ -396,7 +469,12 @@
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                ><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
+                                ><circle cx="12" cy="12" r="1" /><circle
+                                    cx="19"
+                                    cy="12"
+                                    r="1"
+                                /><circle cx="5" cy="12" r="1" /></svg
+                            >
                             Social Links
                         </h3>
 
@@ -407,15 +485,15 @@
                                     for="github"
                                     class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
                                     ><i class="fab fa-github text-base"></i>
-                                        GitHub
-                                    </label>
+                                    GitHub
+                                </label>
                                 >
                                 <input
                                     type="url"
                                     id="github"
                                     bind:value={githubUrl}
                                     placeholder="https://github.com/username"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                             </div>
 
@@ -425,15 +503,15 @@
                                     for="twitter"
                                     class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
                                     ><i class="fab fa-x-twitter text-base"></i>
-                                        X
-                                    </label>
+                                    X
+                                </label>
                                 >
                                 <input
                                     type="url"
                                     id="twitter"
                                     bind:value={twitterUrl}
                                     placeholder="https://x.com/username"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                             </div>
 
@@ -443,23 +521,27 @@
                                     for="linkedin"
                                     class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
                                     ><i class="fab fa-linkedin text-base"></i>
-                                        LinkedIn
-                                    </label>
+                                    LinkedIn
+                                </label>
                                 >
                                 <input
                                     type="url"
                                     id="linkedin"
                                     bind:value={linkedinUrl}
                                     placeholder="https://linkedin.com/in/username"
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <!-- Preferences -->
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-                        <h3 class="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+                    <div
+                        class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm p-8 transition-colors"
+                    >
+                        <h3
+                            class="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2"
+                        >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="20"
@@ -472,7 +554,8 @@
                                 stroke-linejoin="round"
                                 ><circle cx="12" cy="12" r="3" /><path
                                     d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 0l4.24-4.24M1 12h6m6 0h6m-1.78 7.78l-4.24-4.24m-3.08 0l-4.24 4.24"
-                                /></svg>
+                                /></svg
+                            >
                             Preferences
                         </h3>
 
@@ -480,19 +563,22 @@
                             <div>
                                 <label
                                     for="theme"
-                                    class="block text-sm font-medium text-slate-700 mb-2"
+                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
                                     >Theme Preference</label
                                 >
                                 <select
                                     id="theme"
                                     bind:value={themePreference}
-                                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+                                    onchange={handleThemeChange}
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 >
                                     <option value="light">Light</option>
                                     <option value="dark">Dark</option>
                                     <option value="auto">Auto</option>
                                 </select>
-                                <p class="text-xs text-slate-500 mt-1">
+                                <p
+                                    class="text-xs text-slate-500 dark:text-gray-400 mt-1"
+                                >
                                     Choose your preferred interface theme
                                 </p>
                             </div>
@@ -516,7 +602,10 @@
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                ><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /></svg>
+                                ><path
+                                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                                /></svg
+                            >
                             {saving ? "Saving..." : "Save Changes"}
                         </button>
 
@@ -524,7 +613,7 @@
                             type="button"
                             onclick={() => loadProfile()}
                             disabled={saving}
-                            class="w-full sm:w-auto px-6 py-3 border border-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-all disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                            class="w-full sm:w-auto px-6 py-3 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-slate-50 dark:hover:bg-gray-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -538,7 +627,8 @@
                                 stroke-linejoin="round"
                                 ><polyline points="23 4 23 10 17 10" /><path
                                     d="M20.49 15a9 9 0 1 1-2-8.83"
-                                /></svg>
+                                /></svg
+                            >
                             Reset
                         </button>
                     </div>
@@ -547,7 +637,7 @@
                     {#if message}
                         <div
                             transition:fade
-                            class="p-4 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 text-sm flex items-center gap-3"
+                            class="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-200 dark:border-emerald-900/50 text-sm flex items-center gap-3"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -559,7 +649,8 @@
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                ><polyline points="20 6 9 17 4 12" /></svg>
+                                ><polyline points="20 6 9 17 4 12" /></svg
+                            >
                             {message}
                         </div>
                     {/if}
@@ -567,7 +658,7 @@
                     {#if error}
                         <div
                             transition:fade
-                            class="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 text-sm flex items-center gap-3"
+                            class="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-900/50 text-sm flex items-center gap-3"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -579,7 +670,10 @@
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                ><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
+                                ><circle cx="12" cy="12" r="10" /><path
+                                    d="M12 8v4M12 16h.01"
+                                /></svg
+                            >
                             {error}
                         </div>
                     {/if}
