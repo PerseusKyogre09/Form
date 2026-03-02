@@ -924,8 +924,8 @@
         {/if}
       {:else}
         <!-- Form builder layout -->
-        <main class="flex flex-col xl:flex-row gap-6 lg:gap-8">
-          <div class="flex-1 space-y-6">
+        <main class="flex flex-col xl:flex-row gap-6 lg:gap-8 min-w-0">
+          <div class="flex-1 space-y-6 min-w-0">
             <FormBuilder />
           </div>
 

@@ -7,6 +7,7 @@
   import { goto } from "$app/navigation";
   import type { Form } from "../../lib/types";
   import favicon from "$lib/assets/favicon.svg";
+  import DashboardHeader from "$lib/components/DashboardHeader.svelte";
 
   let allForms = $state<Form[]>([]);
   let sharedForms = $state<Form[]>([]);
@@ -17,6 +18,8 @@
   let activeTab = $state<"personal" | "workspace">("personal");
   const PAGE_SIZE = 20;
   let user = $state<any>(null);
+  let userId = $derived(user?.id);
+  // user state is now managed in DashboardHeader.svelte via auth listener but we keep a local reactive copy for convenience in queries
 
   // Derived filtered forms based on active tab
   let filteredForms = $derived(
@@ -25,13 +28,23 @@
     ),
   );
 
-  onMount(async () => {
+  onMount(() => {
+    // Listen for auth changes to update local user copy
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      user = session?.user;
+      if (user) {
+        loadForms(user.id);
+        loadSharedForms(user.id);
+      }
+    });
+
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    user = session?.user;
-    await loadForms();
-    await loadSharedForms();
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      user = session?.user;
+    });
+
+    return () => subscription.unsubscribe();
   });
 
   function generateGradient(id: string) {
@@ -43,14 +56,14 @@
     return `linear-gradient(135deg, hsl(${hue}, 70%, 96%) 0%, hsl(${(hue + 60) % 360}, 70%, 96%) 100%)`;
   }
 
-  async function loadForms() {
+  async function loadForms(userId: string) {
     try {
-      if (!user) return;
+      if (!userId) return;
 
       const { data, error } = await supabase
         .from("forms")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("updated_at", { ascending: false })
         .range(0, PAGE_SIZE - 1);
 
@@ -98,15 +111,14 @@
     }
   }
 
-  async function loadSharedForms() {
+  async function loadSharedForms(userId: string) {
+    if (!userId) return;
     try {
-      if (!user) return;
-
       // Get forms where current user is a collaborator
       const { data: collaborations, error: collabError } = await supabase
         .from("form_collaborators")
         .select("form_id")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       // If table doesn't exist or there's an error, just set empty array
       if (collabError) {
@@ -157,15 +169,15 @@
     }
   }
 
-  async function loadMoreForms() {
-    if (loadingMore || !hasMore || !user) return;
+  async function loadMoreForms(userId: string) {
+    if (loadingMore || !hasMore || !userId) return;
 
     loadingMore = true;
     try {
       const { data, error } = await supabase
         .from("forms")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("updated_at", { ascending: false })
         .range(allForms.length, allForms.length + PAGE_SIZE - 1);
 
@@ -228,10 +240,11 @@
     }
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    goto("/login");
-  }
+  // handleLogout is now managed in DashboardHeader.svelte
+  // async function handleLogout() {
+  //   await supabase.auth.signOut();
+  //   goto("/login");
+  // }
 
   function formatDate(dateString: string | undefined): string {
     if (!dateString) return "Recently edited";
@@ -251,93 +264,7 @@
 </script>
 
 <div class="min-h-screen bg-[#F8F9FA] font-sans text-slate-900">
-  <!-- Header -->
-  <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div
-      class="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between"
-    >
-      <div class="flex items-center gap-8">
-        <!-- Logo -->
-        <a href="/dashboard" class="flex items-center gap-3 group">
-          <img
-            src={favicon}
-            alt="Quill Logo"
-            class="w-8 h-8 group-hover:scale-105 transition-transform"
-          />
-          <span class="text-xl font-bold text-slate-800 tracking-tight"
-            >Quill</span
-          >
-        </a>
-
-        <!-- Global App Tabs -->
-        <div class="flex bg-gray-100/80 p-1 rounded-lg">
-          <a
-            href="/dashboard"
-            class="px-4 py-1.5 bg-white rounded-md shadow-sm text-slate-800 text-sm font-medium transition-all"
-            >My Forms</a
-          >
-          <a
-            href="/certificate-generator"
-            class="px-4 py-1.5 text-gray-500 hover:text-slate-700 text-sm font-medium transition-all flex items-center gap-2"
-          >
-            Certificate
-          </a>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-4">
-        <!-- New Form Button -->
-        <a
-          href="/form-builder"
-          class="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558DD] text-white text-sm font-medium rounded-lg transition-colors shadow-md shadow-indigo-100"
-        >
-          <i class="fas fa-plus"></i>
-          <span>New Form</span>
-        </a>
-
-        <!-- Profile -->
-        {#if user}
-          <div class="relative group cursor-pointer ml-2">
-            <Avatar.Root
-              class="h-9 w-9 border-2 border-white shadow-sm rounded-full overflow-hidden transition-transform hover:scale-105"
-            >
-              <Avatar.Image
-                src={user.user_metadata?.avatar_url ||
-                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
-                alt={user.email || "User avatar"}
-                class="h-full w-full object-cover"
-              />
-              <Avatar.Fallback
-                class="flex items-center justify-center w-full h-full bg-indigo-50 text-indigo-600 font-bold text-xs"
-              >
-                {user.email?.charAt(0).toUpperCase() || "U"}
-              </Avatar.Fallback>
-            </Avatar.Root>
-
-            <!-- Quick Profile Menu -->
-            <div
-              class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right"
-            >
-              <div class="p-2">
-                <a
-                  href="/profile"
-                  class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <i class="fas fa-user w-4"></i> Profile
-                </a>
-                <button
-                  onclick={handleLogout}
-                  class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <i class="fas fa-sign-out-alt w-4"></i> Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        {/if}
-      </div>
-    </div>
-  </header>
+  <DashboardHeader />
 
   <!-- Main Content -->
   <main class="max-w-[1600px] mx-auto px-6 py-10">
@@ -409,6 +336,7 @@
             <button
               onclick={() => (searchQuery = "")}
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Clear search"
             >
               <i class="fas fa-times-circle"></i>
             </button>
@@ -416,6 +344,7 @@
         </div>
         <button
           class="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all"
+          aria-label="Filter forms"
         >
           <i class="fas fa-filter"></i>
         </button>
@@ -499,6 +428,7 @@
                       e.stopPropagation();
                     }}
                     class="w-8 h-8 flex items-center justify-center bg-white/80 hover:bg-white backdrop-blur-sm rounded-lg text-gray-400 hover:text-indigo-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    aria-label="Form options"
                   >
                     <i class="fas fa-ellipsis-h"></i>
                   </button>
@@ -578,6 +508,7 @@
                     e.stopPropagation(); /* Future Analytics nav */
                   }}
                   class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-slate-700 hover:bg-gray-100 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                  aria-label="View analytics"
                 >
                   <i class="far fa-chart-bar text-lg"></i>
                 </button>
@@ -634,7 +565,7 @@
       {#if hasMore && !searchQuery && activeTab === "personal"}
         <div class="text-center mt-12 mb-8">
           <button
-            onclick={loadMoreForms}
+            onclick={() => loadMoreForms(userId)}
             disabled={loadingMore}
             class="px-6 py-2.5 bg-white border border-gray-200 text-slate-600 rounded-full font-medium shadow-sm hover:border-indigo-300 hover:text-indigo-600 transition-all disabled:opacity-50"
           >

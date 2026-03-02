@@ -293,10 +293,14 @@
                         >
                             <i class="fas fa-times text-red-600 text-2xl"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-1">
+                        <h3
+                            class="text-xl font-bold text-slate-900 mb-1 max-w-full break-words"
+                        >
                             Invalid
                         </h3>
-                        <p class="text-sm text-red-600 font-medium">
+                        <p
+                            class="text-sm text-red-600 font-medium max-w-full break-words"
+                        >
                             {lastResult.message}
                         </p>
                     {/if}

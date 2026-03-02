@@ -1928,7 +1928,7 @@
                             bind:value={answers[currentQuestion.id]}
                             placeholder={currentQuestion.placeholder ||
                               "Type your answer here..."}
-                            class="w-full text-2xl md:text-3xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            class="w-full max-w-full text-2xl md:text-3xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 bg-transparent transition-all duration-200"
                             style="color: {currentQuestion?.textColor ||
@@ -1963,9 +1963,9 @@
                             placeholder={currentQuestion.placeholder ||
                               "Type your answer here..."}
                             rows="5"
-                            class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            class="w-full max-w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
-                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 resize-none bg-transparent"
+                              : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 resize-none bg-transparent break-words"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
@@ -2000,7 +2000,7 @@
                             max={currentQuestion.max}
                             placeholder={currentQuestion.placeholder ||
                               "Enter a number..."}
-                            class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            class="w-full max-w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
@@ -2034,7 +2034,7 @@
                             bind:value={answers[currentQuestion.id]}
                             placeholder={currentQuestion.placeholder ||
                               "Enter your email..."}
-                            class="w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            class="w-full max-w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
@@ -2185,7 +2185,7 @@
                                 bind:value={answers[currentQuestion.id]}
                                 placeholder={currentQuestion.placeholder ||
                                   "Enter your phone number..."}
-                                class="w-full min-w-0 text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                                class="w-full max-w-full min-w-0 text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                                   ? 'border-orange-400'
                                   : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                                 style="color: {currentQuestion?.textColor ||

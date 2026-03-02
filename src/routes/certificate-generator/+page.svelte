@@ -13,6 +13,12 @@
     import JSZip from "jszip";
     import favicon from "$lib/assets/favicon.svg";
     import { supabase } from "$lib/supabaseClient";
+    import DashboardHeader from "$lib/components/DashboardHeader.svelte";
+
+    // --- Mobile State ---
+    let activeMobilePanel = $state<"canvas" | "insert" | "properties">(
+        "canvas",
+    );
 
     // --- Import State ---
     let showImportModal = $state(false);
@@ -360,52 +366,22 @@
 <svelte:window on:pointerup={onPointerUp} on:pointermove={onPointerMove} />
 
 <div
-    class="h-screen flex flex-col font-sans text-slate-900 overflow-hidden bg-gray-50"
+    class="h-[100dvh] flex flex-col font-sans text-slate-900 overflow-hidden bg-gray-50"
 >
-    <!-- Top Global Header -->
-    <header class="bg-white border-b border-gray-100 z-50 shrink-0">
-        <div
-            class="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between"
-        >
-            <div class="flex items-center gap-8">
-                <!-- Logo -->
-                <a href="/dashboard" class="flex items-center gap-3 group">
-                    <img
-                        src={favicon}
-                        alt="Quill Logo"
-                        class="w-8 h-8 group-hover:scale-105 transition-transform"
-                    />
-                    <span
-                        class="text-xl font-bold text-slate-800 tracking-tight"
-                        >Quill</span
-                    >
-                </a>
+    <DashboardHeader />
 
-                <!-- Global App Tabs -->
-                <div class="flex bg-gray-100/80 p-1 rounded-lg">
-                    <a
-                        href="/dashboard"
-                        class="px-4 py-1.5 text-gray-500 hover:text-slate-700 text-sm font-medium transition-all"
-                        >My Forms</a
-                    >
-                    <a
-                        href="/certificate-generator"
-                        class="px-4 py-1.5 bg-white rounded-md shadow-sm text-slate-800 text-sm font-medium transition-all flex items-center gap-2"
-                    >
-                        Certificate
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <div class="flex-1 flex w-full overflow-hidden">
+    <div class="flex-1 flex w-full overflow-hidden relative pb-[72px] md:pb-0">
         <!-- Left Sidebar: Controls -->
         <aside
-            class="w-80 bg-white border-r border-gray-200 flex flex-col h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] relative shrink-0"
+            class="fixed inset-x-0 top-16 bottom-0 md:relative md:top-0 w-full md:w-80 bg-white border-r border-gray-200 flex flex-col md:h-full z-20 md:z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 {activeMobilePanel ===
+            'insert'
+                ? 'translate-x-0'
+                : '-translate-x-full md:translate-x-0'} shrink-0"
         >
             <!-- Scrollable configuration area -->
-            <div class="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
+            <div
+                class="flex-1 overflow-y-auto min-h-0 p-6 pb-32 md:pb-6 space-y-8"
+            >
                 <!-- Toolbox -->
                 <section class="space-y-4">
                     <h2
@@ -536,7 +512,10 @@
 
         <!-- Right Sidebar: Properties -->
         <aside
-            class="w-72 bg-white border-l border-gray-200 flex flex-col h-full z-10 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] order-last shrink-0"
+            class="fixed inset-x-0 top-16 bottom-0 md:relative md:top-0 w-full md:w-72 bg-white border-l border-gray-200 flex flex-col md:h-full z-20 md:z-10 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] order-last transition-all duration-300 {activeMobilePanel ===
+            'properties'
+                ? 'translate-x-0'
+                : 'translate-x-full md:translate-x-0'} shrink-0"
         >
             <div
                 class="px-6 py-5 border-b border-gray-100 bg-white/80 backdrop-blur-md"
@@ -547,7 +526,7 @@
                     Properties
                 </h2>
             </div>
-            <div class="flex-1 overflow-y-auto p-6">
+            <div class="flex-1 overflow-y-auto min-h-0 p-6 pb-32 md:pb-6">
                 {#if selectedElement}
                     <div
                         class="space-y-6 animate-in slide-in-from-right-4 duration-300"
@@ -556,7 +535,7 @@
                             <span
                                 class="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide"
                             >
-                                {selectedElement.type}
+                                {selectedElement?.type || "unknown"}
                             </span>
                             <button
                                 onclick={() =>
@@ -573,10 +552,12 @@
                             <div class="space-y-4">
                                 <div class="space-y-1.5">
                                     <label
+                                        for="text-content"
                                         class="text-xs font-semibold text-gray-500"
                                         >Content</label
                                     >
                                     <input
+                                        id="text-content"
                                         type="text"
                                         bind:value={selectedElement.content}
                                         class="w-full p-2.5 text-sm font-medium border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -585,11 +566,13 @@
 
                                 <div class="space-y-1.5">
                                     <label
+                                        for="font-family"
                                         class="text-xs font-semibold text-gray-500"
                                         >Font Family</label
                                     >
                                     <div class="relative">
                                         <select
+                                            id="font-family"
                                             bind:value={
                                                 selectedElement.fontFamily
                                             }
@@ -638,10 +621,12 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <div class="space-y-1.5">
                                         <label
+                                            for="font-size"
                                             class="text-xs font-semibold text-gray-500"
                                             >Size (px)</label
                                         >
                                         <input
+                                            id="font-size"
                                             type="number"
                                             bind:value={
                                                 selectedElement.fontSize
@@ -651,6 +636,7 @@
                                     </div>
                                     <div class="space-y-1.5">
                                         <label
+                                            for="text-color-picker"
                                             class="text-xs font-semibold text-gray-500"
                                             >Color</label
                                         >
@@ -658,6 +644,7 @@
                                             class="flex items-center space-x-2"
                                         >
                                             <input
+                                                id="text-color-picker"
                                                 type="color"
                                                 bind:value={
                                                     selectedElement.color
@@ -676,9 +663,9 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label
+                                    <span
                                         class="text-xs font-semibold text-gray-500"
-                                        >Weight</label
+                                        >Weight</span
                                     >
                                     <div
                                         class="flex bg-gray-100 p-1 rounded-lg"
@@ -703,9 +690,9 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label
+                                    <span
                                         class="text-xs font-semibold text-gray-500"
-                                        >Alignment</label
+                                        >Alignment</span
                                     >
                                     <div
                                         class="flex bg-gray-100 p-1 rounded-lg"
@@ -773,21 +760,25 @@
 
         <!-- Main View: Canvas Area -->
         <main
-            class="flex-1 flex flex-col overflow-hidden relative bg-gray-50/80"
+            class="flex-1 flex flex-col overflow-hidden relative bg-gray-50/80 {activeMobilePanel ===
+            'canvas'
+                ? 'flex'
+                : 'hidden md:flex'}"
             onpointerdown={() => {
                 selectedElementId = null;
             }}
         >
             <!-- Toolbar/Header inside canvas area -->
             <header
-                class="h-16 border-b border-gray-200/80 bg-white/50 backdrop-blur-sm flex items-center px-8 justify-between shrink-0 absolute top-0 w-full z-10"
+                class="h-16 border-b border-gray-200/80 bg-white/50 backdrop-blur-sm flex items-center px-4 sm:px-8 justify-between shrink-0 absolute top-0 w-full z-10"
             >
-                <div class="flex items-center space-x-3">
-                    <span class="text-sm font-semibold text-gray-700"
-                        >Preview Canvas</span
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <span
+                        class="text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap"
+                        >Canvas</span
                     >
                     <span
-                        class="bg-white text-gray-500 text-xs px-2.5 py-1 rounded-md border border-gray-200 font-medium shadow-sm"
+                        class="bg-white text-gray-500 text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-gray-200 font-medium shadow-sm whitespace-nowrap"
                         >{CANVAS_WIDTH} × {CANVAS_HEIGHT} px</span
                     >
                 </div>
@@ -795,15 +786,17 @@
                     <button
                         onclick={generateZip}
                         disabled={isGenerating}
-                        class="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-gray-900/20 hover:shadow-xl hover:shadow-gray-900/30 transition-all flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="bg-gray-900 hover:bg-black text-white px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-gray-900/20 hover:shadow-xl hover:shadow-gray-900/30 transition-all flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span
+                        <span class="hidden xs:inline"
                             >{isGenerating
                                 ? "Generating..."
                                 : "Generate ZIP"}</span
                         >
                         {#if !isGenerating}
-                            <Download size={16} class="ml-1" />
+                            <Download size={14} class="sm:ml-1" />
+                        {:else}
+                            <i class="fas fa-spinner fa-spin text-xs"></i>
                         {/if}
                     </button>
                 </div>
@@ -812,7 +805,7 @@
             <!-- Interactive Canvas Container -->
             <!-- Dot pattern background -->
             <div
-                class="flex-1 overflow-auto p-8 pt-24 pb-20 flex items-center justify-center relative bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"
+                class="flex-1 overflow-auto p-4 sm:p-8 pt-24 pb-28 flex items-center justify-center relative bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"
             >
                 <!-- Actual SVG Canvas Wrapper -->
                 <div
@@ -855,6 +848,9 @@
                                     dominant-baseline="middle"
                                     class="cursor-move select-none"
                                     style="user-select: none;"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-label="Text element: {el.content}"
                                     onpointerdown={(e) =>
                                         onPointerDown(e, el.id)}
                                 >
@@ -890,6 +886,69 @@
                 </div>
             </div>
         </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav
+            class="md:hidden fixed bottom-0 left-0 right-0 h-[72px] bg-white border-t border-gray-200 flex items-center justify-around px-6 z-30 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]"
+        >
+            <button
+                onclick={() => (activeMobilePanel = "insert")}
+                class="flex flex-col items-center gap-1 {activeMobilePanel ===
+                'insert'
+                    ? 'text-blue-600'
+                    : 'text-gray-400'}"
+            >
+                <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center {activeMobilePanel ===
+                    'insert'
+                        ? 'bg-blue-50'
+                        : 'bg-transparent'} transition-colors"
+                >
+                    <Plus size={20} />
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider"
+                    >Insert</span
+                >
+            </button>
+            <button
+                onclick={() => (activeMobilePanel = "canvas")}
+                class="flex flex-col items-center gap-1 {activeMobilePanel ===
+                'canvas'
+                    ? 'text-blue-600'
+                    : 'text-gray-400'}"
+            >
+                <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center {activeMobilePanel ===
+                    'canvas'
+                        ? 'bg-blue-50'
+                        : 'bg-transparent'} transition-colors"
+                >
+                    <ImageIcon size={20} />
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider"
+                    >Canvas</span
+                >
+            </button>
+            <button
+                onclick={() => (activeMobilePanel = "properties")}
+                class="flex flex-col items-center gap-1 {activeMobilePanel ===
+                'properties'
+                    ? 'text-blue-600'
+                    : 'text-gray-400'}"
+            >
+                <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center {activeMobilePanel ===
+                    'properties'
+                        ? 'bg-blue-50'
+                        : 'bg-transparent'} transition-colors"
+                >
+                    <AlignLeft size={20} />
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider"
+                    >Design</span
+                >
+            </button>
+        </nav>
     </div>
 </div>
 

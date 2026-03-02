@@ -127,7 +127,7 @@
           bind:value={block.headerText}
           on:change={updateBlock}
           placeholder="Optional header text"
-          class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400"
+          class="w-full max-w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-slate-50 bg-slate-50 text-slate-900 placeholder:text-slate-400 break-words"
         />
       </div>
 

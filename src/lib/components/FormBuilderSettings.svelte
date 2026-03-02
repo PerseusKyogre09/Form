@@ -458,7 +458,7 @@
                                     onchange={(e) =>
                                         updateSlug(e.currentTarget.value)}
                                     placeholder="my-cool-form"
-                                    class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-white outline-none font-medium transition-all"
+                                    class="w-full max-w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-white outline-none font-medium transition-all"
                                 />
                             </div>
                             <p

@@ -213,15 +213,21 @@
 </script>
 
 <div
-  class="bg-surface-light bg-surface p-8 rounded-xl border border-slate-200 custom-shadow group transition-all duration-200"
+  class="bg-surface-light bg-surface p-4 sm:p-8 rounded-xl border border-slate-200 custom-shadow group transition-all duration-200"
 >
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-3">
+  <div
+    class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4"
+  >
+    <div
+      class="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0"
+    >
       <div
-        class="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400"
+        class="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-400 shrink-0"
         draggable="true"
         on:dragstart={(e) => {
-          e.dataTransfer.effectAllowed = "move";
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move";
+          }
           dispatch("dragstart", e);
         }}
         on:dragend={(e) => dispatch("dragend", e)}
@@ -229,10 +235,10 @@
         <span class="fas fa-grip-vertical"></span>
       </div>
       <span
-        class="w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-lg font-bold text-sm"
+        class="w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-lg font-bold text-sm shrink-0"
         >Q{questionNumber}</span
       >
-      <div class="relative">
+      <div class="relative shrink-0">
         <select
           bind:value={question.type}
           on:change={updateQuestion}
@@ -255,7 +261,9 @@
         ></span>
       </div>
     </div>
-    <div class="flex items-center gap-4">
+    <div
+      class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0"
+    >
       <label class="flex items-center gap-2 cursor-pointer">
         <input
           type="checkbox"
@@ -267,7 +275,8 @@
       </label>
       <button
         on:click={() => dispatch("delete")}
-        class="text-slate-400 hover:text-red-500 transition-colors"
+        class="text-slate-400 hover:text-red-500 transition-colors p-2"
+        aria-label="Delete question"
       >
         <span class="fas fa-trash text-lg"></span>
       </button>
@@ -278,13 +287,15 @@
     <input
       bind:value={question.title}
       on:input={updateQuestion}
-      class="w-full bg-transparent border-none p-0 text-xl font-semibold focus:ring-0 placeholder:text-slate-300 text-slate-900"
+      class="w-full max-w-full bg-transparent border-none p-0 text-xl font-semibold focus:ring-0 placeholder:text-slate-300 text-slate-900 break-words"
       placeholder="Question Title (use _italic_, *bold*, __underline__, ~strikethrough~)"
       type="text"
     />
 
     <!-- Formatting Tip & Toggle -->
-    <div class="flex items-center justify-between gap-4">
+    <div
+      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
+    >
       <div class="text-xs text-slate-500 italic flex-1">
         💡 Use <code class="bg-slate-100 px-1 rounded">_text_</code> italic,
         <code class="bg-slate-100 px-1 rounded">*text*</code> bold
@@ -591,88 +602,112 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <!-- Question Selector -->
-          <select
-            value={question.condition?.questionId || ""}
-            on:change={(e) => {
-              const qId = e.target.value;
-              if (qId) {
-                const options = getOptionsForQuestion(qId);
-                setCondition(qId, "equals", options[0] || "");
-              }
-            }}
-            class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
-          >
-            <option value="">Select question...</option>
-            {#each getConditionalQuestions() as q}
-              <option value={q.id}>
-                Q{allQuestions.findIndex((x) => x.id === q.id) + 1}
-              </option>
-            {/each}
-          </select>
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-[10px] font-bold text-emerald-600/50 uppercase sm:hidden"
+              >Select Question</label
+            >
+            <select
+              value={question.condition?.questionId || ""}
+              on:change={(e) => {
+                const qId = (e.currentTarget as HTMLSelectElement).value;
+                if (qId) {
+                  const options = getOptionsForQuestion(qId);
+                  setCondition(qId, "equals", options[0] || "");
+                }
+              }}
+              class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+            >
+              <option value="">Select question...</option>
+              {#each getConditionalQuestions() as q}
+                <option value={q.id}>
+                  Q{allQuestions.findIndex((x) => x.id === q.id) + 1}
+                </option>
+              {/each}
+            </select>
+          </div>
 
           <!-- Operator Selector -->
-          <select
-            value={question.condition?.operator || "equals"}
-            on:change={(e) => {
-              if (question.condition) {
-                setCondition(
-                  question.condition.questionId,
-                  e.target.value as any,
-                  question.condition.value,
-                );
-              }
-            }}
-            class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
-            disabled={!question.condition?.questionId}
-          >
-            <option value="equals">equals</option>
-            <option value="not_equals">not equals</option>
-            <option value="contains">contains</option>
-          </select>
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-[10px] font-bold text-emerald-600/50 uppercase sm:hidden"
+              >Operator</label
+            >
+            <select
+              value={question.condition?.operator || "equals"}
+              on:change={(e) => {
+                if (question.condition) {
+                  setCondition(
+                    question.condition.questionId,
+                    (e.currentTarget as HTMLSelectElement).value as any,
+                    question.condition.value,
+                  );
+                }
+              }}
+              class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+              disabled={!question.condition?.questionId}
+            >
+              <option value="equals">equals</option>
+              <option value="not_equals">not equals</option>
+              <option value="contains">contains</option>
+            </select>
+          </div>
 
           <!-- Value Selector -->
-          {#if question.condition?.questionId}
-            {@const options = getOptionsForQuestion(
-              question.condition.questionId,
-            )}
-            {#if options.length > 0}
-              <select
-                value={question.condition?.value || ""}
-                on:change={(e) => {
-                  if (question.condition) {
-                    setCondition(
-                      question.condition.questionId,
-                      question.condition.operator,
-                      e.target.value,
-                    );
-                  }
-                }}
-                class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
-              >
-                {#each options as option}
-                  <option value={option}>{option}</option>
-                {/each}
-              </select>
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-[10px] font-bold text-emerald-600/50 uppercase sm:hidden"
+              >Value</label
+            >
+            {#if question.condition?.questionId}
+              {@const options = getOptionsForQuestion(
+                question.condition.questionId,
+              )}
+              {#if options.length > 0}
+                <select
+                  value={question.condition?.value || ""}
+                  on:change={(e) => {
+                    if (question.condition) {
+                      setCondition(
+                        question.condition.questionId,
+                        question.condition.operator,
+                        (e.currentTarget as HTMLSelectElement).value,
+                      );
+                    }
+                  }}
+                  class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+                >
+                  {#each options as option}
+                    <option value={option}>{option}</option>
+                  {/each}
+                </select>
+              {:else}
+                <input
+                  type="text"
+                  value={question.condition?.value || ""}
+                  on:blur={(e) => {
+                    if (question.condition) {
+                      setCondition(
+                        question.condition.questionId,
+                        question.condition.operator,
+                        (e.currentTarget as HTMLInputElement).value,
+                      );
+                    }
+                  }}
+                  placeholder="Enter value..."
+                  class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700 w-full"
+                />
+              {/if}
             {:else}
-              <input
-                type="text"
-                value={question.condition?.value || ""}
-                on:blur={(e) => {
-                  if (question.condition) {
-                    setCondition(
-                      question.condition.questionId,
-                      question.condition.operator,
-                      e.target.value,
-                    );
-                  }
-                }}
-                placeholder="Enter value..."
-                class="text-sm bg-white border border-emerald-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-700"
-              />
+              <div
+                class="h-[38px] bg-slate-50 border border-slate-100 rounded-lg flex items-center px-3 italic text-slate-400 text-xs"
+              >
+                Value...
+              </div>
             {/if}
-          {/if}
+          </div>
         </div>
       </div>
     {/if}
@@ -948,19 +983,19 @@
   </div>
 
   <div
-    class="mt-6 flex items-center justify-between border-t border-slate-100 pt-6"
+    class="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-slate-100 pt-6 gap-6"
   >
-    <div class="relative">
+    <div class="relative w-full sm:w-auto">
       <button
         on:click={() => (showConstraintDropdown = !showConstraintDropdown)}
-        class="flex items-center gap-1.5 text-primary font-semibold hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors text-sm"
+        class="flex items-center justify-center sm:justify-start gap-1.5 text-primary font-semibold hover:bg-indigo-50 px-3 py-2 sm:py-1.5 rounded-lg transition-colors text-sm w-full sm:w-auto border border-primary/20 sm:border-transparent"
       >
         <span class="fas fa-plus-circle text-base"></span>
         Add constraint
       </button>
       {#if showConstraintDropdown}
         <div
-          class="absolute top-full left-0 mt-2 w-56 bg-white bg-surface border border-slate-200 rounded-lg shadow-xl z-20 overflow-hidden"
+          class="absolute bottom-full mb-2 sm:bottom-auto sm:top-full left-0 mt-2 w-full sm:w-56 bg-white bg-surface border border-slate-200 rounded-lg shadow-xl z-20 overflow-hidden"
         >
           {#each getAvailableConstraints() as constraint}
             <button
@@ -974,14 +1009,17 @@
       {/if}
     </div>
 
-    <div class="flex items-center gap-2">
-      <span class="text-xs font-semibold text-slate-400 uppercase mr-2"
+    <div
+      class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto bg-slate-50 sm:bg-transparent p-3 sm:p-0 rounded-lg sm:rounded-none"
+    >
+      <span
+        class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase sm:mr-2"
         >Exit Animation</span
       >
       <select
         bind:value={question.exitAnimation}
         on:change={updateQuestion}
-        class="bg-slate-50 bg-slate-50 border-none rounded-lg text-xs font-medium focus:ring-0 cursor-pointer text-slate-600 dark:text-slate-300"
+        class="bg-white sm:bg-slate-50 border border-slate-200 sm:border-none rounded-lg text-xs font-medium focus:ring-0 cursor-pointer text-slate-600 dark:text-slate-300 py-1.5 px-2"
       >
         <option value={undefined}>None</option>
         {#each animationOptions as option}
