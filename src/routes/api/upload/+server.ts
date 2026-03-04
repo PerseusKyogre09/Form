@@ -2,9 +2,9 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '$env/dynamic/private';
-const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME;
-const CLOUDINARY_API_KEY = env.CLOUDINARY_API_KEY;
-const CLOUDINARY_API_SECRET = env.CLOUDINARY_API_SECRET;
+const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME || "placeholder";
+const CLOUDINARY_API_KEY = env.CLOUDINARY_API_KEY || "placeholder";
+const CLOUDINARY_API_SECRET = env.CLOUDINARY_API_SECRET || "placeholder";
 import streamifier from 'streamifier';
 
 cloudinary.config({

@@ -3,8 +3,8 @@ import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { db } from './db';
 import * as schema from './schema';
 import { env } from '$env/dynamic/private';
-const BETTER_AUTH_SECRET = env.BETTER_AUTH_SECRET;
-const BETTER_AUTH_BASE_URL = env.BETTER_AUTH_BASE_URL;
+const BETTER_AUTH_SECRET = env.BETTER_AUTH_SECRET || "build-time-placeholder-secret-12345678901234567890";
+const BETTER_AUTH_BASE_URL = env.BETTER_AUTH_BASE_URL || "http://localhost:5173";
 import bcrypt from 'bcryptjs';
 
 export const auth = betterAuth({

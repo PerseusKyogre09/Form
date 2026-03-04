@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { env } from '$env/dynamic/private';
-const DATABASE_URL = env.DATABASE_URL;
+const DATABASE_URL = env.DATABASE_URL || "postgresql://placeholder:placeholder@localhost:5432/placeholder";
 import * as schema from './schema';
 
 const sql = neon(DATABASE_URL);
