@@ -12,7 +12,7 @@
     } from "lucide-svelte";
     import JSZip from "jszip";
     import favicon from "$lib/assets/favicon.svg";
-    import { supabase } from "$lib/supabaseClient";
+    import { authClient } from "$lib/authClient";
     import DashboardHeader from "$lib/components/DashboardHeader.svelte";
 
     // --- Mobile State ---
@@ -28,21 +28,27 @@
     let importFilter: "all" | "checked_in" = $state("checked_in");
 
     async function loadImportableForms() {
-        const {
-            data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) {
+        const { data: session } = await authClient.getSession();
+        if (!session?.user) {
             alert("Please log in to import attendees from your forms.");
             return;
         }
-        const { data, error } = await supabase
-            .from("forms")
-            .select("id, title")
-            .eq("user_id", session.user.id)
-            .order("created_at", { ascending: false });
-        if (data) {
-            importableForms = data;
-            showImportModal = true;
+
+        try {
+            const res = await fetch("/api/forms");
+            if (!res.ok) throw new Error("Failed to load forms");
+            const data = await res.json();
+
+            if (data.forms) {
+                importableForms = data.forms.map((f: any) => ({
+                    id: f.id,
+                    title: f.title,
+                }));
+                showImportModal = true;
+            }
+        } catch (err) {
+            console.error("Error loading forms:", err);
+            alert("Failed to load your forms.");
         }
     }
 
@@ -51,62 +57,27 @@
         isImporting = true;
 
         try {
-            // Get the form's name field
-            const { data: formData } = await supabase
-                .from("forms")
-                .select("checkin_name_field_id")
-                .eq("id", selectedImportFormId)
-                .single();
+            const params = new URLSearchParams({
+                formId: selectedImportFormId,
+                filter: importFilter,
+            });
+            const res = await fetch(`/api/certificates/attendees?${params}`);
 
-            let query = supabase
-                .from("form_responses")
-                .select("answers")
-                .eq("form_id", selectedImportFormId);
-
-            if (importFilter === "checked_in") {
-                query = query.eq("checked_in", true);
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || "Failed to fetch attendees");
             }
 
-            const { data: responses } = await query;
+            const { names } = await res.json();
 
-            if (responses && responses.length > 0) {
-                const nameFieldId = formData?.checkin_name_field_id;
-                const ObjectValues = (obj: any) => Object.values(obj || {});
-
-                const names = responses
-                    .map((r: any) => {
-                        // First try the configured name field
-                        if (
-                            nameFieldId &&
-                            r.answers &&
-                            r.answers[nameFieldId]
-                        ) {
-                            return String(r.answers[nameFieldId]);
-                        }
-
-                        // Fallback: try finding any string value in answers
-                        const values = ObjectValues(r.answers);
-                        const firstString = values.find(
-                            (v: any) => typeof v === "string" && v.length > 0,
-                        );
-                        return firstString ? String(firstString) : "";
-                    })
-                    .filter((n: string) => n.trim() !== "");
-
-                if (names.length > 0) {
-                    // Prepend to existing or replace depending on preference. Let's replace for a cleaner slate.
-                    batchNames = names.join("\n");
-                    showImportModal = false;
-                } else {
-                    alert(
-                        "No valid names could be extracted from the responses.",
-                    );
-                }
+            if (names && names.length > 0) {
+                batchNames = names.join("\n");
+                showImportModal = false;
             } else {
                 alert(
                     importFilter === "checked_in"
                         ? "No checked-in attendees found for this form yet."
-                        : "No responses found for this form yet.",
+                        : "No valid names could be extracted from the responses.",
                 );
             }
         } catch (err) {

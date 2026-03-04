@@ -1,7 +1,9 @@
-// Edge-compatible rate limiter using Web Crypto API + Supabase
+// Edge-compatible rate limiter using Web Crypto API + Neon/Drizzle
 // No Node.js built-ins — works on Cloudflare Pages, Vercel Edge, etc.
 
-import { supabase } from '$lib/supabaseClient';
+import { db } from '$lib/server/db';
+import { ip_rate_log } from '$lib/server/schema';
+import { gte, and, eq, count } from 'drizzle-orm';
 
 /**
  * Hash an IP address using SHA-256 via Web Crypto API.
@@ -35,60 +37,64 @@ interface RateLimitResult {
 }
 
 /**
- * Check rate limits against ip_rate_log in Supabase.
+ * Check rate limits against ip_rate_log in Neon.
  * - Micro-burst: max 10 submissions in 5 seconds
  * - Sustained: max 300 submissions per hour
  */
 export async function checkRateLimit(ipHash: string): Promise<RateLimitResult> {
     const now = new Date();
 
-    // Check micro-burst: last 5 seconds
-    const burstCutoff = new Date(now.getTime() - 5 * 1000).toISOString();
-    const { count: burstCount, error: burstError } = await supabase
-        .from('ip_rate_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('ip_hash', ipHash)
-        .gte('created_at', burstCutoff);
+    try {
+        // Check micro-burst: last 5 seconds
+        const burstCutoff = new Date(now.getTime() - 5 * 1000);
+        const [burstResult] = await db
+            .select({ value: count() })
+            .from(ip_rate_log)
+            .where(
+                and(
+                    eq(ip_rate_log.ip_hash, ipHash),
+                    gte(ip_rate_log.created_at, burstCutoff)
+                )
+            );
 
-    if (burstError) {
-        console.error('Rate limit burst check error:', burstError);
+        if ((burstResult.value ?? 0) >= 10) {
+            return { allowed: false, retryAfter: 5 };
+        }
+
+        // Check sustained: last hour
+        const sustainedCutoff = new Date(now.getTime() - 60 * 60 * 1000);
+        const [sustainedResult] = await db
+            .select({ value: count() })
+            .from(ip_rate_log)
+            .where(
+                and(
+                    eq(ip_rate_log.ip_hash, ipHash),
+                    gte(ip_rate_log.created_at, sustainedCutoff)
+                )
+            );
+
+        if ((sustainedResult.value ?? 0) >= 300) {
+            return { allowed: false, retryAfter: 60 };
+        }
+
+        return { allowed: true };
+    } catch (error) {
+        console.error('Rate limit check error:', error);
         // Fail open — don't block legitimate users on DB errors
         return { allowed: true };
     }
-
-    if ((burstCount ?? 0) >= 10) {
-        return { allowed: false, retryAfter: 5 };
-    }
-
-    // Check sustained: last hour
-    const sustainedCutoff = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-    const { count: sustainedCount, error: sustainedError } = await supabase
-        .from('ip_rate_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('ip_hash', ipHash)
-        .gte('created_at', sustainedCutoff);
-
-    if (sustainedError) {
-        console.error('Rate limit sustained check error:', sustainedError);
-        return { allowed: true };
-    }
-
-    if ((sustainedCount ?? 0) >= 300) {
-        return { allowed: false, retryAfter: 60 };
-    }
-
-    return { allowed: true };
 }
 
 /**
  * Log a request to ip_rate_log for future rate limit checks.
  */
 export async function logRequest(ipHash: string, formId: string): Promise<void> {
-    const { error } = await supabase
-        .from('ip_rate_log')
-        .insert({ ip_hash: ipHash, form_id: formId });
-
-    if (error) {
+    try {
+        await db.insert(ip_rate_log).values({
+            ip_hash: ipHash,
+            form_id: formId
+        });
+    } catch (error) {
         console.error('Failed to log rate limit entry:', error);
     }
 }

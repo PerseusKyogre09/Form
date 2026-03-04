@@ -1,139 +1,113 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createSupabaseServerClient } from '$lib/supabaseServer';
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { PRIVATE_SUPABASE_SERVICE_KEY } from '$env/static/private';
+import { db } from '$lib/server/db';
+import { forms, form_collaborators, user as userTable } from '$lib/server/schema';
+import { eq, and } from 'drizzle-orm';
 
-// Create a service role client for administrative tasks (bypasses RLS)
-const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, PRIVATE_SUPABASE_SERVICE_KEY);
-
-export const GET: RequestHandler = async ({ url, params, cookies }) => {
-  const supabase = createSupabaseServerClient(cookies);
+export const GET: RequestHandler = async ({ params, locals }) => {
+  const user = locals.user;
   const formId = params.formId;
 
+  if (!formId) return json({ error: 'Missing formId' }, { status: 400 });
+
   try {
-    // 1. First verify the requester is the owner of the form
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { data: form } = await supabaseAdmin
-      .from('forms')
-      .select('user_id')
-      .eq('id', formId)
-      .single();
+    // 1. First verify the requester is the owner of the form
+    const form = await db.query.forms.findFirst({
+      where: eq(forms.id, formId),
+      columns: { user_id: true }
+    });
 
-    if (!form || form.user_id !== user.id) {
-      // If not owner, check if they are a collaborator (they should be able to see themselves)
-      const { data: isCollab } = await supabaseAdmin
-        .from('form_collaborators')
-        .select('id')
-        .eq('form_id', formId)
-        .eq('user_id', user.id)
-        .single();
+    if (!form) return json({ error: 'Form not found' }, { status: 404 });
+
+    if (form.user_id !== user.id) {
+      // If not owner, check if they are a collaborator
+      const isCollab = await db.query.form_collaborators.findFirst({
+        where: and(
+          eq(form_collaborators.form_id, formId),
+          eq(form_collaborators.user_id, user.id)
+        )
+      });
 
       if (!isCollab) {
         return json({ error: 'Unauthorized' }, { status: 403 });
       }
     }
 
-    // 2. Fetch all collaborators using admin client to bypass RLS issues
-    const { data: collaborators, error } = await supabaseAdmin
-      .from('form_collaborators')
-      .select('*')
-      .eq('form_id', formId);
+    // 2. Fetch all collaborators and their user profiles
+    const collaborators = await db.select({
+      id: form_collaborators.id,
+      form_id: form_collaborators.form_id,
+      user_id: form_collaborators.user_id,
+      role: form_collaborators.role,
+      created_at: form_collaborators.created_at,
+      user: {
+        id: userTable.id,
+        username: userTable.username
+      }
+    })
+      .from(form_collaborators)
+      .innerJoin(userTable, eq(form_collaborators.user_id, userTable.id))
+      .where(eq(form_collaborators.form_id, formId));
 
-    if (error) {
-      console.error('[API] Error fetching collaborators:', error);
-      return json({ collaborators: [] });
-    }
-
-    if (!collaborators || collaborators.length === 0) {
-      return json({ collaborators: [] });
-    }
-
-    // 3. Fetch profiles for these users
-    const userIds = collaborators.map(c => c.user_id);
-    const { data: profiles } = await supabaseAdmin
-      .from('profiles')
-      .select('id, username')
-      .in('id', userIds);
-
-    const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
-    const mappedCollaborators = collaborators.map(c => ({
-      ...c,
-      user: profilesMap.get(c.user_id) || { id: c.user_id, username: null }
-    }));
-
-    return json({ collaborators: mappedCollaborators });
+    return json({ collaborators });
   } catch (error) {
     console.error('Error loading collaborators:', error);
     return json({ collaborators: [] });
   }
 };
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
-  const supabase = createSupabaseServerClient(cookies);
-
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const user = locals.user;
   const { action, formId, userId, role } = await request.json();
 
   try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
 
     // Check if user is form owner
-    const { data: form, error: formError } = await supabase
-      .from('forms')
-      .select('user_id')
-      .eq('id', formId)
-      .single();
+    const form = await db.query.forms.findFirst({
+      where: eq(forms.id, formId),
+      columns: { user_id: true }
+    });
 
-    if (formError || !form || form.user_id !== user.id) {
+    if (!form || form.user_id !== user.id) {
       return json({ error: 'Unauthorized: Only form owner can manage collaborators' }, { status: 403 });
     }
 
     if (action === 'add') {
-      // Add collaborator
-      const { error } = await supabase
-        .from('form_collaborators')
-        .insert({
+      try {
+        await db.insert(form_collaborators).values({
           form_id: formId,
           user_id: userId,
           role: role || 'editor'
         });
-
-      if (error) {
+        return json({ success: true, message: 'Collaborator added successfully' });
+      } catch (error: any) {
         if (error.code === '23505') {
           return json({ error: 'User is already a collaborator on this form' }, { status: 400 });
         }
         throw error;
       }
-
-      return json({ success: true, message: 'Collaborator added successfully' });
     } else if (action === 'remove') {
-      // Remove collaborator
-      const { error } = await supabase
-        .from('form_collaborators')
-        .delete()
-        .eq('form_id', formId)
-        .eq('user_id', userId);
-
-      if (error) throw error;
+      await db.delete(form_collaborators)
+        .where(
+          and(
+            eq(form_collaborators.form_id, formId),
+            eq(form_collaborators.user_id, userId)
+          )
+        );
 
       return json({ success: true, message: 'Collaborator removed successfully' });
     } else if (action === 'update-role') {
-      // Update collaborator role
-      const { error } = await supabase
-        .from('form_collaborators')
-        .update({ role })
-        .eq('form_id', formId)
-        .eq('user_id', userId);
-
-      if (error) throw error;
+      await db.update(form_collaborators)
+        .set({ role })
+        .where(
+          and(
+            eq(form_collaborators.form_id, formId),
+            eq(form_collaborators.user_id, userId)
+          )
+        );
 
       return json({ success: true, message: 'Collaborator role updated successfully' });
     }

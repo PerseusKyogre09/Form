@@ -25,31 +25,29 @@
     const file = input.files?.[0];
     if (file) {
       try {
-        // Dynamic import to avoid issues
-        import("$lib/supabaseClient").then(({ supabase }) => {
-          const fileExt = file.name.split(".").pop();
-          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const formData = new FormData();
+        formData.append("file", file);
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        formData.append("path", `blocks/${fileName}`);
 
-          supabase.storage
-            .from("Images")
-            .upload(`blocks/${fileName}`, file, { upsert: false })
-            .then(({ error: uploadError, data }) => {
-              if (uploadError) throw uploadError;
-
-              const {
-                data: { publicUrl },
-              } = supabase.storage
-                .from("Images")
-                .getPublicUrl(`blocks/${fileName}`);
-
-              block.imageUrl = publicUrl;
-              updateBlock();
-            })
-            .catch((err) => {
-              console.error("Error uploading image:", err);
-              alert("Failed to upload image");
-            });
-        });
+        fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.error || "Upload failed");
+            }
+            const data = await res.json();
+            block.imageUrl = data.url;
+            updateBlock();
+          })
+          .catch((err) => {
+            console.error("Error uploading image:", err);
+            alert("Failed to upload image");
+          });
       } catch (err) {
         console.error("Error uploading image:", err);
         alert("Failed to upload image");

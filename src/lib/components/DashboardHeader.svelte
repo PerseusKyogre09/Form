@@ -2,7 +2,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { Avatar } from "bits-ui";
-    import { supabase } from "$lib/supabaseClient";
+    import { authClient } from "$lib/authClient";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
     import favicon from "$lib/assets/favicon.svg";
@@ -10,23 +10,13 @@
     let user = $state<any>(null);
     let currentPath = $derived($page.url.pathname);
 
-    onMount(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            user = session?.user;
-        });
-
-        // Listen for auth changes to update user state
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
-            user = session?.user;
-        });
-
-        return () => subscription.unsubscribe();
+    onMount(async () => {
+        const { data: session } = await authClient.getSession();
+        user = session?.user || null;
     });
 
     async function handleLogout() {
-        await supabase.auth.signOut();
+        await authClient.signOut();
         goto("/login");
     }
 </script>
@@ -76,7 +66,6 @@
 
         <div class="flex items-center gap-2 sm:gap-4">
             <!-- New Form Button -->
-            <!-- Only show on dashboard and hidden on mobile -->
             {#if currentPath === "/dashboard"}
                 <a
                     href="/form-builder"
@@ -94,7 +83,7 @@
                         class="h-8 w-8 sm:h-9 sm:h-9 border-2 border-white dark:border-gray-700 shadow-sm rounded-full overflow-hidden transition-transform hover:scale-105"
                     >
                         <Avatar.Image
-                            src={user.user_metadata?.avatar_url ||
+                            src={user.image ||
                                 `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
                             alt={user.email || "User avatar"}
                             class="h-full w-full object-cover"

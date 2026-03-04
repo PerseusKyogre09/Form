@@ -1,90 +1,69 @@
-import { createSupabaseServerClient } from '$lib/supabaseServer';
 import { error } from '@sveltejs/kit';
+import { db } from '$lib/server/db';
+import { forms, questions, user as userTable } from '$lib/server/schema';
+import { eq, and } from 'drizzle-orm';
 
-export async function load({ params, cookies }) {
-  const supabase = createSupabaseServerClient(cookies);
+export async function load({ params }) {
   const username = params.username as string;
   const slug = params.slug as string;
 
   try {
-    // Get user by username (indexed query)
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username)
-      .single();
+    // Get user by username
+    const profile = await db.query.user.findFirst({
+      where: eq(userTable.username, username),
+      columns: { id: true }
+    });
 
-    if (profileError || !profileData) {
+    if (!profile) {
       throw error(404, 'User not found');
     }
 
-    // Get the form metadata by user_id and slug (indexed query)
-    const { data, error: formError } = await supabase
-      .from('forms')
-      .select(
-        `
-          id,
-          slug,
-          title,
-          published,
-          closed,
-          background_type,
-          background_color,
-          background_image,
-          theme,
-          global_text_color,
-          enable_checkin
-        `
+    // Get the form metadata by user_id and slug
+    const form = await db.query.forms.findFirst({
+      where: and(
+        eq(forms.user_id, profile.id),
+        eq(forms.slug, slug),
+        eq(forms.published, true)
       )
-      .eq('user_id', profileData.id)
-      .eq('slug', slug)
-      .eq('published', true)
-      .single();
+    });
 
-    if (formError || !data) {
+    if (!form) {
       throw error(404, 'Form not found');
     }
 
     // Check if form is closed
-    if (data.closed) {
+    if (form.closed) {
       throw error(410, 'Form is closed');
     }
 
-    // Fetch questions separately (indexed by form_id)
-    const { data: questionsData, error: questionsError } = await supabase
-      .from('questions')
-      .select('data')
-      .eq('form_id', data.id)
-      .order('order_index', { ascending: true });
+    // Fetch questions separately
+    const questionsData = await db.select({ data: questions.data })
+      .from(questions)
+      .where(eq(questions.form_id, form.id))
+      .orderBy(questions.order_index);
 
-    if (questionsError) {
-      console.error('Error loading questions:', questionsError);
-      throw error(500, 'Error loading questions');
-    }
-
-    // Extract question data from JSONB wrapper
-    const questions = questionsData?.map(q => q.data) || [];
+    const questionsList = questionsData.map(q => q.data);
 
     return {
       form: {
-        id: data.id,
-        slug: data.slug,
-        title: data.title,
-        questions,
-        published: data.published,
-        closed: data.closed || false,
-        backgroundType: data.background_type || 'color',
-        backgroundColor: data.background_color || '#ffffff',
-        backgroundImage: data.background_image || '',
-        globalTextColor: data.global_text_color || '',
-        theme: data.theme || undefined,
-        enable_checkin: data.enable_checkin || false
+        id: form.id,
+        slug: form.slug,
+        title: form.title,
+        questions: questionsList,
+        published: form.published,
+        closed: form.closed || false,
+        backgroundType: form.background_type || 'color',
+        backgroundColor: form.background_color || '#ffffff',
+        backgroundImage: form.background_image || '',
+        globalTextColor: form.global_text_color || '',
+        theme: form.theme || undefined,
+        enable_checkin: form.enable_checkin || false
       }
     };
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error loading form:', err);
     // Re-throw if it's already an HTTP error
-    if (err instanceof Error && err.message.includes('404|410|500')) {
+    if (err?.status) {
       throw err;
     }
     throw error(500, 'Error loading form');

@@ -10,7 +10,7 @@
   import ThankYouPagePreview from "../../../lib/components/ThankYouPagePreview.svelte";
   import type { Form } from "../../../lib/types";
   import { onMount } from "svelte";
-  import { supabase } from "$lib/supabaseClient";
+  import { authClient } from "$lib/authClient";
   import { Button, Tabs } from "bits-ui";
   import { notifications } from "../../../lib/stores/notifications";
   import FormBuilderSettings from "../../../lib/components/FormBuilderSettings.svelte";
@@ -148,7 +148,7 @@
   $: isFixedDevice = selectedPreset !== "Responsive";
 
   currentForm.subscribe((value) => {
-    currentFormData = { closed: false, ...value };
+    currentFormData = value;
   });
 
   // Send form data to the preview iframe
@@ -177,23 +177,19 @@
       });
     }
 
-    // Load form from Supabase directly
+    // Load form from API directly
     try {
-      const { data, error } = await supabase
-        .from("forms")
-        .select(
-          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page, enable_checkin, checkin_name_field_id",
-        )
-        .eq("id", $page.params.formId)
-        .single();
+      const { data: sessionData } = await authClient.getSession();
+      const userId = sessionData?.user?.id || "";
 
-      if (error) {
-        if (error.code === "PGRST116") {
-          // "JSON object requested, multiple (or no) rows returned"
-          // This means the form doesn't exist yet - initialize an empty one
+      const res = await fetch(`/api/forms?formId=${$page.params.formId}`);
+
+      if (!res.ok) {
+        if (res.status === 404) {
           console.log("Initializing new form:", $page.params.formId);
           const newForm: Form = {
             id: $page.params.formId || crypto.randomUUID(),
+            user_id: userId,
             title: "Untitled Form",
             questions: [],
             published: false,
@@ -206,32 +202,11 @@
           };
           currentForm.set(newForm);
         } else {
-          console.error("Error loading form:", error);
+          console.error("Error loading form:", await res.text());
         }
-      } else if (data) {
+      } else {
+        const data = await res.json();
         console.log("Form loaded:", data.id);
-
-        // Fetch questions from the questions table
-        const { data: questionsData } = await supabase
-          .from("questions")
-          .select("data")
-          .eq("form_id", data.id)
-          .order("order_index", { ascending: true });
-
-        // Fetch collaborators for this form (wrapped in try-catch to not break if table doesn't exist)
-        let collaboratorsData = [];
-        try {
-          const { data: collabData, error: collabError } = await supabase
-            .from("form_collaborators")
-            .select("*")
-            .eq("form_id", data.id);
-
-          if (!collabError && collabData) {
-            collaboratorsData = collabData;
-          }
-        } catch (collabErr) {
-          console.warn("Could not load collaborators:", collabErr);
-        }
 
         // Convert snake_case to camelCase for consistency in the app
         const formData = {
@@ -242,8 +217,8 @@
           globalTextColor: data.global_text_color || "",
           thankYouPage: data.thank_you_page || undefined,
           theme: data.theme || undefined,
-          questions: questionsData?.map((q) => q.data) || [],
-          collaborators: collaboratorsData || [],
+          questions: data.questions || [],
+          collaborators: data.collaborators || [],
         };
         currentForm.set(formData);
       }
@@ -253,21 +228,14 @@
       loading = false;
     }
 
-    // Load user's username from profile
+    // Load user's username
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", session.user.id)
-          .single();
-
-        if (data) {
-          username = data.username || "";
-        }
+      const { data: session } = await authClient.getSession();
+      if (session && session.user) {
+        // Temporarily assume username is populated or we use email prefix
+        // The user data from better-auth might have it if extended.
+        username =
+          (session.user as any).username || session.user.email.split("@")[0];
       }
 
       // If the form is published, regenerate the share link so it persists between sessions
@@ -287,108 +255,47 @@
     if (!currentFormData) return;
 
     try {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-      if (authError || !user) {
+      const { data: session } = await authClient.getSession();
+      if (!session || !session.user) {
         alert("You must be logged in to save forms.");
         return;
       }
+      const user = session.user;
 
       console.log("Saving form:", currentFormData.id, "for user:", user.id);
 
-      // Prepare the form data for saving - convert camelCase to snake_case
-      const {
-        backgroundType,
-        backgroundColor,
-        backgroundImage,
-        globalTextColor,
-        thankYouPage,
-        questions,
-        collaborators,
-        user: _, // explicitly extracting out properties to ignore
-        ...rest
-      } = currentFormData as any;
-
-      const formToSave = {
-        ...rest,
+      // Prepare the payload
+      const payload = {
+        id: currentFormData.id,
+        title: currentFormData.title,
+        slug: currentFormData.slug,
+        questions: currentFormData.questions,
+        published: currentFormData.published,
+        closed: currentFormData.closed,
+        background_type: currentFormData.backgroundType,
+        background_color: currentFormData.backgroundColor,
+        background_image: currentFormData.backgroundImage,
+        theme: currentFormData.theme,
+        global_text_color: currentFormData.globalTextColor,
+        thank_you_page: currentFormData.thankYouPage,
         user_id: user.id,
-        background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#ffffff",
-        background_image: currentFormData.backgroundImage || "",
-        global_text_color: currentFormData.globalTextColor || "",
-        thank_you_page: currentFormData.thankYouPage || null,
       };
 
-      // Use upsert directly with Supabase and select() to confirm save
-      const { data, error } = await supabase
-        .from("forms")
-        .upsert(formToSave)
-        .select(
-          "id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page, enable_checkin, checkin_name_field_id",
-        );
+      const apiResponse = await fetch("/api/forms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw new Error(error.message);
+      if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        console.error("API error saving form:", errorText);
+        throw new Error(errorText);
       }
 
-      console.log("Form saved successfully:", data);
-
-      // Always save questions via API if they exist (don't rely on form save success)
-      if (currentFormData.questions && currentFormData.questions.length > 0) {
-        try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-          const token = session?.access_token;
-          if (token) {
-            const apiResponse = await fetch("/api/forms", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                id: currentFormData.id,
-                title: currentFormData.title,
-                slug: currentFormData.slug,
-                questions: currentFormData.questions,
-                published: currentFormData.published,
-                closed: currentFormData.closed,
-                background_type: currentFormData.backgroundType,
-                background_color: currentFormData.backgroundColor,
-                background_image: currentFormData.backgroundImage,
-                theme: currentFormData.theme,
-                global_text_color: currentFormData.globalTextColor,
-                thank_you_page: currentFormData.thankYouPage,
-                user_id: user.id,
-              }),
-            });
-            if (!apiResponse.ok) {
-              const errorText = await apiResponse.text();
-              console.error("API error saving questions:", errorText);
-            }
-          } else {
-            console.warn("No auth token available to save questions");
-          }
-        } catch (apiErr) {
-          console.error("Error calling API to save questions:", apiErr);
-        }
-      }
-
-      if (!data || data.length === 0) {
-        console.warn(
-          "Warning: Upsert returned no data. Form may not have been saved due to RLS policy.",
-        );
-        notifications.add(
-          "Form saved, but please verify the changes persisted.",
-          "info",
-        );
-      } else {
-        notifications.add("Form saved!", "success");
-      }
+      notifications.add("Form saved!", "success");
     } catch (err) {
       console.error("Error saving form:", err);
       notifications.add(
@@ -406,37 +313,30 @@
   async function publishForm() {
     if (!currentFormData) return;
 
-    // Update local form data
     currentForm.update((form) => ({ ...form, published: true }));
 
-    // Save to Supabase
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        notifications.add("You must be logged in to save forms.", "error");
+      const { data: session } = await authClient.getSession();
+      if (!session || !session.user) {
+        notifications.add("You must be logged in to publish forms.", "error");
         return;
       }
 
-      // Convert camelCase to snake_case for database
-      const payload = {
-        id: currentFormData.id,
-        title: currentFormData.title,
-        slug: currentFormData.slug,
-        closed: currentFormData.closed,
-        user_id: user.id,
-        published: true,
-        background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#ffffff",
-        background_image: currentFormData.backgroundImage || "",
-        global_text_color: currentFormData.globalTextColor || "",
-        thank_you_page: currentFormData.thankYouPage || null,
-      };
+      await fetch("/api/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...currentFormData,
+          background_type: currentFormData.backgroundType,
+          background_color: currentFormData.backgroundColor,
+          background_image: currentFormData.backgroundImage,
+          global_text_color: currentFormData.globalTextColor,
+          thank_you_page: currentFormData.thankYouPage,
+          published: true,
+          user_id: session.user.id,
+        }),
+      });
 
-      const { error } = await supabase.from("forms").upsert(payload);
-
-      if (error) throw error;
       notifications.add("Form published!", "success");
     } catch (err) {
       console.error("Error publishing form:", err);
@@ -447,39 +347,32 @@
   async function unpublishForm() {
     if (!currentFormData) return;
 
-    // Update local form data
     currentForm.update((form) => ({ ...form, published: false }));
 
-    // Save to Supabase
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        notifications.add("You must be logged in to publish forms.", "error");
+      const { data: session } = await authClient.getSession();
+      if (!session || !session.user) {
+        notifications.add("You must be logged in to unpublish forms.", "error");
         return;
       }
 
-      // Convert camelCase to snake_case for database
-      const payload = {
-        id: currentFormData.id,
-        title: currentFormData.title,
-        slug: currentFormData.slug,
-        closed: currentFormData.closed,
-        user_id: user.id,
-        published: false,
-        background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#ffffff",
-        background_image: currentFormData.backgroundImage || "",
-        global_text_color: currentFormData.globalTextColor || "",
-        thank_you_page: currentFormData.thankYouPage || null,
-      };
+      await fetch("/api/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...currentFormData,
+          background_type: currentFormData.backgroundType,
+          background_color: currentFormData.backgroundColor,
+          background_image: currentFormData.backgroundImage,
+          global_text_color: currentFormData.globalTextColor,
+          thank_you_page: currentFormData.thankYouPage,
+          published: false,
+          user_id: session.user.id,
+        }),
+      });
 
-      const { error } = await supabase.from("forms").upsert(payload);
-
-      if (error) throw error;
       notifications.add("Form unpublished!", "success");
-      shareLink = ""; // Clear share link when unpublished
+      shareLink = "";
     } catch (err) {
       console.error("Error unpublishing form:", err);
       notifications.add("Failed to unpublish form.", "error");
@@ -493,10 +386,8 @@
     currentForm.update((form) => ({ ...form, closed: newStatus }));
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: session } = await authClient.getSession();
+      if (!session || !session.user) {
         notifications.add(
           "You must be logged in to change form status.",
           "error",
@@ -504,24 +395,21 @@
         return;
       }
 
-      // Convert camelCase to snake_case for database
-      const payload = {
-        id: currentFormData.id,
-        title: currentFormData.title,
-        slug: currentFormData.slug,
-        user_id: user.id,
-        published: currentFormData.published,
-        closed: newStatus,
-        background_type: currentFormData.backgroundType || "color",
-        background_color: currentFormData.backgroundColor || "#ffffff",
-        background_image: currentFormData.backgroundImage || "",
-        global_text_color: currentFormData.globalTextColor || "",
-        thank_you_page: currentFormData.thankYouPage || null,
-      };
+      await fetch("/api/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...currentFormData,
+          background_type: currentFormData.backgroundType,
+          background_color: currentFormData.backgroundColor,
+          background_image: currentFormData.backgroundImage,
+          global_text_color: currentFormData.globalTextColor,
+          thank_you_page: currentFormData.thankYouPage,
+          closed: newStatus,
+          user_id: session.user.id,
+        }),
+      });
 
-      const { error } = await supabase.from("forms").upsert(payload);
-
-      if (error) throw error;
       notifications.add(newStatus ? "Form closed!" : "Form opened!", "success");
     } catch (err) {
       console.error("Error toggling form status:", err);
@@ -582,27 +470,25 @@
       const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      console.log("Uploading to bucket: form-backgrounds, file:", fileName);
+      console.log("Uploading background image to R2, file:", fileName);
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("form-background")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("path", `form-background/${fileName}`);
 
-      if (uploadError) {
-        console.error("Upload error details:", uploadError);
-        throw new Error(
-          uploadError.message || "Failed to upload image to storage",
-        );
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text();
+        console.error("Upload error details:", errText);
+        throw new Error(errText || "Failed to upload image to storage");
       }
 
-      console.log("Upload successful:", uploadData);
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("form-background").getPublicUrl(fileName);
+      const uploadData = await uploadRes.json();
+      const publicUrl = uploadData.url;
 
       console.log("Public URL:", publicUrl);
 

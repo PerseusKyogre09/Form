@@ -1,7 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-
-const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+import { db } from '$lib/server/db';
+import { forms, user as userTable } from '$lib/server/schema';
+import { eq, and } from 'drizzle-orm';
 
 export async function load({ params }) {
   const username = params.username as string;
@@ -19,44 +18,27 @@ export async function load({ params }) {
 
   try {
     // Get the user ID from the username
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username)
-      .single();
+    const profile = await db.query.user.findFirst({
+      where: eq(userTable.username, username),
+      columns: { id: true }
+    });
 
-    if (profileError || !profileData) {
-      console.error('Profile error:', profileError);
+    if (!profile) {
+      console.error('Profile not found');
       return defaults;
     }
 
-    // Try to get the form with check-in field; fall back without it if column doesn't exist
-    let formData: any = null;
-
-    const { data, error } = await supabase
-      .from('forms')
-      .select('id, background_color, theme, thank_you_page, enable_checkin')
-      .eq('user_id', profileData.id)
-      .eq('slug', slug)
-      .single();
-
-    if (error) {
-      // If the error is about the column not existing, retry without it
-      if (error.message?.includes('enable_checkin') || error.code === '42703') {
-        const { data: fallbackData } = await supabase
-          .from('forms')
-          .select('id, background_color, theme, thank_you_page')
-          .eq('user_id', profileData.id)
-          .eq('slug', slug)
-          .single();
-        formData = fallbackData;
-      } else if (error.code !== 'PGRST116') {
-        console.error('Form error:', error);
-        return defaults;
+    // Try to get the form
+    const formData = await db.query.forms.findFirst({
+      where: and(eq(forms.user_id, profile.id), eq(forms.slug, slug)),
+      columns: {
+        id: true,
+        background_color: true,
+        theme: true,
+        thank_you_page: true,
+        enable_checkin: true
       }
-    } else {
-      formData = data;
-    }
+    });
 
     if (formData) {
       return {

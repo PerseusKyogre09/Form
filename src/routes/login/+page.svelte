@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { supabase } from "$lib/supabaseClient";
+    import { authClient } from "$lib/authClient";
     import { goto } from "$app/navigation";
 
     let loading = false;
@@ -12,7 +12,7 @@
             loading = true;
             errorMsg = "";
 
-            const { error } = await supabase.auth.signInWithPassword({
+            const { error } = await authClient.signIn.email({
                 email,
                 password,
             });
@@ -20,7 +20,7 @@
             if (error) throw error;
             goto("/dashboard");
         } catch (error: any) {
-            errorMsg = error.message;
+            errorMsg = error.message || "Failed to sign in";
         } finally {
             loading = false;
         }

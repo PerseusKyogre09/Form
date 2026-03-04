@@ -1,7 +1,8 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createSupabaseServerClient } from '$lib/supabaseServer';
-
+import { db } from '$lib/server/db';
+import { forms, questions as questionsTable, form_responses, form_collaborators } from '$lib/server/schema';
+import { eq, and, desc } from 'drizzle-orm';
 
 // Simple CSV escape function
 function escapeCSV(value: string): string {
@@ -28,98 +29,57 @@ function generateCSV(headers: string[], rows: (string | number | boolean | null)
   return lines.join('\n');
 }
 
-export const GET: RequestHandler = async ({ params, request, cookies }) => {
+export const GET: RequestHandler = async ({ params, locals }) => {
   try {
-    const supabase = createSupabaseServerClient(cookies);
+    const user = locals.user;
     const { formId } = params;
-    console.log('CSV API: Request received for formId:', formId);
 
     if (!formId) {
-      console.log('CSV API: Missing formId parameter');
       return json({ error: 'Missing formId parameter' }, { status: 400 });
     }
 
-    // Get the current user from the Authorization header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('CSV API: No authorization header');
+    if (!user) {
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const token = authHeader.substring(7);
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-
-    if (userError || !user) {
-      console.log('CSV API: User auth failed:', userError);
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    console.log('CSV API: User authenticated:', user.id);
 
     // Get the form to check ownership
-    console.log('CSV API: Fetching form data...');
-    const { data: form, error: formError } = await supabase
-      .from('forms')
-      .select('id, title, user_id')
-      .eq('id', formId)
-      .single();
+    const form = await db.query.forms.findFirst({
+      where: eq(forms.id, formId)
+    });
 
-    if (formError) {
-      console.error('CSV API: Error fetching form:', formError);
-      return json({ error: 'Form not found', details: formError.message }, { status: 404 });
+    if (!form) {
+      return json({ error: 'Form not found' }, { status: 404 });
     }
 
     // Check if user owns the form OR is a collaborator
     if (form.user_id !== user.id) {
-      // Check if user is a collaborator
-      const { data: collaborator, error: collabError } = await supabase
-        .from('form_collaborators')
-        .select('id')
-        .eq('form_id', formId)
-        .eq('user_id', user.id)
-        .single();
+      const collaborator = await db.query.form_collaborators.findFirst({
+        where: and(
+          eq(form_collaborators.form_id, formId),
+          eq(form_collaborators.user_id, user.id)
+        )
+      });
 
-      if (collabError || !collaborator) {
-        console.log('CSV API: User does not own this form and is not a collaborator');
+      if (!collaborator) {
         return json({ error: 'Forbidden' }, { status: 403 });
       }
-
-      console.log('CSV API: User is a collaborator');
     }
 
-    // Fetch questions separately
-    console.log('CSV API: Fetching questions...');
-    const { data: questionsData, error: questionsError } = await supabase
-      .from('questions')
-      .select('id, data')
-      .eq('form_id', formId)
-      .order('order_index', { ascending: true });
+    // Fetch questions
+    const questionsData = await db.select()
+      .from(questionsTable)
+      .where(eq(questionsTable.form_id, formId))
+      .orderBy(questionsTable.order_index);
 
-    if (questionsError) {
-      console.error('CSV API: Error fetching questions:', questionsError);
-      // Continue without questions - might be a form with no questions
-    }
+    const questions = questionsData.map(q => q.data as any);
 
-    const questions = questionsData?.map(q => q.data) || [];
-    console.log('CSV API: Form found:', { id: form.id, title: form.title, questionsCount: questions.length });
-
-    // Get all responses for this form
-    console.log('CSV API: Fetching responses...');
-    const { data: responses, error: responsesError } = await supabase
-      .from('form_responses')
-      .select('id, created_at, answers')
-      .eq('form_id', formId)
-      .order('created_at', { ascending: false });
-
-    if (responsesError) {
-      console.error('CSV API: Error fetching responses:', responsesError);
-      throw error(500, 'Failed to fetch responses');
-    }
-    const responseList = responses || [];
-    console.log('CSV API: Found', responseList.length, 'responses');
+    // Get all responses
+    const responseList = await db.select()
+      .from(form_responses)
+      .where(eq(form_responses.form_id, formId))
+      .orderBy(desc(form_responses.created_at));
 
     // Prepare CSV data
-    console.log('CSV API: Preparing CSV data...');
     const csvHeaders = ['Timestamp', 'Response ID'];
     const questionMap = new Map();
 
@@ -128,29 +88,24 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
       csvHeaders.push(q.title);
       questionMap.set(q.id, index + 2); // +2 because of timestamp and response ID
     });
-    console.log('CSV API: Headers created:', csvHeaders);
 
-    const csvData = [csvHeaders];
-    console.log('CSV API: Processing', responseList.length, 'responses...');
+    const csvData: any[][] = [csvHeaders];
 
     // Add response data
-    responseList.forEach((response: any, index: number) => {
-      if (index < 3) { // Log first few responses
-        console.log(`CSV API: Processing response ${index + 1}:`, { id: response.id, answersCount: Object.keys(response.answers || {}).length });
-      }
-
+    responseList.forEach((response: any) => {
       const row = [
         new Date(response.created_at).toLocaleString(),
         response.id
       ];
 
-      // Initialize empty cells for all questions
+      // Initialize empty cells
       while (row.length < csvHeaders.length) {
         row.push('');
       }
 
       // Fill in answers
-      Object.entries(response.answers || {}).forEach(([questionId, answer]) => {
+      const answers = response.answers as Record<string, any>;
+      Object.entries(answers || {}).forEach(([questionId, answer]) => {
         const columnIndex = questionMap.get(questionId);
         if (columnIndex !== undefined) {
           let value = '';
@@ -160,7 +115,6 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
           } else if (typeof answer === 'string') {
             value = answer;
           } else if (typeof answer === 'number') {
-            // Check if this is a rating question
             const question = questions.find((q: any) => q.id === questionId);
             if (question && question.type === 'rating') {
               value = `${answer}/5`;
@@ -182,17 +136,11 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
       csvData.push(row);
     });
 
-    console.log('CSV API: CSV data prepared, rows:', csvData.length);
-
     // Generate CSV
-    console.log('CSV API: Generating CSV string...');
     const headerRow = csvData[0] as string[];
     const dataRows = csvData.slice(1) as (string | number | boolean | null)[][];
     const csvContent = generateCSV(headerRow, dataRows);
-    console.log('CSV API: CSV generated, length:', csvContent.length);
 
-    // Return CSV file with proper headers
-    console.log('CSV API: Returning CSV response with proper headers');
     return new Response(csvContent, {
       status: 200,
       headers: {
@@ -202,7 +150,7 @@ export const GET: RequestHandler = async ({ params, request, cookies }) => {
     });
 
   } catch (err: any) {
-    console.error('CSV API: Error in endpoint:', err);
+    console.error('CSV API Error:', err);
     return json({ error: 'Failed to generate CSV', details: String(err) }, { status: 500 });
   }
 };

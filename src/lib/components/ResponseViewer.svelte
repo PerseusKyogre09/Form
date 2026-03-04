@@ -1,7 +1,6 @@
 <!-- src/lib/components/ResponseViewer.svelte -->
 <script lang="ts">
   import { onMount } from "svelte";
-  import { supabase } from "$lib/supabaseClient";
   import type { FormResponse, FormElement, Question } from "../types";
   import { isQuestionElement } from "../types";
   import { Button } from "bits-ui";
@@ -34,12 +33,8 @@
     type: "meta",
   };
 
-  // Format: { [questionId]: filterString }
   let filters: Record<string, string> = {};
-  // Track which popover is open
   let openPopoverId: string | null = null;
-
-  // Debounce for text inputs
   let filterTimeout: ReturnType<typeof setTimeout>;
 
   onMount(async () => {
@@ -49,74 +44,18 @@
   async function fetchResponses() {
     loading = true;
     try {
-      // Check if we have any active filters
-      const activeFilters = Object.entries(filters).filter(
-        ([_, value]) => value,
-      );
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        pageSize: String(PAGE_SIZE),
+        sortDir: sortConfig.direction,
+      });
 
-      if (activeFilters.length > 0) {
-        // Use RPC function for filtered queries (more reliable with JSONB)
-        // For simplicity, we'll only support one filter at a time initially
-        const [key, value] = activeFilters[0];
+      const res = await fetch(`/api/responses/${formId}?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch responses");
 
-        const { data, error } = await supabase.rpc("filter_form_responses", {
-          p_form_id: formId,
-          p_question_id: key === "id" || key === "created_at" ? null : key,
-          p_filter_value: value,
-          p_limit: PAGE_SIZE,
-          p_offset: (currentPage - 1) * PAGE_SIZE,
-        });
-
-        if (error) throw error;
-
-        if (data) {
-          responses = data.map((r: any) => ({
-            ...r,
-            timestamp: new Date(r.created_at).getTime(),
-          })) as FormResponse[];
-
-          // For count, we'll need to make a separate count query
-          const { count } = await supabase
-            .from("form_responses")
-            .select("*", { count: "exact", head: true })
-            .eq("form_id", formId);
-          totalCount = count || 0;
-        }
-      } else {
-        // No filters - use standard query
-        let query = supabase
-          .from("form_responses")
-          .select("*", { count: "exact" })
-          .eq("form_id", formId);
-
-        // Apply Sorting
-        if (sortConfig.column === "created_at") {
-          query = query.order("created_at", {
-            ascending: sortConfig.direction === "asc",
-          });
-        } else {
-          query = query.order(sortConfig.column, {
-            ascending: sortConfig.direction === "asc",
-          });
-        }
-
-        // Apply Pagination
-        const from = (currentPage - 1) * PAGE_SIZE;
-        const to = from + PAGE_SIZE - 1;
-        query = query.range(from, to);
-
-        const { data, error, count } = await query;
-
-        if (error) throw error;
-
-        if (data) {
-          responses = data.map((r) => ({
-            ...r,
-            timestamp: new Date(r.created_at).getTime(),
-          })) as FormResponse[];
-          totalCount = count || 0;
-        }
-      }
+      const data = await res.json();
+      responses = data.responses as FormResponse[];
+      totalCount = data.totalCount;
     } catch (error) {
       console.error("Error loading responses:", error);
     } finally {
@@ -128,14 +67,13 @@
     filters[key] = value;
     clearTimeout(filterTimeout);
     filterTimeout = setTimeout(() => {
-      currentPage = 1; // Reset to page 1 on filter
+      currentPage = 1;
       fetchResponses();
-    }, 500); // 500ms debounce
+    }, 500);
   }
 
   function handleSort(column: string, type: "meta" | "answer") {
     if (sortConfig.column === column) {
-      // Toggle direction
       sortConfig.direction = sortConfig.direction === "asc" ? "desc" : "asc";
     } else {
       sortConfig = { column, direction: "asc", type };
@@ -163,22 +101,7 @@
 
   async function downloadCSV() {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-
-      if (!accessToken) {
-        alert("Not authenticated. Please log in again.");
-        return;
-      }
-
-      const response = await fetch(`/api/responses/${formId}/csv`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await fetch(`/api/responses/${formId}/csv`);
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
@@ -203,24 +126,18 @@
 
   async function deleteAllResponses() {
     const confirmed = window.confirm(
-      `Are you sure you want to delete all ${totalCount} response(s)? This action cannot be undone and will free up storage space.`,
+      `Are you sure you want to delete all ${totalCount} response(s)? This action cannot be undone.`,
     );
 
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from("form_responses")
-        .delete()
-        .eq("form_id", formId);
+      const res = await fetch(`/api/responses/${formId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete responses");
 
-      if (error) throw error;
-
-      // Refresh responses list
       responses = [];
       totalCount = 0;
       currentPage = 1;
-      await fetchResponses();
     } catch (error) {
       console.error("Error deleting responses:", error);
       alert("Failed to delete responses. Please try again.");
@@ -228,11 +145,7 @@
   }
 
   function togglePopover(id: string) {
-    if (openPopoverId === id) {
-      openPopoverId = null;
-    } else {
-      openPopoverId = id;
-    }
+    openPopoverId = openPopoverId === id ? null : id;
   }
 
   async function toggleCheckin(responseId: string, currentStatus: boolean) {
@@ -243,17 +156,15 @@
         responses[responseIndex].checked_in = !currentStatus;
       }
 
-      const { error } = await supabase
-        .from("form_responses")
-        .update({ checked_in: !currentStatus })
-        .eq("id", responseId);
+      const res = await fetch(`/api/checkin/${formId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: responseId }),
+      });
 
-      if (error) {
-        throw error;
-      }
+      if (!res.ok) throw new Error("Failed to update check-in");
     } catch (err) {
       console.error("Error toggling checkin:", err);
-      // Revert optimistic update
       const responseIndex = responses.findIndex((r) => r.id === responseId);
       if (responseIndex !== -1) {
         responses[responseIndex].checked_in = currentStatus;
@@ -331,7 +242,6 @@
             <tr
               class="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800"
             >
-              <!-- Timestamp Header -->
               <th
                 class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[140px]"
               >
@@ -344,7 +254,6 @@
                       ></span>
                     {/if}
                   </span>
-
                   <div class="relative">
                     <button
                       on:click={() => handleSort("created_at", "meta")}
@@ -356,7 +265,6 @@
                 </div>
               </th>
 
-              <!-- Question Headers -->
               {#each questionList as question}
                 <th
                   class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[150px]"
@@ -365,7 +273,6 @@
                     <span class="truncate" title={question.title}
                       >{question.title}</span
                     >
-                    <!-- Filter/Sort Trigger -->
                     <div class="relative">
                       <button
                         on:click={() => togglePopover(question.id)}
@@ -378,7 +285,6 @@
                         <span class="fas fa-filter text-xs"></span>
                       </button>
 
-                      <!-- Custom Popover Implementation -->
                       {#if openPopoverId === question.id}
                         <div
                           class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 p-4"
@@ -413,8 +319,6 @@
                               </div>
                             </div>
                           </div>
-
-                          <!-- Click outside to close (simple overlay for now or rely on specific close) -->
                           <button
                             class="absolute top-2 right-2 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400"
                             on:click={() => (openPopoverId = null)}
@@ -422,7 +326,6 @@
                             <span class="fas fa-times"></span>
                           </button>
                         </div>
-                        <!-- Backdrop to close -->
                         <div
                           class="fixed inset-0 z-10"
                           on:click={() => (openPopoverId = null)}
@@ -469,8 +372,9 @@
                     {#if response.answers[question.id] === undefined || response.answers[question.id] === null || response.answers[question.id] === ""}
                       <span class="text-gray-300 dark:text-gray-600">—</span>
                     {:else if Array.isArray(response.answers[question.id])}
+                      {@const items = response.answers[question.id] as string[]}
                       <div class="flex flex-wrap gap-0.5">
-                        {#each response.answers[question.id] as item}
+                        {#each items as item}
                           <span
                             class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                           >

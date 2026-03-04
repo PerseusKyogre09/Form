@@ -1,39 +1,18 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createSupabaseServerClient } from '$lib/supabaseServer';
+import { db } from '$lib/server/db';
+import { forms, questions, form_collaborators, user as userTable } from '$lib/server/schema';
+import { eq, and, or, inArray, desc } from 'drizzle-orm';
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
-  const supabase = createSupabaseServerClient(cookies);
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const user = locals.user;
+  if (!user) {
+    return json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const data = await request.json();
     console.log('POST /api/forms - received data:', { id: data.id, title: data.title });
-
-    // Get the current user from the Authorization header
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('POST /api/forms - No authorization header');
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    console.log('POST /api/forms - Got token, attempting to get user...');
-
-    // For server-side token verification, we need to use the service role key
-    // Since we don't have that, we'll trust the client's user_id in the payload
-    // and verify it's the same user making the request by checking the token
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-
-    if (userError) {
-      console.log('POST /api/forms - User error:', userError);
-      return json({ error: 'Unauthorized: ' + userError.message }, { status: 401 });
-    }
-
-    if (!user) {
-      console.log('POST /api/forms - No user found in token');
-      return json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
-    }
-
-    console.log('POST /api/forms - Got user:', user.id);
 
     // Generate slug from title if not provided
     let slug = data.slug;
@@ -44,92 +23,70 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         .replace(/^-|-$/g, '');
     }
 
-    // Extract questions from payload
-    const questions = data.questions || [];
-    const { questions: _, collaborators: __, user: ___, ...formPayload } = data; // Exclude questions, collaborators, and user from form
+    // Extract questions table data from payload
+    const questionsData = data.questions || [];
+    const { questions: _, collaborators: __, user: ___, ...formPayload } = data;
 
     // Check if form exists and verify permissions
-    let existingForm = null;
     let ownerId = user.id;
 
     if (data.id) {
-      const { data: form } = await supabase
-        .from('forms')
-        .select('user_id')
-        .eq('id', data.id)
-        .single();
+      const existingForm = await db.query.forms.findFirst({
+        where: eq(forms.id, data.id)
+      });
 
-      if (form) {
-        existingForm = form;
-        ownerId = form.user_id;
+      if (existingForm) {
+        ownerId = existingForm.user_id;
 
         // If user is not owner, check if they are an editor
-        if (form.user_id !== user.id) {
-          const { data: collaborator } = await supabase
-            .from('form_collaborators')
-            .select('role')
-            .eq('form_id', data.id)
-            .eq('user_id', user.id)
-            .single();
+        if (existingForm.user_id !== user.id) {
+          const collaborator = await db.query.form_collaborators.findFirst({
+            where: and(
+              eq(form_collaborators.form_id, data.id),
+              eq(form_collaborators.user_id, user.id)
+            )
+          });
 
           if (!collaborator || collaborator.role !== 'editor') {
             return json({ error: 'Unauthorized: You do not have permission to edit this form' }, { status: 403 });
           }
-          // User is an editor, keep original ownerId
         }
       }
     }
 
-    // Ensure form has correct user_id (original owner)
+    // Prepare form payload
     const finalFormPayload = {
       ...formPayload,
       user_id: ownerId,
       slug: slug,
-      updated_at: new Date().toISOString(),
+      updated_at: new Date(),
     };
 
-    console.log('POST /api/forms - Upserting form:', { id: finalFormPayload.id, user_id: finalFormPayload.user_id, acting_user: user.id });
-
-    // Use upsert to handle both create and update
-    const { error: formError } = await supabase
-      .from('forms')
-      .upsert(finalFormPayload);
-
-    if (formError) {
-      console.error('Error upserting form:', formError);
-      return json({ error: formError.message }, { status: 500 });
+    // Use upsert-like logic with Drizzle (Neon Postgres)
+    if (data.id) {
+      await db.update(forms)
+        .set(finalFormPayload)
+        .where(eq(forms.id, data.id));
+    } else {
+      const [newForm] = await db.insert(forms).values(finalFormPayload).returning({ id: forms.id });
+      data.id = newForm.id;
     }
 
-    // Delete existing questions for this form
-    const { error: deleteError } = await supabase
-      .from('questions')
-      .delete()
-      .eq('form_id', data.id);
+    // Handle questions (Delete old, insert new)
+    await db.delete(questions).where(eq(questions.form_id, data.id));
 
-    if (deleteError) {
-      console.error('Error deleting old questions:', deleteError);
-      // Don't fail the whole operation, just log it
-    }
-
-    // Insert new questions
-    if (questions.length > 0) {
-      const questionsData = questions.map((q: any, index: number) => ({
+    if (questionsData.length > 0) {
+      const questionsToInsert = questionsData.map((q: any, index: number) => ({
         form_id: data.id,
         data: q,
-        order_index: index
+        order_index: index,
+        updated_at: new Date()
       }));
 
-      const { error: insertError } = await supabase
-        .from('questions')
-        .insert(questionsData);
-
-      if (insertError) {
-        console.error('Error inserting questions:', insertError);
-        return json({ error: 'Form saved but failed to save questions: ' + insertError.message }, { status: 500 });
-      }
+      await db.insert(questions).values(questionsToInsert);
     }
 
-    console.log('POST /api/forms - Successfully saved form and questions:', finalFormPayload.id);
+    console.log('POST /api/forms - Successfully saved form and questions:', data.id);
     return json({ success: true, id: data.id });
   } catch (error) {
     console.error('Error saving form:', error);
@@ -137,149 +94,114 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 };
 
-export const GET: RequestHandler = async ({ url, request, cookies }) => {
-  const supabase = createSupabaseServerClient(cookies);
+export const GET: RequestHandler = async ({ url, locals }) => {
+  const user = locals.user;
+
   try {
     const formId = url.searchParams.get('formId');
     const slug = url.searchParams.get('slug');
     const username = url.searchParams.get('username');
 
     if (username && slug) {
-      // Look up by username + slug using the helper function
-      const { data, error } = await supabase
-        .rpc('get_form_by_username_slug', {
-          p_username: username,
-          p_slug: slug
-        });
+      // Look up by username + slug
+      const result = await db.select({
+        form: forms,
+      })
+        .from(forms)
+        .innerJoin(userTable, eq(forms.user_id, userTable.id))
+        .where(and(
+          eq(userTable.username, username),
+          eq(forms.slug, slug)
+        ));
 
-      if (error) {
-        console.error('Error fetching form by username/slug:', error);
-        return json({ error: error.message }, { status: 500 });
-      }
-
-      if (!data || data.length === 0) {
+      if (result.length === 0) {
         return json({ error: 'Form not found' }, { status: 404 });
       }
 
-      return json(data[0]);
-    } else if (slug) {
-      // Look up by slug only (for current user's forms)
-      const authHeader = request.headers.get('Authorization');
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
-      }
-
-      const token = authHeader.substring(7);
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-
-      if (userError || !user) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
-      }
-
-      const { data, error } = await supabase
-        .from('forms')
-        .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
-        .eq('slug', slug)
-        // .eq('user_id', user.id) // Removed to allow accessing shared forms
-        .single();
-
-      if (error) {
-        console.error('Error fetching form by slug:', error);
-        return json({ error: error.message }, { status: 404 });
-      }
-
       // Fetch questions for this form
-      const { data: questionsData } = await supabase
-        .from('questions')
-        .select('data')
-        .eq('form_id', data.id)
-        .order('order_index', { ascending: true });
+      const questionsData = await db.select()
+        .from(questions)
+        .where(eq(questions.form_id, result[0].form.id))
+        .orderBy(questions.order_index);
 
       return json({
-        ...data,
-        questions: questionsData?.map((q: any) => q.data) || []
+        ...result[0].form,
+        questions: questionsData.map(q => q.data)
+      });
+    } else if (slug) {
+      const form = await db.query.forms.findFirst({
+        where: eq(forms.slug, slug)
+      });
+
+      if (!form) {
+        return json({ error: 'Form not found' }, { status: 404 });
+      }
+
+      const questionsData = await db.select()
+        .from(questions)
+        .where(eq(questions.form_id, form.id))
+        .orderBy(questions.order_index);
+
+      return json({
+        ...form,
+        questions: questionsData.map(q => q.data)
       });
     } else if (formId) {
-      // Look up by form ID
-      const { data, error } = await supabase
-        .from('forms')
-        .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
-        .eq('id', formId)
-        .single();
+      const form = await db.query.forms.findFirst({
+        where: eq(forms.id, formId)
+      });
 
-      if (error) {
-        console.error('Error fetching form by ID:', error);
-        return json({ error: error.message }, { status: 404 });
+      if (!form) {
+        return json({ error: 'Form not found' }, { status: 404 });
       }
 
-      // Fetch questions for this form
-      const { data: questionsData } = await supabase
-        .from('questions')
-        .select('data')
-        .eq('form_id', data.id)
-        .order('order_index', { ascending: true });
+      const questionsData = await db.select()
+        .from(questions)
+        .where(eq(questions.form_id, form.id))
+        .orderBy(questions.order_index);
 
       return json({
-        ...data,
-        questions: questionsData?.map((q: any) => q.data) || []
+        ...form,
+        questions: questionsData.map(q => q.data)
       });
     }
 
     // Return all forms for the current user
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
 
-    const token = authHeader.substring(7);
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const userForms = await db.select({
+      form: forms
+    })
+      .from(forms)
+      .leftJoin(form_collaborators, eq(forms.id, form_collaborators.form_id))
+      .where(or(
+        eq(forms.user_id, user.id),
+        eq(form_collaborators.user_id, user.id)
+      ))
+      .orderBy(desc(forms.updated_at));
 
-    if (userError || !user) {
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const formsList = Array.from(new Map(userForms.map(item => [item.form.id, item.form])).values());
 
-    let { data: forms, error } = await supabase
-      .from('forms')
-      .select('id, created_at, title, user_id, slug, published, closed, background_type, background_color, background_image, theme, global_text_color, updated_at, thank_you_page')
-      // .eq('user_id', user.id) // Removed to rely on RLS for fetching owned + shared forms
-      .order('updated_at', { ascending: false });
+    if (formsList.length > 0) {
+      const formIds = formsList.map(f => f.id);
+      const allQuestions = await db.select()
+        .from(questions)
+        .where(inArray(questions.form_id, formIds))
+        .orderBy(questions.form_id, questions.order_index);
 
-    if (error) {
-      console.error('Error fetching forms:', error);
-      return json({ error: error.message }, { status: 500 });
-    }
-
-    // Fetch questions for all forms
-    if (forms && forms.length > 0) {
-      const formIds = forms.map((f: any) => f.id);
-      const { data: allQuestions } = await supabase
-        .from('questions')
-        .select('form_id, data')
-        .in('form_id', formIds)
-        .order('form_id, order_index', { ascending: true });
-
-      // Map questions back to forms
       const questionsMap: Record<string, any[]> = {};
-      allQuestions?.forEach((q: any) => {
-        if (!questionsMap[q.form_id]) {
-          questionsMap[q.form_id] = [];
-        }
+      allQuestions.forEach(q => {
+        if (!questionsMap[q.form_id]) questionsMap[q.form_id] = [];
         questionsMap[q.form_id].push(q.data);
       });
 
-      forms = forms.map((f: any) => ({
+      return json(formsList.map(f => ({
         ...f,
         questions: questionsMap[f.id] || []
-      }));
-    } else if (forms) {
-      // Ensure all forms have questions array even if no questions table entries
-      forms = forms.map((f: any) => ({
-        ...f,
-        questions: f.questions || []
-      }));
+      })));
     }
 
-    return json(forms || []);
+    return json(formsList);
   } catch (error) {
     console.error('Error reading forms:', error);
     return json({ error: 'Failed to read forms' }, { status: 500 });

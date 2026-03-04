@@ -147,7 +147,7 @@
 
   async function handleSave() {
     await saveForm();
-    notifications.show("Thank you page updated!", "success");
+    notifications.add("Thank you page updated!", "success");
   }
 </script>
 

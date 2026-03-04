@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import { gsap } from "gsap";
   import { Avatar } from "bits-ui";
-  import { supabase } from "$lib/supabaseClient";
+  import { authClient } from "$lib/authClient";
   import { goto } from "$app/navigation";
   import type { Form } from "../../lib/types";
   import favicon from "$lib/assets/favicon.svg";
@@ -19,7 +19,6 @@
   const PAGE_SIZE = 20;
   let user = $state<any>(null);
   let userId = $derived(user?.id);
-  // user state is now managed in DashboardHeader.svelte via auth listener but we keep a local reactive copy for convenience in queries
 
   // Derived filtered forms based on active tab
   let filteredForms = $derived(
@@ -28,23 +27,16 @@
     ),
   );
 
-  onMount(() => {
-    // Listen for auth changes to update local user copy
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      user = session?.user;
-      if (user) {
-        loadForms(user.id);
-        loadSharedForms(user.id);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      user = session?.user;
-    });
-
-    return () => subscription.unsubscribe();
+  onMount(async () => {
+    // Get session from Better Auth
+    const { data: session } = await authClient.getSession();
+    if (session?.user) {
+      user = session.user;
+      loadForms();
+      loadSharedForms();
+    } else {
+      goto("/login");
+    }
   });
 
   function generateGradient(id: string) {
@@ -56,37 +48,17 @@
     return `linear-gradient(135deg, hsl(${hue}, 70%, 96%) 0%, hsl(${(hue + 60) % 360}, 70%, 96%) 100%)`;
   }
 
-  async function loadForms(userId: string) {
+  async function loadForms() {
     try {
-      if (!userId) return;
+      // Use our API endpoint which handles auth and joins
+      const res = await fetch("/api/forms");
+      if (!res.ok) throw new Error("Failed to load forms");
+      const data = await res.json();
 
-      const { data, error } = await supabase
-        .from("forms")
-        .select("*")
-        .eq("user_id", userId)
-        .order("updated_at", { ascending: false })
-        .range(0, PAGE_SIZE - 1);
-
-      if (error) throw error;
-
-      // Fetch questions for all forms
-      const formsWithQuestions = await Promise.all(
-        (data as Form[])?.map(async (form) => {
-          const { data: questionsData } = await supabase
-            .from("questions")
-            .select("data")
-            .eq("form_id", form.id)
-            .order("order_index", { ascending: true });
-
-          return {
-            ...form,
-            questions: questionsData?.map((q) => q.data) || [],
-          };
-        }) || [],
-      );
-
-      allForms = formsWithQuestions;
-      hasMore = data && data.length === PAGE_SIZE;
+      if (Array.isArray(data)) {
+        allForms = data as Form[];
+      }
+      hasMore = allForms.length >= PAGE_SIZE;
 
       // Animate in forms
       setTimeout(() => {
@@ -111,104 +83,37 @@
     }
   }
 
-  async function loadSharedForms(userId: string) {
-    if (!userId) return;
+  async function loadSharedForms() {
+    // The /api/forms endpoint already returns forms the user collaborates on
+    // So shared forms are those in the API response where user_id !== current user
     try {
-      // Get forms where current user is a collaborator
-      const { data: collaborations, error: collabError } = await supabase
-        .from("form_collaborators")
-        .select("form_id")
-        .eq("user_id", userId);
+      const res = await fetch("/api/forms");
+      if (!res.ok) return;
+      const data = await res.json();
 
-      // If table doesn't exist or there's an error, just set empty array
-      if (collabError) {
-        console.warn(
-          "form_collaborators table not yet available:",
-          collabError,
-        );
-        sharedForms = [];
-        return;
+      if (Array.isArray(data) && user) {
+        // Separate owned vs shared
+        const owned: Form[] = [];
+        const shared: Form[] = [];
+        data.forEach((f: Form) => {
+          if (f.user_id === user.id) {
+            owned.push(f);
+          } else {
+            shared.push(f);
+          }
+        });
+        allForms = owned;
+        sharedForms = shared;
       }
-
-      if (!collaborations || collaborations.length === 0) {
-        sharedForms = [];
-        return;
-      }
-
-      const formIds = collaborations.map((c) => c.form_id);
-
-      // Fetch the actual forms
-      const { data: forms, error: formError } = await supabase
-        .from("forms")
-        .select("*")
-        .in("id", formIds)
-        .order("updated_at", { ascending: false });
-
-      if (formError) throw formError;
-
-      // Fetch questions for shared forms
-      const formsWithQuestions = await Promise.all(
-        (forms as Form[])?.map(async (form) => {
-          const { data: questionsData } = await supabase
-            .from("questions")
-            .select("data")
-            .eq("form_id", form.id)
-            .order("order_index", { ascending: true });
-
-          return {
-            ...form,
-            questions: questionsData?.map((q) => q.data) || [],
-          };
-        }) || [],
-      );
-
-      sharedForms = formsWithQuestions;
     } catch (error) {
       console.error("Error loading shared forms:", error);
       sharedForms = [];
     }
   }
 
-  async function loadMoreForms(userId: string) {
-    if (loadingMore || !hasMore || !userId) return;
-
-    loadingMore = true;
-    try {
-      const { data, error } = await supabase
-        .from("forms")
-        .select("*")
-        .eq("user_id", userId)
-        .order("updated_at", { ascending: false })
-        .range(allForms.length, allForms.length + PAGE_SIZE - 1);
-
-      if (error) throw error;
-      if (data && data.length > 0) {
-        // Fetch questions for new forms
-        const formsWithQuestions = await Promise.all(
-          (data as Form[]).map(async (form) => {
-            const { data: questionsData } = await supabase
-              .from("questions")
-              .select("data")
-              .eq("form_id", form.id)
-              .order("order_index", { ascending: true });
-
-            return {
-              ...form,
-              questions: questionsData?.map((q) => q.data) || [],
-            };
-          }),
-        );
-
-        allForms = [...allForms, ...formsWithQuestions];
-        hasMore = data.length === PAGE_SIZE;
-      } else {
-        hasMore = false;
-      }
-    } catch (error) {
-      console.error("Error loading more forms:", error);
-    } finally {
-      loadingMore = false;
-    }
+  async function loadMoreForms() {
+    // For now, all forms are loaded at once via the API
+    hasMore = false;
   }
 
   function navigateToBuilder(form?: Form) {
@@ -227,10 +132,11 @@
     if (!confirmed) return;
 
     try {
-      // Delete from Supabase
-      const { error } = await supabase.from("forms").delete().eq("id", formId);
+      const res = await fetch(`/api/forms?formId=${formId}`, {
+        method: "DELETE",
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error("Failed to delete form");
 
       // Remove from UI
       allForms = allForms.filter((f) => f.id !== formId);
@@ -568,7 +474,7 @@
       {#if hasMore && !searchQuery && activeTab === "personal"}
         <div class="text-center mt-12 mb-8">
           <button
-            onclick={() => loadMoreForms(userId)}
+            onclick={() => loadMoreForms()}
             disabled={loadingMore}
             class="px-6 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-slate-600 dark:text-gray-300 rounded-full font-medium shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all disabled:opacity-50"
           >

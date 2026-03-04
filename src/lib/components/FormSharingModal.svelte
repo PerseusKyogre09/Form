@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Form, FormCollaborator } from "$lib/types";
-  import { supabase } from "$lib/supabaseClient";
 
   let { form, isOpen = $bindable(false) } = $props();
 

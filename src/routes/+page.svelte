@@ -1,26 +1,22 @@
 <script lang="ts">
+  import { page } from "$app/stores";
   import { onMount } from "svelte";
-  import { supabase } from "$lib/supabaseClient";
   import { fade, fly } from "svelte/transition";
   import favicon from "$lib/assets/favicon.svg";
   import quillScreenshot from "$lib/assets/demo/quill.png";
   import { Button } from "bits-ui";
   import { browser } from "$app/environment";
-  import gsap from "gsap";
-  import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
-  import { SplitText } from "gsap/dist/SplitText";
-
-  if (browser) {
-    gsap.registerPlugin(ScrollTrigger, SplitText);
-  }
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { SplitText } from "gsap/SplitText";
 
   let user: any = null;
 
   onMount(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    user = session?.user;
+    if (browser) {
+      gsap.registerPlugin(ScrollTrigger, SplitText);
+    }
+    user = $page.data.user;
 
     // Hero Text Animation
     // Hero Text Animation

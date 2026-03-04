@@ -109,41 +109,41 @@ export interface FormCollaborator {
   form_id: string;
   user_id: string;
   role: 'viewer' | 'editor';
-  created_at: string;
+  created_at: string | Date;
   // User details (populated from auth.users)
   user?: {
     id: string;
     email: string;
     user_metadata?: {
-      username?: string;
+      username?: string | null;
     };
   };
 }
 
 export interface Form {
   id: string;
-  user_id?: string; // Owner ID
-  slug?: string; // Custom identifier for public link (e.g., "data-class")
-  title: string;
+  user_id: string; // Owner ID
+  slug?: string | null; // Custom identifier for public link (e.g., "data-class")
+  title: string | null;
   questions: FormElement[];
-  published?: boolean;
-  closed?: boolean; // Whether the form is closed for submissions
-  created_at?: string; // ISO timestamp
-  updated_at?: string; // ISO timestamp for last edit
-  background_type?: 'color' | 'image'; // 'color' or 'image'
-  background_color?: string; // hex color for background
-  background_image?: string; // URL or base64 for background image
-  global_text_color?: string; // Global text color override (database)
-  globalTextColor?: string; // Global text color override (camelCase)
+  published?: boolean | null;
+  closed: boolean; // Whether the form is closed for submissions
+  created_at?: string | Date | null; // ISO timestamp
+  updated_at?: string | Date | null; // ISO timestamp for last edit
+  background_type?: 'color' | 'image' | null; // 'color' or 'image'
+  background_color?: string | null; // hex color for background
+  background_image?: string | null; // URL or base64 for background image
+  global_text_color?: string | null; // Global text color override (database)
+  globalTextColor?: string | null; // Global text color override (camelCase)
   // Support both camelCase and snake_case for compatibility
-  backgroundType?: 'color' | 'image';
-  backgroundColor?: string;
-  backgroundImage?: string;
-  theme?: Theme; // Optional theme configuration
-  thankYouPage?: ThankYouPage; // Optional custom thank you page configuration
+  backgroundType?: 'color' | 'image' | null;
+  backgroundColor?: string | null;
+  backgroundImage?: string | null;
+  theme?: Theme | any; // Optional theme configuration
+  thankYouPage?: ThankYouPage | any; // Optional custom thank you page configuration
   collaborators?: FormCollaborator[]; // Shared users with access to this form
   enable_checkin?: boolean; // Whether QR check-in is enabled for this form
-  checkin_name_field_id?: string; // ID of the question field used as participant name
+  checkin_name_field_id?: string | null; // ID of the question field used as participant name
 }
 
 export interface FormResponse {

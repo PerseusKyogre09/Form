@@ -2,7 +2,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { onMount } from "svelte";
-  import { supabase } from "$lib/supabaseClient";
   import type { Theme, ThankYouPage } from "$lib/types";
   import ThankYouPageDisplay from "$lib/components/ThankYouPageDisplay.svelte";
   import QRCode from "qrcode";
@@ -27,46 +26,6 @@
   }
 
   onMount(async () => {
-    // Only fetch if not already loaded from server
-    if (loading) {
-      try {
-        const username = $page.params.username as string;
-        const slug = $page.params.slug as string;
-
-        // First, get the user ID from the username
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("username", username)
-          .single();
-
-        if (profileData) {
-          // Then get the form by user_id and slug
-          const { data: formData } = await supabase
-            .from("forms")
-            .select(
-              "id, background_color, theme, thank_you_page, enable_checkin",
-            )
-            .eq("user_id", profileData.id)
-            .eq("slug", slug)
-            .single();
-
-          if (formData) {
-            theme = formData.theme || null;
-            backgroundColor = formData.background_color || "#ffffff";
-            thankYouPageConfig = formData.thank_you_page;
-            enableCheckin = formData.enable_checkin || false;
-            formId = formData.id;
-            console.log("Thank you page loaded:", thankYouPageConfig);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading thank you page:", error);
-      } finally {
-        loading = false;
-      }
-    }
-
     // Retrieve submission ID from URL or localStorage
     const urlSubmissionId = $page.url.searchParams.get("submissionId");
 

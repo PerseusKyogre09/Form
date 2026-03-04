@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { supabase } from "$lib/supabaseClient";
+    import { authClient } from "$lib/authClient";
     import { goto } from "$app/navigation";
     import { fade } from "svelte/transition";
     import { Button } from "bits-ui";
@@ -32,21 +32,16 @@
     $: themePreference = $themeStore;
 
     function handleThemeChange() {
-        // Live update theme on selection change
         themeStore.set(themePreference as "light" | "dark" | "auto");
         applyTheme(themePreference as "light" | "dark" | "auto");
     }
 
     onMount(async () => {
-        const {
-            data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session) {
+        const { data: session } = await authClient.getSession();
+        if (!session?.user) {
             goto("/login");
             return;
         }
-
         user = session.user;
         await loadProfile();
     });
@@ -54,24 +49,21 @@
     async function loadProfile() {
         try {
             loading = true;
-            const { data, error: fetchError } = await supabase
-                .from("profiles")
-                .select("*")
-                .eq("id", user.id)
-                .single();
+            const res = await fetch("/api/profile");
+            if (!res.ok) throw new Error("Failed to load profile");
+            const { profile } = await res.json();
 
-            if (fetchError && fetchError.code !== "PGRST116") throw fetchError;
-            if (data) {
-                username = data.username || "";
-                displayName = data.display_name || "";
-                bio = data.bio || "";
-                location = data.location || "";
-                website = data.website || "";
-                twitterUrl = data.twitter_url || "";
-                linkedinUrl = data.linkedin_url || "";
-                githubUrl = data.github_url || "";
-                themePreference = data.theme_preference || "light";
-                avatarUrl = data.avatar_url || "";
+            if (profile) {
+                username = profile.username || "";
+                displayName = profile.display_name || profile.name || "";
+                bio = profile.bio || "";
+                location = profile.location || "";
+                website = profile.website || "";
+                twitterUrl = profile.twitter_url || "";
+                linkedinUrl = profile.linkedin_url || "";
+                githubUrl = profile.github_url || "";
+                themePreference = profile.theme_preference || "light";
+                avatarUrl = profile.image || "";
                 avatarPreview = avatarUrl;
             }
         } catch (e: any) {
@@ -94,55 +86,16 @@
         }
     }
 
-    async function uploadAvatar() {
-        if (!avatarFile) return avatarUrl;
-
-        try {
-            const fileExt = avatarFile.name.split(".").pop();
-            const fileName = `${user.id}.${fileExt}`;
-            const filePath = `avatars/${fileName}`;
-
-            // Delete old avatar if exists
-            if (avatarUrl) {
-                try {
-                    await supabase.storage
-                        .from("profile-avatars")
-                        .remove([`avatars/${user.id}`]);
-                } catch (e) {
-                    // Ignore - file might not exist
-                }
-            }
-
-            const { error: uploadError } = await supabase.storage
-                .from("profile-avatars")
-                .upload(filePath, avatarFile, { upsert: true });
-
-            if (uploadError) throw uploadError;
-
-            const { data: publicUrlData } = supabase.storage
-                .from("profile-avatars")
-                .getPublicUrl(filePath);
-
-            return publicUrlData.publicUrl;
-        } catch (e: any) {
-            console.error("Error uploading avatar:", e);
-            throw e;
-        }
-    }
-
     async function updateProfile() {
         try {
             saving = true;
             message = "";
             error = "";
 
+            // TODO: Avatar upload will use R2 once configured
             let newAvatarUrl = avatarUrl;
-            if (avatarFile) {
-                newAvatarUrl = await uploadAvatar();
-            }
 
             const updates = {
-                id: user.id,
                 username,
                 display_name: displayName,
                 bio,
@@ -153,14 +106,19 @@
                 linkedin_url: linkedinUrl,
                 github_url: githubUrl,
                 theme_preference: themePreference,
-                updated_at: new Date().toISOString(),
             };
 
-            const { error: upsertError } = await supabase
-                .from("profiles")
-                .upsert(updates);
+            const res = await fetch("/api/profile", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updates),
+            });
 
-            if (upsertError) throw upsertError;
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to update profile");
+            }
+
             avatarUrl = newAvatarUrl;
             avatarFile = null;
             message = "Profile updated successfully!";
@@ -350,7 +308,6 @@
                         </h3>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <!-- Display Name -->
                             <div>
                                 <label
                                     for="displayName"
@@ -371,7 +328,6 @@
                                 </p>
                             </div>
 
-                            <!-- Username -->
                             <div>
                                 <label
                                     for="username"
@@ -397,7 +353,6 @@
                                 {/if}
                             </div>
 
-                            <!-- Bio -->
                             <div class="sm:col-span-2">
                                 <label
                                     for="bio"
@@ -418,7 +373,6 @@
                                 </p>
                             </div>
 
-                            <!-- Location -->
                             <div>
                                 <label
                                     for="location"
@@ -434,7 +388,6 @@
                                 />
                             </div>
 
-                            <!-- Website -->
                             <div>
                                 <label
                                     for="website"
@@ -477,16 +430,12 @@
                             >
                             Social Links
                         </h3>
-
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <!-- GitHub -->
                             <div>
                                 <label
                                     for="github"
                                     class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
-                                    ><i class="fab fa-github text-base"></i>
-                                    GitHub
-                                </label>
+                                    ><i class="fab fa-github text-base"></i> GitHub</label
                                 >
                                 <input
                                     type="url"
@@ -496,15 +445,11 @@
                                     class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                             </div>
-
-                            <!-- X (formerly Twitter) -->
                             <div>
                                 <label
                                     for="twitter"
                                     class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
-                                    ><i class="fab fa-x-twitter text-base"></i>
-                                    X
-                                </label>
+                                    ><i class="fab fa-x-twitter text-base"></i> X</label
                                 >
                                 <input
                                     type="url"
@@ -514,15 +459,11 @@
                                     class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
                                 />
                             </div>
-
-                            <!-- LinkedIn -->
                             <div>
                                 <label
                                     for="linkedin"
                                     class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
-                                    ><i class="fab fa-linkedin text-base"></i>
-                                    LinkedIn
-                                </label>
+                                    ><i class="fab fa-linkedin text-base"></i> LinkedIn</label
                                 >
                                 <input
                                     type="url"
@@ -558,7 +499,6 @@
                             >
                             Preferences
                         </h3>
-
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <label
@@ -608,7 +548,6 @@
                             >
                             {saving ? "Saving..." : "Save Changes"}
                         </button>
-
                         <button
                             type="button"
                             onclick={() => loadProfile()}
