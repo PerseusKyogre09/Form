@@ -2,7 +2,9 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { db } from './db';
 import * as schema from './schema';
-import { BETTER_AUTH_SECRET, BETTER_AUTH_BASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+const BETTER_AUTH_SECRET = env.BETTER_AUTH_SECRET;
+const BETTER_AUTH_BASE_URL = env.BETTER_AUTH_BASE_URL;
 import bcrypt from 'bcryptjs';
 
 export const auth = betterAuth({

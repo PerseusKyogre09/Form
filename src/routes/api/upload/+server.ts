@@ -1,7 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { v2 as cloudinary } from 'cloudinary';
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_API_KEY = env.CLOUDINARY_API_KEY;
+const CLOUDINARY_API_SECRET = env.CLOUDINARY_API_SECRET;
 import streamifier from 'streamifier';
 
 cloudinary.config({
