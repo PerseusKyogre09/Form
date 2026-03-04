@@ -1,6 +1,7 @@
 name = "quill"
 main = ".svelte-kit/cloudflare/index.js"
 compatibility_date = "2024-01-01"
+compatibility_flags = [ "nodejs_compat" ]
 
 [assets]
 directory = ".svelte-kit/cloudflare/client"
