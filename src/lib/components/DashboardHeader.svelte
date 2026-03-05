@@ -13,6 +13,21 @@
     onMount(async () => {
         const { data: session } = await authClient.getSession();
         user = session?.user || null;
+        
+        // Fetch user profile to get avatar image
+        if (user) {
+            try {
+                const res = await fetch("/api/profile");
+                if (res.ok) {
+                    const { profile } = await res.json();
+                    if (profile?.image) {
+                        user.image = profile.image;
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load profile image:", error);
+            }
+        }
     });
 
     async function handleLogout() {

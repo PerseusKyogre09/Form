@@ -52,12 +52,13 @@
     { name: "Desktop", icon: "fa-desktop", width: 1440, height: 900 },
   ];
 
-  let selectedPreset: string = "Responsive";
+  let selectedPreset: string = "iPhone 14";
   let customWidth: number = 0;
   let customHeight: number = 0;
   let previewContainerEl: HTMLElement;
   let isResizing = false;
   let previewScale = 1;
+  let isMobileDevice = false;
 
   function selectPreset(preset: DevicePreset) {
     selectedPreset = preset.name;
@@ -167,6 +168,11 @@
   }
 
   onMount(async () => {
+    // Detect if on mobile device
+    if (browser) {
+      isMobileDevice = window.innerWidth < 1024;
+    }
+
     // Listen for the iframe signaling it's ready to receive data
     if (browser) {
       window.addEventListener("message", (event) => {
@@ -635,7 +641,13 @@
       </button>
 
       <button
-        on:click={() => (view = "preview")}
+        on:click={() => {
+          if (isMobileDevice) {
+            notifications.add("Preview works best on desktop. Please switch to a desktop or tablet.", "info");
+          } else {
+            view = "preview";
+          }
+        }}
         class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
         'preview'
           ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
@@ -819,7 +831,13 @@
               'preview'
                 ? 'text-primary'
                 : 'text-slate-400 hover:text-slate-600'}"
-              on:click={() => (view = "preview")}
+              on:click={() => {
+                if (isMobileDevice) {
+                  notifications.add("Preview works best on desktop. Please switch to a desktop or tablet.", "info");
+                } else {
+                  view = "preview";
+                }
+              }}
             >
               <span class="fas fa-eye text-xl"></span>
               <span class="text-[10px] font-medium">Preview</span>
@@ -853,7 +871,27 @@
 
 <!-- Fullscreen Preview Overlay (Figma-style) -->
 {#if view === "preview" && currentFormData}
-  <div class="preview-overlay">
+  {#if isMobileDevice}
+    <!-- Mobile: Show message to use desktop -->
+    <div class="preview-overlay preview-mobile-disabled">
+      <div class="preview-mobile-message">
+        <div class="preview-mobile-icon">
+          <i class="fas fa-laptop"></i>
+        </div>
+        <h2>Preview works best on desktop</h2>
+        <p>For the best experience testing your form, please switch to a desktop or tablet.</p>
+        <button
+          on:click={() => (view = "edit")}
+          class="preview-mobile-button"
+          aria-label="Go back to editing"
+        >
+          Back to Editing
+        </button>
+      </div>
+    </div>
+  {:else}
+    <!-- Desktop: Show normal preview -->
+    <div class="preview-overlay">
     <!-- Top Toolbar -->
     <div class="preview-toolbar">
       <div class="preview-toolbar-left">
@@ -961,7 +999,8 @@
         </div>
       {/if}
     </div>
-  </div>
+    </div>
+  {/if}
 {/if}
 
 <style>
@@ -1165,6 +1204,64 @@
     padding: 0;
     background: transparent;
     border: none;
+  }
+
+  /* --- Mobile Preview Disabled --- */
+  .preview-mobile-disabled {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .preview-mobile-message {
+    text-align: center;
+    max-width: 400px;
+    color: #f1f5f9;
+  }
+
+  .preview-mobile-icon {
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.8;
+    color: #94a3b8;
+  }
+
+  .preview-mobile-message h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #f1f5f9;
+  }
+
+  .preview-mobile-message p {
+    font-size: 16px;
+    margin-bottom: 32px;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+
+  .preview-mobile-button {
+    padding: 12px 32px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .preview-mobile-button:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+  }
+
+  .preview-mobile-button:active {
+    transform: translateY(0);
   }
 
   /* --- Mobile adjustments --- */

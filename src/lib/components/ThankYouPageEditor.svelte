@@ -94,6 +94,55 @@
     onUpdate(config);
   }
 
+  async function handleBackgroundImageUpload(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    try {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Please select a valid image file");
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Image must be less than 5MB");
+      }
+
+      const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("path", `thank-you-backgrounds/${fileName}`);
+
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text();
+        throw new Error(errText || "Failed to upload image to Cloudinary");
+      }
+
+      const uploadData = await uploadRes.json();
+      config.backgroundImage = uploadData.url;
+      onUpdate(config);
+      notifications.add("Background image uploaded!", "success");
+    } catch (err: any) {
+      console.error("Error uploading image:", err);
+      notifications.add(err.message || "Failed to upload background image", "error");
+    }
+  }
+
+  function removeBackgroundImage() {
+    config.backgroundImage = undefined;
+    onUpdate(config);
+    notifications.add("Background image removed", "success");
+  }
+
   function addButton() {
     const newButton: ThankYouButton = {
       id: Math.random().toString(36).substr(2, 9),
@@ -179,7 +228,7 @@
           id="enable-custom"
           type="checkbox"
           checked={config.enabled}
-          on:change={toggleEnabled}
+          onchange={toggleEnabled}
           class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary"
         />
       </div>
@@ -196,7 +245,7 @@
             id="title"
             type="text"
             value={config.title}
-            on:input={(e) => updateTitle(e.currentTarget.value)}
+            oninput={(e) => updateTitle(e.currentTarget.value)}
             placeholder="Thank You!"
             class="w-full px-3 py-2 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
           />
@@ -212,7 +261,7 @@
           <textarea
             id="subtitle"
             value={config.subtitle}
-            on:input={(e) => updateSubtitle(e.currentTarget.value)}
+            oninput={(e) => updateSubtitle(e.currentTarget.value)}
             placeholder="Your response has been recorded successfully."
             rows="2"
             class="w-full px-3 py-2 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
@@ -240,7 +289,7 @@
                 id="title-color"
                 type="color"
                 value={config.titleColor || "#1f2937"}
-                on:input={(e) => updateTitleColor(e.currentTarget.value)}
+                oninput={(e) => updateTitleColor(e.currentTarget.value)}
                 class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
               />
               <span class="text-sm text-slate-600 dark:text-gray-400"
@@ -261,7 +310,7 @@
                 id="subtitle-color"
                 type="color"
                 value={config.subtitleColor || "#6b7280"}
-                on:input={(e) => updateSubtitleColor(e.currentTarget.value)}
+                oninput={(e) => updateSubtitleColor(e.currentTarget.value)}
                 class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
               />
               <span class="text-sm text-slate-600 dark:text-gray-400"
@@ -282,7 +331,7 @@
                 id="text-color"
                 type="color"
                 value={config.textColor || "#d1d5db"}
-                on:input={(e) => updateTextColor(e.currentTarget.value)}
+                oninput={(e) => updateTextColor(e.currentTarget.value)}
                 class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
               />
               <span class="text-sm text-slate-600 dark:text-gray-400"
@@ -303,7 +352,7 @@
                 id="icon-color"
                 type="color"
                 value={config.successIconColor || "#22c55e"}
-                on:input={(e) => updateSuccessIconColor(e.currentTarget.value)}
+                oninput={(e) => updateSuccessIconColor(e.currentTarget.value)}
                 class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
               />
               <span class="text-sm text-slate-600 dark:text-gray-400"
@@ -323,7 +372,7 @@
           >
           <div class="flex gap-2">
             <button
-              on:click={() => updateBackgroundType("color")}
+              onclick={() => updateBackgroundType("color")}
               class={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 config.backgroundType === "color"
                   ? "bg-primary text-white"
@@ -333,7 +382,7 @@
               Color
             </button>
             <button
-              on:click={() => updateBackgroundType("image")}
+              onclick={() => updateBackgroundType("image")}
               class={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 config.backgroundType === "image"
                   ? "bg-primary text-white"
@@ -349,12 +398,51 @@
               <input
                 type="color"
                 value={config.backgroundColor}
-                on:input={(e) => updateBackgroundColor(e.currentTarget.value)}
+                oninput={(e) => updateBackgroundColor(e.currentTarget.value)}
                 class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
               />
               <span class="text-sm text-slate-600 dark:text-gray-400"
                 >{config.backgroundColor}</span
               >
+            </div>
+          {:else if config.backgroundType === "image"}
+            <div
+              class="relative w-full h-32 rounded-lg border-2 border-dashed border-slate-300 dark:border-gray-600 bg-slate-50 dark:bg-gray-800 group cursor-pointer hover:border-primary transition-colors overflow-hidden flex items-center justify-center"
+            >
+              {#if config.backgroundImage}
+                <img
+                  src={config.backgroundImage}
+                  alt="Background"
+                  class="absolute inset-0 w-full h-full object-cover opacity-40 blur-[1px]"
+                />
+                <div class="relative flex flex-col items-center gap-2">
+                  <button
+                    onclick={removeBackgroundImage}
+                    class="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                    aria-label="Remove background image"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                  <span
+                    class="text-[10px] font-bold text-slate-600 dark:text-gray-200 bg-white/80 dark:bg-gray-800/80 px-2 py-0.5 rounded shadow-sm"
+                    >Image Uploaded</span
+                  >
+                </div>
+              {:else}
+                <i
+                  class="fas fa-cloud-upload-alt text-slate-300 dark:text-gray-600 text-2xl group-hover:text-primary transition-colors"
+                ></i>
+                <span
+                  class="absolute text-[10px] font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-gray-300"
+                  >Click to upload</span
+                >
+              {/if}
+              <input
+                type="file"
+                accept="image/*"
+                onchange={handleBackgroundImageUpload}
+                class="absolute inset-0 opacity-0 cursor-pointer"
+              />
             </div>
           {/if}
         </div>
@@ -375,7 +463,7 @@
               id="show-icon"
               type="checkbox"
               checked={config.showSuccessIcon}
-              on:change={toggleSuccessIcon}
+              onchange={toggleSuccessIcon}
               class="w-4 h-4 text-primary rounded focus:ring-2"
             />
           </div>
@@ -391,7 +479,7 @@
               id="show-info"
               type="checkbox"
               checked={config.showFormInfo}
-              on:change={toggleFormInfo}
+              onchange={toggleFormInfo}
               class="w-4 h-4 text-primary rounded focus:ring-2"
             />
           </div>
@@ -406,7 +494,7 @@
               >Custom Buttons</label
             >
             <button
-              on:click={addButton}
+              onclick={addButton}
               class="text-xs px-2 py-1 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
             >
               + Add Button
@@ -421,7 +509,7 @@
                 <input
                   type="text"
                   value={button.label}
-                  on:input={(e) =>
+                  oninput={(e) =>
                     updateButton(button.id, "label", e.currentTarget.value)}
                   placeholder="Button Label"
                   class="px-2 py-1 border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-900 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
@@ -429,7 +517,7 @@
                 <input
                   type="text"
                   value={button.url}
-                  on:input={(e) =>
+                  oninput={(e) =>
                     updateButton(button.id, "url", e.currentTarget.value)}
                   placeholder="https://example.com"
                   class="px-2 py-1 border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-900 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
@@ -438,7 +526,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex gap-2">
                   <button
-                    on:click={() =>
+                    onclick={() =>
                       updateButton(
                         button.id,
                         "variant",
@@ -454,7 +542,7 @@
                   </button>
                 </div>
                 <button
-                  on:click={() => removeButton(button.id)}
+                  onclick={() => removeButton(button.id)}
                   class="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded transition-colors"
                 >
                   Remove
@@ -484,7 +572,7 @@
                 </label>
                 {#if getSocialLink(platform.id)}
                   <button
-                    on:click={() => removeSocialLink(platform.id)}
+                    onclick={() => removeSocialLink(platform.id)}
                     class="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded transition-colors"
                   >
                     Remove
@@ -494,7 +582,7 @@
               <input
                 type="url"
                 value={getSocialLink(platform.id)}
-                on:input={(e) =>
+                oninput={(e) =>
                   addOrUpdateSocialLink(platform.id, e.currentTarget.value)}
                 placeholder={`https://${platform.id}.com/yourprofile`}
                 class="w-full px-2 py-1 border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-900 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
@@ -505,7 +593,7 @@
 
         <!-- Save Button -->
         <button
-          on:click={handleSave}
+          onclick={handleSave}
           class="w-full px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
         >
           Save Changes

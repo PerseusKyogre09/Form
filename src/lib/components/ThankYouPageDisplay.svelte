@@ -24,7 +24,9 @@
     class="min-h-screen flex items-center justify-center p-4 transition-colors w-full dark:bg-gray-950"
     style="background-color: {config.backgroundType === 'color'
       ? config.backgroundColor
-      : ''};"
+      : '#ffffff'}; background-image: {config.backgroundType === 'image' && config.backgroundImage
+      ? `url('${config.backgroundImage}')`
+      : 'none'}; background-size: cover; background-position: center;"
   >
     <div class="text-center w-full max-w-2xl">
       {#if config.showSuccessIcon}

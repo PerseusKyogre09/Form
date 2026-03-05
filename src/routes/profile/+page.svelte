@@ -92,8 +92,27 @@
             message = "";
             error = "";
 
-            // TODO: Avatar upload will use R2 once configured
             let newAvatarUrl = avatarUrl;
+
+            // Upload avatar to Cloudinary if a new file is selected
+            if (avatarFile) {
+                const formData = new FormData();
+                formData.append('file', avatarFile);
+                formData.append('path', `avatar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+
+                const uploadRes = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!uploadRes.ok) {
+                    const data = await uploadRes.json();
+                    throw new Error(data.error || "Failed to upload avatar");
+                }
+
+                const { url } = await uploadRes.json();
+                newAvatarUrl = url;
+            }
 
             const updates = {
                 username,

@@ -30,7 +30,9 @@
   class="min-h-screen flex items-center justify-center p-4 transition-colors dark:bg-gray-950"
   style="background-color: {config.backgroundType === 'color'
     ? config.backgroundColor
-    : ''};"
+    : '#ffffff'}; background-image: {config.backgroundType === 'image' && config.backgroundImage
+    ? `url('${config.backgroundImage}')`
+    : 'none'}; background-size: cover; background-position: center;"
 >
   {#if config.enabled && (config.title || config.subtitle || config.buttons.length > 0)}
     <div class="text-center max-w-md">
