@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { user as userTable } from '$lib/server/schema';
+import { user as userTable, forms, form_collaborators, account, session } from '$lib/server/schema';
 import { eq } from 'drizzle-orm';
 
 const ADMIN_EMAILS = ['kyogre.perseus09@gmail.com'];
@@ -46,14 +46,64 @@ export async function POST({ request, locals }) {
                 return json({ error: 'Cannot delete admin users. Remove admin privilege first.' }, { status: 400 });
             }
 
-            const result = await db.delete(userTable).where(eq(userTable.email, email));
+            // Get the user ID first
+            const userRecord = await db
+                .select()
+                .from(userTable)
+                .where(eq(userTable.email, email))
+                .limit(1);
+
+            if (userRecord.length === 0) {
+                return json({ error: 'User not found' }, { status: 404 });
+            }
+
+            const userId = userRecord[0].id;
+
+            try {
+                // Delete related data in the correct order
+                // 1. Delete sessions
+                await db.delete(session).where(eq(session.userId, userId));
+            } catch (err) {
+                console.error('Error deleting sessions:', err);
+            }
+
+            try {
+                // 2. Delete form collaborators
+                await db.delete(form_collaborators).where(eq(form_collaborators.user_id, userId));
+            } catch (err) {
+                console.error('Error deleting form collaborators:', err);
+            }
+
+            try {
+                // 3. Delete user accounts
+                await db.delete(account).where(eq(account.userId, userId));
+            } catch (err) {
+                console.error('Error deleting accounts:', err);
+            }
+
+            try {
+                // 4. Delete user forms (cascades will handle form_responses)
+                await db.delete(forms).where(eq(forms.user_id, userId));
+            } catch (err) {
+                console.error('Error deleting forms:', err);
+            }
+
+            try {
+                // 5. Finally delete the user
+                await db.delete(userTable).where(eq(userTable.email, email));
+            } catch (err) {
+                console.error('Error deleting user:', err);
+                throw err;
+            }
+
             return json({ success: true, message: `User ${email} deleted` });
         }
 
         return json({ error: 'Invalid action' }, { status: 400 });
     } catch (error) {
         console.error('Error managing admins:', error);
-        return json({ error: 'Failed to manage admins' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return json({ error: `Failed to manage admins: ${errorMessage}` }, { status: 500 });
     }
 }
 
