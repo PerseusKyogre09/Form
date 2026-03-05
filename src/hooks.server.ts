@@ -1,14 +1,16 @@
 import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import type { Handle } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 
-export const handle: Handle = async ({ event, resolve }) => {
+/** @type {import('@sveltejs/kit').Handle} */
+export async function handle({ event, resolve }) {
     // Better Auth SvelteKit handler handles /api/auth/* routes
     if (event.url.pathname.startsWith('/api/auth')) {
         return svelteKitHandler({ event, resolve, auth });
     }
 
-    // For other routes, we can pre-fetch the session to populate locals
+    // First, fetch the session and populate locals
     const session = await auth.api.getSession({
         headers: event.request.headers
     });
@@ -21,5 +23,13 @@ export const handle: Handle = async ({ event, resolve }) => {
         event.locals.session = null;
     }
 
+    // Now check admin access after session is populated
+    if (event.url.pathname.startsWith('/admin')) {
+        const user = event.locals.user;
+        if (!user || !['kyogre.perseus09@gmail.com'].includes(user.email)) {
+            throw redirect(303, '/unauthorized');
+        }
+    }
+
     return resolve(event);
-};
+}
