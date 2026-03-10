@@ -304,3 +304,84 @@ export const DELETE: RequestHandler = async ({ request, locals, url }) => {
     return json({ error: 'Failed to delete form: ' + (error instanceof Error ? error.message : String(error)) }, { status: 500 });
   }
 };
+
+export const PATCH: RequestHandler = async ({ request, locals }) => {
+  const user = locals.user;
+  if (!user) {
+    return json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { action, formId, includeResponses } = await request.json();
+
+    if (action === 'duplicate') {
+      if (!formId) {
+        return json({ error: 'Missing formId' }, { status: 400 });
+      }
+
+      // Verify the user owns this form
+      const originalForm = await db.query.forms.findFirst({
+        where: eq(forms.id, formId)
+      });
+
+      if (!originalForm) {
+        return json({ error: 'Form not found' }, { status: 404 });
+      }
+
+      if (originalForm.user_id !== user.id) {
+        return json({ error: 'Unauthorized: You do not have permission to duplicate this form' }, { status: 403 });
+      }
+
+      // Get all questions for the original form
+      const originalQuestions = await db.select()
+        .from(questions)
+        .where(eq(questions.form_id, formId))
+        .orderBy(questions.order_index);
+
+      // Create new form with duplicated name
+      const newFormId = crypto.randomUUID();
+      const duplicatedTitle = `${originalForm.title} (Copy)`;
+
+      await db.insert(forms).values({
+        id: newFormId,
+        title: duplicatedTitle,
+        user_id: user.id,
+        slug: `${originalForm.slug || duplicatedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${newFormId.substring(0, 8)}`,
+        published: false, // Always set to draft when duplicating
+        closed: originalForm.closed,
+        background_type: originalForm.background_type,
+        background_color: originalForm.background_color,
+        background_image: originalForm.background_image,
+        theme: originalForm.theme,
+        global_text_color: originalForm.global_text_color,
+        thank_you_page: originalForm.thank_you_page,
+        enable_checkin: originalForm.enable_checkin,
+        checkin_name_field_id: originalForm.checkin_name_field_id
+      });
+
+      // Duplicate questions
+      if (originalQuestions.length > 0) {
+        for (let index = 0; index < originalQuestions.length; index++) {
+          const q = originalQuestions[index];
+          await db.insert(questions).values({
+            form_id: newFormId,
+            data: q.data as any,
+            order_index: q.order_index
+          });
+        }
+      }
+
+      console.log('Form duplicated successfully. Original:', formId, 'New:', newFormId);
+      return json({ 
+        success: true, 
+        newFormId: newFormId,
+        message: `Form duplicated successfully${includeResponses ? '. Note: responses were not copied.' : '.'}`
+      });
+    }
+
+    return json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error) {
+    console.error('Error patching form:', error);
+    return json({ error: 'Failed to process request: ' + (error instanceof Error ? error.message : String(error)) }, { status: 500 });
+  }
+};

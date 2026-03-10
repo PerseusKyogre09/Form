@@ -19,6 +19,11 @@
   const PAGE_SIZE = 20;
   let user = $state<any>(null);
   let userId = $derived(user?.id);
+  
+  // Duplicate form modal state
+  let showDuplicateModal = $state(false);
+  let formToDuplicate = $state<Form | null>(null);
+  let duplicating = $state(false);
 
   // Derived filtered forms based on active tab
   let filteredForms = $derived(
@@ -143,6 +148,50 @@
     } catch (error) {
       console.error("Error deleting form:", error);
       alert("Failed to delete form. Please try again.");
+    }
+  }
+
+  function openDuplicateModal(form: Form) {
+    formToDuplicate = form;
+    showDuplicateModal = true;
+  }
+
+  async function duplicateForm(includeResponses: boolean) {
+    if (!formToDuplicate) return;
+
+    const originalTitle = formToDuplicate.title;
+    duplicating = true;
+    try {
+      const res = await fetch("/api/forms", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "duplicate",
+          formId: formToDuplicate.id,
+          includeResponses: includeResponses,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to duplicate form");
+      }
+
+      const data = await res.json();
+      
+      // Reload forms to show the new duplicated form
+      await loadForms();
+      
+      showDuplicateModal = false;
+      formToDuplicate = null;
+      alert(`Form "${originalTitle}" duplicated successfully!`);
+    } catch (error) {
+      console.error("Error duplicating form:", error);
+      alert("Failed to duplicate form. Please try again.");
+    } finally {
+      duplicating = false;
     }
   }
 
@@ -345,6 +394,15 @@
                     <button
                       onclick={(e) => {
                         e.stopPropagation();
+                        openDuplicateModal(form);
+                      }}
+                      class="w-full text-left px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/30 flex items-center gap-2 font-medium text-sm rounded-lg"
+                    >
+                      <i class="fas fa-copy w-4"></i> Duplicate Form
+                    </button>
+                    <button
+                      onclick={(e) => {
+                        e.stopPropagation();
                         deleteForm(form.id, form.title);
                       }}
                       class="w-full text-left px-4 py-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 font-medium text-sm rounded-lg"
@@ -488,4 +546,51 @@
       {/if}
     {/if}
   </main>
+
+  <!-- Duplicate Form Modal -->
+  {#if showDuplicateModal && formToDuplicate}
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-sm w-full p-6">
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-4">
+          Duplicate Form
+        </h2>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">
+          Duplicate "{formToDuplicate.title}"?
+        </p>
+        <div class="space-y-3 mb-6">
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            📋 Form structure will be copied
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            ⚠️ Responses are not copied
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <button
+            onclick={() => {
+              showDuplicateModal = false;
+              formToDuplicate = null;
+            }}
+            disabled={duplicating}
+            class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            onclick={() => duplicateForm(false)}
+            disabled={duplicating}
+            class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {#if duplicating}
+              <i class="fas fa-spinner fa-spin"></i>
+              Duplicating...
+            {:else}
+              <i class="fas fa-copy"></i>
+              Duplicate
+            {/if}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
