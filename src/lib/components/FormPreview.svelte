@@ -601,29 +601,27 @@
       }
     }
     
-    // Upload to Cloudinary
+    // Upload directly to Cloudinary using unsigned upload
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('path', `form-responses/${formId}/${question.id}/${Date.now()}`);
+      const cloudinaryFormData = new FormData();
+      cloudinaryFormData.append('file', file);
+      cloudinaryFormData.append('upload_preset', 'form_images'); // You need to create this preset
+      cloudinaryFormData.append('folder', 'quill');
+      cloudinaryFormData.append('public_id', `form-responses/${formId}/${question.id}/${Date.now()}`);
       
-      const uploadUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/api/upload`
-        : '/api/upload';
-      
-      const response = await fetch(uploadUrl, {
+      const response = await fetch('https://api.cloudinary.com/v1_1/dwqzgfghq/image/upload', {
         method: 'POST',
-        body: formData
+        body: cloudinaryFormData
       });
       
       if (!response.ok) {
         const error = await response.json();
-        validationError = error.error || 'Failed to upload image';
+        validationError = error.error?.message || 'Failed to upload image';
         return;
       }
       
-      const { url } = await response.json();
-      answers[question.id] = url;
+      const result = await response.json();
+      answers[question.id] = result.secure_url;
       validationError = "";
     } catch (error) {
       validationError = "Failed to upload image";
