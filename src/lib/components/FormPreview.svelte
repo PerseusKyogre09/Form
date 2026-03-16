@@ -607,7 +607,11 @@
       formData.append('file', file);
       formData.append('path', `form-responses/${formId}/${question.id}/${Date.now()}`);
       
-      const response = await fetch('/api/upload', {
+      const uploadUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}/api/upload`
+        : '/api/upload';
+      
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData
       });
