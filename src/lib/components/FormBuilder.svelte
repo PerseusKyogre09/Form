@@ -32,6 +32,8 @@
         type === "checkboxes"
           ? ["Option 1", "Option 2"]
           : undefined,
+      acceptedFormats: type === "image-upload" ? "image/jpeg,image/png,image/webp" : undefined,
+      maxFileSize: type === "image-upload" ? 5 : undefined,
     } as unknown as FormElement;
     form.questions = [...form.questions, newQuestion];
     currentForm.set(form);
@@ -247,6 +249,14 @@
               <span
                 class="fas fa-calendar text-slate-400 dark:text-gray-500 text-xl"
               ></span> Date
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onSelect={() => addQuestion("image-upload")}
+              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+            >
+              <span
+                class="fas fa-image text-slate-400 dark:text-gray-500 text-xl"
+              ></span> Image Upload
             </DropdownMenu.Item>
 
             <DropdownMenu.Separator

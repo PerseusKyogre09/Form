@@ -14,9 +14,6 @@ cloudinary.config({
 });
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-    const user = locals.user;
-    if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
-
     try {
         const formData = await request.formData();
         const file = formData.get('file') as File;

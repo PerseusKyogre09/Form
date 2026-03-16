@@ -91,6 +91,7 @@
     checkboxes: "Checkboxes",
     "yes-no": "Yes/No",
     rating: "Rating",
+    "image-upload": "Image Upload",
   };
 
   const constraintLabels = {
@@ -255,6 +256,7 @@
           <option value="checkboxes">Checkboxes</option>
           <option value="yes-no">Yes/No</option>
           <option value="rating">Rating</option>
+          <option value="image-upload">Image Upload</option>
         </select>
         <span
           class="fas fa-chevron-down absolute right-2 top-2.5 text-slate-400 dark:text-gray-500 pointer-events-none text-xs leading-none"
@@ -578,6 +580,43 @@
             class="w-full bg-transparent border-none p-0 text-sm focus:ring-0 text-slate-700 dark:text-gray-200 placeholder:text-slate-400 dark:placeholder-gray-500"
             placeholder="No Max"
           />
+        </div>
+      </div>
+    {:else if question.type === "image-upload"}
+      <div class="space-y-4">
+        <div>
+          <label
+            class="block text-xs font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wide mb-2"
+            >Accepted Image Formats</label
+          >
+          <input
+            type="text"
+            bind:value={question.acceptedFormats}
+            on:input={updateQuestion}
+            placeholder="image/jpeg,image/png,image/webp"
+            class="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-primary text-slate-700 dark:text-gray-200"
+          />
+          <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">
+            Comma-separated MIME types (e.g., image/jpeg,image/png)
+          </p>
+        </div>
+        <div>
+          <label
+            class="block text-xs font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wide mb-2"
+            >Max File Size (MB)</label
+          >
+          <input
+            type="number"
+            min="0.1"
+            step="0.1"
+            bind:value={question.maxFileSize}
+            on:input={updateQuestion}
+            placeholder="5"
+            class="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-primary text-slate-700 dark:text-gray-200"
+          />
+          <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">
+            Leave empty for no limit
+          </p>
         </div>
       </div>
     {:else}

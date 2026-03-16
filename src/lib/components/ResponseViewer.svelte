@@ -371,6 +371,17 @@
                   >
                     {#if response.answers[question.id] === undefined || response.answers[question.id] === null || response.answers[question.id] === ""}
                       <span class="text-gray-300 dark:text-gray-600">—</span>
+                    {:else if question.type === "image-upload"}
+                      {@const imageUrl = response.answers[question.id] as string}
+                      <a
+                        href={imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        <span class="fas fa-image text-xs"></span>
+                        <span class="truncate">View Image</span>
+                      </a>
                     {:else if Array.isArray(response.answers[question.id])}
                       {@const items = response.answers[question.id] as string[]}
                       <div class="flex flex-wrap gap-0.5">

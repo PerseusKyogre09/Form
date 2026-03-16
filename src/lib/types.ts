@@ -15,13 +15,15 @@ export interface QuestionCondition {
 
 export interface Question {
   id: string;
-  type: 'text' | 'long-text' | 'number' | 'email' | 'phone' | 'date' | 'multiple-choice' | 'dropdown' | 'checkboxes' | 'yes-no' | 'rating';
+  type: 'text' | 'long-text' | 'number' | 'email' | 'phone' | 'date' | 'multiple-choice' | 'dropdown' | 'checkboxes' | 'yes-no' | 'rating' | 'image-upload';
   title: string;
   required: boolean;
   options?: string[]; // for multiple-choice, dropdown, checkboxes
   min?: number; // for number
   max?: number; // for number
   placeholder?: string; // for text inputs
+  acceptedFormats?: string; // for image-upload (e.g., "image/jpeg,image/png,image/webp")
+  maxFileSize?: number; // for image-upload (in bytes)
   constraints?: Constraint[]; // optional constraints for validation
   exitAnimation?: AnimationType; // optional animation when transitioning to next question
   // Text styling options

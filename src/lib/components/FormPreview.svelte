@@ -575,6 +575,58 @@
     }
   }
 
+  async function handleImageUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    
+    if (!file) return;
+    
+    const question = currentQuestion as Question;
+    
+    // Validate file type
+    if (question.acceptedFormats) {
+      const acceptedTypes = question.acceptedFormats.split(',').map(t => t.trim());
+      if (!acceptedTypes.includes(file.type)) {
+        validationError = `Please upload a file of type: ${acceptedTypes.join(', ')}`;
+        return;
+      }
+    }
+    
+    // Validate file size
+    if (question.maxFileSize) {
+      const maxBytes = question.maxFileSize * 1024 * 1024;
+      if (file.size > maxBytes) {
+        validationError = `File size must not exceed ${question.maxFileSize}MB`;
+        return;
+      }
+    }
+    
+    // Upload to Cloudinary
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('path', `form-responses/${formId}/${question.id}/${Date.now()}`);
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        validationError = error.error || 'Failed to upload image';
+        return;
+      }
+      
+      const { url } = await response.json();
+      answers[question.id] = url;
+      validationError = "";
+    } catch (error) {
+      validationError = "Failed to upload image";
+      console.error('Upload error:', error);
+    }
+  }
+
   function validateEmailConstraints(
     email: string,
     constraints?: Constraint[],
@@ -802,6 +854,8 @@
       return Array.isArray(answer) && answer.length > 0;
     } else if (question.type === "rating") {
       return answer !== undefined && answer !== null;
+    } else if (question.type === "image-upload") {
+      return answer !== undefined && answer !== null;
     }
     return false;
   }
@@ -907,6 +961,10 @@
         question.constraints,
       );
       if (constraintError) return constraintError;
+    } else if (question.type === "image-upload") {
+      if (!answer) {
+        return "This question is required";
+      }
     }
 
     if (!isAnswered(question)) {
@@ -2951,6 +3009,89 @@
                             <i class="fas fa-keyboard mr-1"></i>Press 1-5 or ↑↓
                             to rate • Enter to continue
                           </p>
+                        </div>
+                      {:else if currentQuestion.type === "image-upload"}
+                        <div class="flex flex-col gap-4">
+                          <!-- File Input -->
+                          <label
+                            class="flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-8 cursor-pointer transition-all duration-200"
+                            style="border-color: {validationError
+                              ? '#f97316'
+                              : 'rgba(var(--form-text-primary-rgb), 0.3)'}; background: rgba(var(--form-text-primary-rgb), 0.02);"
+                          >
+                            <input
+                              type="file"
+                              accept={currentQuestion.acceptedFormats ||
+                                "image/*"}
+                              on:change={handleImageUpload}
+                              class="hidden"
+                            />
+                            {#if answers[currentQuestion.id]}
+                              <div class="text-center space-y-2 w-full">
+                                {#if answers[currentQuestion.id]?.includes?.('cloudinary') || answers[currentQuestion.id]?.startsWith?.('http')}
+                                  <!-- Image preview from URL -->
+                                  <img
+                                    src={answers[currentQuestion.id]}
+                                    alt="Uploaded image"
+                                    class="max-w-xs max-h-64 mx-auto rounded-lg"
+                                  />
+                                {/if}
+                                <p
+                                  class="text-sm font-semibold break-all"
+                                  style="color: {currentQuestion?.textColor ||
+                                    globalTextColor ||
+                                    'var(--form-text-primary)'};"
+                                >
+                                  ✓ Image uploaded
+                                </p>
+                                <p
+                                  class="text-xs"
+                                  style="color: var(--form-text-secondary); opacity: 0.6;"
+                                >
+                                  Click to replace
+                                </p>
+                              </div>
+                            {:else}
+                              <i
+                                class="fas fa-cloud-arrow-up text-4xl mb-3"
+                                style="color: var(--form-accent); opacity: 0.7;"
+                              ></i>
+                              <p
+                                class="text-lg font-semibold text-center"
+                                style="color: {currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'};"
+                              >
+                                Upload an image
+                              </p>
+                              <p
+                                class="text-sm mt-1"
+                                style="color: var(--form-text-secondary); opacity: 0.6;"
+                              >
+                                or drag and drop
+                              </p>
+                            {/if}
+                          </label>
+
+                          <!-- Error Message -->
+                          {#if validationError}
+                            <p
+                              bind:this={validationElement}
+                              class="text-orange-600 text-sm mt-2 flex items-center gap-2"
+                            >
+                              <i class="fas fa-exclamation-circle"></i>
+                              {validationError}
+                            </p>
+                          {:else}
+                            <p
+                              style="color: var(--form-text-secondary); opacity: 0.6;"
+                              class="text-xs text-center"
+                            >
+                              {#if currentQuestion.maxFileSize}
+                                Max size: {currentQuestion.maxFileSize}MB
+                              {/if}
+                            </p>
+                          {/if}
                         </div>
                       {/if}
                     </div>
