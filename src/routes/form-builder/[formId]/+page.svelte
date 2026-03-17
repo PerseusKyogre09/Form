@@ -148,6 +148,36 @@
   // Reactive: is the current mode a fixed-size device?
   $: isFixedDevice = selectedPreset !== "Responsive";
 
+  // List to track existing IDs to detect duplicates
+  let seenIds = new Set<string>();
+
+  function generateUniqueId(): string {
+    // Use crypto.randomUUID() for truly unique IDs
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback: UUID v4-like format
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  function regenerateQuestionIds(questions: any[]): any[] {
+    // Regenerate IDs for questions with old timestamp-based IDs or duplicates
+    const seenIds = new Set<string>();
+    return questions.map((q) => {
+      // Check if ID is a timestamp (all digits, 12-13 characters) or a duplicate
+      const isTimestampId = /^\d{12,13}$/.test(q.id);
+      if (isTimestampId || seenIds.has(q.id)) {
+        q.id = generateUniqueId();
+      }
+      seenIds.add(q.id);
+      return q;
+    });
+  }
+
   currentForm.subscribe((value) => {
     currentFormData = value;
   });
@@ -223,7 +253,7 @@
           globalTextColor: data.global_text_color || "",
           thankYouPage: data.thank_you_page || undefined,
           theme: data.theme || undefined,
-          questions: data.questions || [],
+          questions: regenerateQuestionIds(data.questions || []),
           collaborators: data.collaborators || [],
         };
         currentForm.set(formData);

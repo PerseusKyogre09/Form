@@ -16,6 +16,19 @@
   let showConstraintDropdown = false;
   let showStylingPanel = false; // Styling panel collapsed by default
 
+  function generateUniqueId(): string {
+    // Use crypto.randomUUID() for truly unique IDs
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback: UUID v4-like format
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
   const animationOptions: { value: AnimationType; label: string }[] = [
     { value: "fade", label: "Fade" },
     { value: "slide", label: "Slide Up" },
@@ -57,7 +70,7 @@
     else if (type === "text-length") defaultValue = { min: 0, max: 100 };
 
     let newConstraint: Constraint = {
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       type: type as any,
       value: defaultValue,
     };

@@ -1,27 +1,36 @@
 <!-- src/lib/components/FormBuilder.svelte -->
 <script lang="ts">
   import { currentForm } from "../stores";
-  import type { Question, FormElement, BlockElement, Theme } from "../types";
+  import type { Question, FormElement, BlockElement, Theme, Form } from "../types";
   import { isBlockElement } from "../types";
   import QuestionEditor from "./QuestionEditor.svelte";
   import BlockEditor from "./BlockEditor.svelte";
   import { DropdownMenu } from "bits-ui";
 
-  let form: {
-    id: string;
-    title: string;
-    slug?: string;
-    questions: FormElement[];
-  };
+  let form: Form;
   let draggedIndex: number | null = null;
 
   currentForm.subscribe((value) => {
     form = { ...value, questions: value.questions || [] };
   });
 
+  function generateUniqueId(): string {
+    // Use crypto.randomUUID() for truly unique IDs
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback: UUID v4-like format
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
   function addQuestion(type: Question["type"]) {
-    const newQuestion: Question = {
-      id: Date.now().toString(),
+    if (!form.questions) form.questions = [];
+    const newQuestion: FormElement = {
+      id: generateUniqueId(),
       type,
       title: "",
       required: false,
@@ -34,14 +43,14 @@
           : undefined,
       acceptedFormats: type === "image-upload" ? "image/jpeg,image/png,image/webp" : undefined,
       maxFileSize: type === "image-upload" ? 5 : undefined,
-    } as unknown as FormElement;
+    } as FormElement;
     form.questions = [...form.questions, newQuestion];
     currentForm.set(form);
   }
 
   function createBlock(): BlockElement {
     return {
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       kind: "block",
       title: "Content Block",
       text: "",
@@ -58,6 +67,7 @@
   }
 
   function addBlock() {
+    if (!form.questions) form.questions = [];
     form.questions = [
       ...form.questions,
       createBlock() as unknown as FormElement,
@@ -70,11 +80,13 @@
   }
 
   function deleteElement(id: string) {
+    if (!form.questions) return;
     form.questions = form.questions.filter((q) => q.id !== id);
     updateForm();
   }
 
   function getQuestionNumber(index: number) {
+    if (!form.questions) return 0;
     return form.questions.slice(0, index + 1).reduce((count, item) => {
       return isBlockElement(item) ? count : count + 1;
     }, 0);
@@ -97,16 +109,19 @@
 
   function handleDrop(e: DragEvent, dropIndex: number) {
     e.preventDefault();
-    if (draggedIndex !== null && draggedIndex !== dropIndex) {
-      const newQuestions = [...form.questions];
-      const draggedQuestion = newQuestions[draggedIndex];
-
-      newQuestions.splice(draggedIndex, 1);
-      newQuestions.splice(dropIndex, 0, draggedQuestion);
-
-      form.questions = newQuestions;
-      updateForm();
+    e.stopPropagation();
+    if (!form.questions || draggedIndex === null || draggedIndex === dropIndex) {
+      draggedIndex = null;
+      return;
     }
+    const newQuestions = [...form.questions];
+    const draggedQuestion = newQuestions[draggedIndex];
+
+    newQuestions.splice(draggedIndex, 1);
+    newQuestions.splice(dropIndex, 0, draggedQuestion);
+
+    form.questions = newQuestions;
+    updateForm();
     draggedIndex = null;
   }
 
@@ -127,7 +142,7 @@
 
   <div class="space-y-6 pb-20">
     <!-- Added padding bottom for floating buttons if needed, or just spacing -->
-    {#each form.questions as element, idx (element.id)}
+    {#each form.questions || [] as element, idx (element.id)}
       <div
         role="button"
         tabindex="0"
@@ -150,7 +165,7 @@
           <QuestionEditor
             question={element as Question}
             questionNumber={getQuestionNumber(idx)}
-            allQuestions={form.questions.filter(
+            allQuestions={(form.questions || []).filter(
               (q) => !isBlockElement(q),
             ) as Question[]}
             on:update={updateForm}
@@ -162,7 +177,7 @@
       </div>
     {/each}
 
-    {#if form.questions.length === 0}
+    {#if !form.questions || form.questions.length === 0}
       <div
         class="border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-xl p-12 text-center bg-slate-50 dark:bg-gray-900/50"
       >

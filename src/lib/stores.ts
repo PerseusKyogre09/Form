@@ -34,8 +34,15 @@ export function getDefaultThankYouPage(): ThankYouPage {
 
 export const currentForm = writable<Form>({
   id: generateUniqueId(),
+  user_id: '',
   title: 'My Form',
-  questions: [] as FormElement[]
+  questions: [] as FormElement[],
+  published: false,
+  closed: false,
+  backgroundType: 'color',
+  backgroundColor: '#ffffff',
+  backgroundImage: '',
+  slug: ''
 });
 
 export const forms = writable<Form[]>([]);
