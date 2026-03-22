@@ -44,7 +44,7 @@
     >
         <div class="flex items-center gap-4 sm:gap-8">
             <!-- Logo -->
-            <a href="/dashboard" class="flex items-center gap-2 sm:gap-3 group">
+            <a href={user ? "/dashboard" : "/"} class="flex items-center gap-2 sm:gap-3 group">
                 <img
                     src={favicon}
                     alt="Quill Logo"
@@ -58,15 +58,17 @@
 
             <!-- Global App Tabs -->
             <div class="flex bg-gray-100/80 dark:bg-gray-800 p-1 rounded-lg">
-                <a
-                    href="/dashboard"
-                    class="px-2.5 sm:px-4 py-1 sm:py-1.5 transition-all text-xs sm:text-sm font-medium {currentPath ===
-                        '/dashboard' || currentPath.startsWith('/form-builder')
-                        ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}"
-                >
-                    My Forms
-                </a>
+                {#if user}
+                    <a
+                        href="/dashboard"
+                        class="px-2.5 sm:px-4 py-1 sm:py-1.5 transition-all text-xs sm:text-sm font-medium {currentPath ===
+                            '/dashboard' || currentPath.startsWith('/form-builder')
+                            ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}"
+                    >
+                        My Forms
+                    </a>
+                {/if}
                 <a
                     href="/certificate-generator"
                     class="px-2.5 sm:px-4 py-1 sm:py-1.5 transition-all text-xs sm:text-sm font-medium flex items-center gap-2 {currentPath ===
@@ -81,7 +83,7 @@
 
         <div class="flex items-center gap-2 sm:gap-4">
             <!-- New Form Button -->
-            {#if currentPath === "/dashboard"}
+            {#if currentPath === "/dashboard" && user}
                 <a
                     href="/form-builder"
                     class="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558DD] text-white text-sm font-medium rounded-lg transition-colors shadow-md shadow-indigo-100 dark:shadow-indigo-900/30"

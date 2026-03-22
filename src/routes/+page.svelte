@@ -123,6 +123,11 @@
       </div>
 
       <div class="flex items-center gap-4">
+        <a
+          href="/certificate-generator"
+          class="text-sm font-medium text-black dark:text-gray-300 hover:text-black/70 dark:hover:text-white transition-colors"
+          >Certificates</a
+        >
         {#if user}
           <a
             href="/dashboard"
@@ -426,7 +431,35 @@
             Feedback, requests, quick data collection.
           </p>
         </div>
+        <div
+          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
+        >
+          <h3 class="text-xl font-bold mb-2">Certificates & Awards</h3>
+          <p class="text-black/60 dark:text-gray-400">
+            Generate certificates for attendees, participants, or winners.
+          </p>
+        </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Certificate Generator Section -->
+  <section class="py-20 bg-white dark:bg-gray-950 border-t border-black/10 dark:border-white/10 transition-colors">
+    <div class="max-w-4xl mx-auto px-6 animate-on-scroll">
+      <h2 class="text-4xl md:text-5xl font-black mb-6">
+        Design certificates in seconds.
+      </h2>
+      <p class="text-xl text-black/60 dark:text-gray-400 mb-8">
+        Create beautiful certificates for your attendees, participants, or winners. No design skills needed. Works instantly—no login required.
+      </p>
+      <Button.Root
+        href="/certificate-generator"
+        class="rounded-lg bg-black dark:bg-white text-white dark:text-black shadow-sm hover:bg-black/90 dark:hover:bg-gray-100 inline-flex
+	h-12 items-center justify-center px-8 text-base
+	font-semibold active:scale-[0.98] active:transition-all transition-colors"
+      >
+        Try certificate builder
+      </Button.Root>
     </div>
   </section>
 
@@ -473,6 +506,11 @@
               <li>
                 <a href="/" class="hover:text-white transition-colors"
                   >Features</a
+                >
+              </li>
+              <li>
+                <a href="/certificate-generator" class="hover:text-white transition-colors"
+                  >Certificates</a
                 >
               </li>
               <li>
