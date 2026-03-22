@@ -5,9 +5,10 @@
   import { Avatar } from "bits-ui";
   import { authClient } from "$lib/authClient";
   import { goto } from "$app/navigation";
-  import type { Form } from "../../lib/types";
+  import type { Form, FormTemplate } from "../../lib/types";
   import favicon from "$lib/assets/favicon.svg";
   import DashboardHeader from "$lib/components/DashboardHeader.svelte";
+  import TemplateGallery from "$lib/components/TemplateGallery.svelte";
 
   let allForms = $state<Form[]>([]);
   let sharedForms = $state<Form[]>([]);
@@ -25,10 +26,17 @@
   let formToDuplicate = $state<Form | null>(null);
   let duplicating = $state(false);
 
+  // Template gallery state
+  let showTemplateGallery = $state(false);
+  let showFormCreatedModal = $state(false);
+  let createdFormId = $state<string | null>(null);
+  let createdFormTemplate = $state<FormTemplate | null>(null);
+  let isCreatingForm = $state(false);
+
   // Derived filtered forms based on active tab
   let filteredForms = $derived(
     (activeTab === "personal" ? allForms : sharedForms).filter((form) =>
-      form.title.toLowerCase().includes(searchQuery.toLowerCase()),
+      (form.title ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
     ),
   );
 
@@ -121,17 +129,60 @@
     hasMore = false;
   }
 
-  function navigateToBuilder(form?: Form) {
-    if (form) {
-      window.location.href = `/form-builder/${form.id}`;
-    } else {
+  function handleTemplateSelect(template: FormTemplate) {
+    if (!template.id) {
+      // Blank form - use default path
       window.location.href = "/form-builder";
+    } else {
+      // Create form from template
+      createFormFromTemplate(template.id, template);
     }
   }
 
-  async function deleteForm(formId: string, formTitle: string) {
+  async function createFormFromTemplate(templateId: string, template: FormTemplate) {
+    try {
+      isCreatingForm = true;
+      showTemplateGallery = false;
+      const res = await fetch('/api/templates/create-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to create form');
+      }
+
+      const { formId } = await res.json();
+      createdFormId = formId;
+      createdFormTemplate = template;
+      showFormCreatedModal = true;
+    } catch (error) {
+      console.error('Error creating form from template:', error);
+      alert('Failed to create form from template. Please try again.');
+    } finally {
+      isCreatingForm = false;
+    }
+  }
+
+  function openFormBuilder() {
+    if (createdFormId) {
+      window.location.href = `/form-builder/${createdFormId}`;
+    }
+  }
+
+  function openNewFormMenu() {
+    showTemplateGallery = true;
+  }
+
+  function navigateToBuilder(form: Form) {
+    window.location.href = `/form-builder/${form.id}`;
+  }
+
+  async function deleteForm(formId: string, formTitle: string | null) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${formTitle}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${formTitle ?? 'Untitled Form'}"? This action cannot be undone.`,
     );
 
     if (!confirmed) return;
@@ -195,7 +246,7 @@
     }
   }
 
-  function formatDate(dateString: string | undefined): string {
+  function formatDate(dateString: string | Date | null | undefined): string {
     if (!dateString) return "Recently edited";
     const date = new Date(dateString);
     const now = new Date();
@@ -215,7 +266,7 @@
 <div
   class="min-h-screen bg-[#F8F9FA] dark:bg-gray-950 font-sans text-slate-900 dark:text-gray-100 transition-colors"
 >
-  <DashboardHeader />
+  <DashboardHeader onNewForm={openNewFormMenu} />
 
   <!-- Main Content -->
   <main class="max-w-[1600px] mx-auto px-6 py-10">
@@ -321,9 +372,10 @@
       >
         <!-- Create New Form Card - Only show on Personal tab -->
         {#if activeTab === "personal" && !searchQuery}
-          <a
-            href="/form-builder"
-            class="group relative bg-[#F8FAFC] dark:bg-gray-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-[320px] text-center p-6 order-last md:order-none"
+          <button
+            type="button"
+            onclick={openNewFormMenu}
+            class="group relative bg-[#F8FAFC] dark:bg-gray-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-[320px] text-center p-6 order-last md:order-none w-full"
           >
             <div
               class="w-16 h-16 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-slate-100 dark:border-gray-700 flex items-center justify-center text-slate-300 dark:text-gray-500 group-hover:text-indigo-500 group-hover:scale-110 group-hover:shadow-md transition-all duration-300"
@@ -339,10 +391,10 @@
               <p
                 class="text-sm text-slate-400 dark:text-gray-500 px-4 group-hover:text-slate-500 dark:group-hover:text-gray-400 transition-colors"
               >
-                Start from a blank canvas or choose a template
+                Start from a template or blank canvas
               </p>
             </div>
-          </a>
+          </button>
         {/if}
 
         {#each filteredForms as form (form.id)}
@@ -356,7 +408,7 @@
             <!-- Thumbnail Area -->
             <div
               class="relative h-40 w-full rounded-xl overflow-hidden mb-4 border border-gray-100/50 dark:border-gray-800"
-              style="background: {generateGradient(form.title)}"
+              style="background: {generateGradient(form.title ?? '')}"
             >
               <!-- Decorative elements -->
               <div class="absolute inset-0 opacity-40">
@@ -588,6 +640,77 @@
               <i class="fas fa-copy"></i>
               Duplicate
             {/if}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Template Gallery Modal -->
+  {#if showTemplateGallery}
+    <TemplateGallery 
+      onSelect={handleTemplateSelect}
+      onCancel={() => (showTemplateGallery = false)}
+    />
+  {/if}
+
+  <!-- Form Created Confirmation Modal -->
+  {#if showFormCreatedModal && createdFormTemplate}
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6">
+        <!-- Success Icon -->
+        <div class="flex justify-center mb-4">
+          <div class="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+            <i class="fas fa-check text-xl text-green-600 dark:text-green-400"></i>
+          </div>
+        </div>
+
+        <!-- Title and Description -->
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-1 text-center">
+          Ready to go!
+        </h2>
+        <p class="text-sm text-gray-600 dark:text-gray-300 text-center mb-5">
+          Your form has been created from the template.
+        </p>
+
+        <!-- Template Details -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-5 border border-gray-200 dark:border-gray-600">
+          <div class="flex items-start gap-2.5">
+            <i class="fas {createdFormTemplate.icon} text-lg flex-shrink-0 text-gray-700 dark:text-gray-400"></i>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-sm text-slate-900 dark:text-white leading-tight">
+                {createdFormTemplate.name}
+              </h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
+                {createdFormTemplate.description}
+              </p>
+              <div class="text-xs text-gray-600 dark:text-gray-400 mt-1.5 flex items-center gap-1">
+                <i class="fas fa-list-check w-3"></i>
+                <span>{createdFormTemplate.questions_template?.length ?? 0} questions</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
+          <button
+            onclick={() => {
+              showFormCreatedModal = false;
+              createdFormId = null;
+              createdFormTemplate = null;
+            }}
+            class="flex-1 px-3 py-2 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          >
+            <i class="fas fa-times w-3"></i> Cancel
+          </button>
+          <button
+            onclick={openFormBuilder}
+            disabled={isCreatingForm}
+            class="flex-1 px-3 py-2 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+          >
+            <i class="fas fa-pen-to-square w-3"></i>
+            Edit Form
           </button>
         </div>
       </div>

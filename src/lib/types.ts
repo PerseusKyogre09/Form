@@ -163,3 +163,18 @@ export function isBlockElement(element: FormElement): element is BlockElement {
 export function isQuestionElement(element: FormElement): element is Question {
   return !isBlockElement(element);
 }
+
+// Template Types
+export interface FormTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: 'feedback' | 'registration' | 'jobs' | 'capture' | 'nps' | 'contact' | 'booking' | 'support';
+  icon: string; // emoji or icon name
+  thumbnail_url?: string;
+  questions_template: FormElement[];
+  background_color?: string;
+  theme_id?: string;
+  use_count?: number;
+  preview_text?: string; // Short preview for template card
+}

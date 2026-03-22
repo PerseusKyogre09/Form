@@ -127,3 +127,16 @@ export const form_collaborators = pgTable('form_collaborators', {
 }, (t) => ({
     unq: unique().on(t.form_id, t.user_id)
 }));
+export const templates = pgTable('templates', {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description').notNull(),
+    category: text('category').notNull(), // 'feedback', 'registration', 'jobs', 'capture', etc.
+    icon: text('icon'), // emoji or icon name
+    thumbnail_url: text('thumbnail_url'),
+    questions_template: jsonb('questions_template').notNull(), // Array of question templates
+    background_color: text('background_color'),
+    theme_id: text('theme_id'),
+    use_count: integer('use_count').default(0),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});

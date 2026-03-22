@@ -9,6 +9,7 @@
 
     let user = $state<any>(null);
     let currentPath = $derived($page.url.pathname);
+    let { onNewForm }: { onNewForm?: () => void } = $props();
 
     onMount(async () => {
         const { data: session } = await authClient.getSession();
@@ -84,13 +85,13 @@
         <div class="flex items-center gap-2 sm:gap-4">
             <!-- New Form Button -->
             {#if currentPath === "/dashboard" && user}
-                <a
-                    href="/form-builder"
+                <button
+                    onclick={onNewForm}
                     class="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#6366F1] hover:bg-[#5558DD] text-white text-sm font-medium rounded-lg transition-colors shadow-md shadow-indigo-100 dark:shadow-indigo-900/30"
                 >
                     <i class="fas fa-plus"></i>
                     <span>New Form</span>
-                </a>
+                </button>
             {/if}
 
             <!-- Profile -->
