@@ -25,23 +25,23 @@
     const file = input.files?.[0];
     if (file) {
       try {
-        const formData = new FormData();
-        formData.append("file", file);
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        formData.append("path", `blocks/${fileName}`);
-
-        fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+        const cloudinaryFormData = new FormData();
+        cloudinaryFormData.append('file', file);
+        cloudinaryFormData.append('upload_preset', 'form_images');
+        cloudinaryFormData.append('folder', 'quill/blocks');
+        cloudinaryFormData.append('public_id', `block-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+        
+        fetch('https://api.cloudinary.com/v1_1/dwqzgfghq/image/upload', {
+          method: 'POST',
+          body: cloudinaryFormData
         })
           .then(async (res) => {
             if (!res.ok) {
               const err = await res.json();
-              throw new Error(err.error || "Upload failed");
+              throw new Error(err.error?.message || 'Failed to upload image');
             }
-            const data = await res.json();
-            block.imageUrl = data.url;
+            const result = await res.json();
+            block.imageUrl = result.secure_url;
             updateBlock();
           })
           .catch((err) => {

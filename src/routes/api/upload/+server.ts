@@ -23,9 +23,17 @@ export const POST: RequestHandler = async ({ request }) => {
             return json({ error: 'Missing file' }, { status: 400 });
         }
 
+        // Check if credentials are configured
+        if (CLOUDINARY_CLOUD_NAME === "placeholder" || CLOUDINARY_API_KEY === "placeholder") {
+            console.error('Cloudinary credentials not configured');
+            return json({ error: 'Upload service not configured' }, { status: 500 });
+        }
+
         // Convert file to buffer/bytes
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
+
+        console.log('Uploading file with path:', bucketPath);
 
         // Upload directly using Cloudinary's upload method
         const uploadResult = await new Promise((resolve, reject) => {
@@ -37,9 +45,10 @@ export const POST: RequestHandler = async ({ request }) => {
                 },
                 (error, result) => {
                     if (error) {
-                        console.error('Cloudinary upload error:', error);
+                        console.error('Cloudinary upload error:', JSON.stringify(error));
                         reject(error);
                     } else {
+                        console.log('Cloudinary upload success:', result?.public_id);
                         resolve(result);
                     }
                 }
@@ -51,7 +60,7 @@ export const POST: RequestHandler = async ({ request }) => {
         // Return the secure Cloudinary URL
         return json({ url });
     } catch (error: any) {
-        console.error('Error uploading file:', error);
+        console.error('Error uploading file:', error.message || error);
         return json({ error: error.message || 'Upload failed' }, { status: 500 });
     }
 };
