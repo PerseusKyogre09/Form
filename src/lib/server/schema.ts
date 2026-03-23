@@ -19,6 +19,7 @@ export const user = pgTable('user', {
     linkedin_url: text('linkedin_url'),
     github_url: text('github_url'),
     theme_preference: text('theme_preference').default('light'),
+    is_admin: boolean('is_admin').default(false).notNull(),
 });
 
 export const session = pgTable('session', {
