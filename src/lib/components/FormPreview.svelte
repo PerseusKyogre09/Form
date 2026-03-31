@@ -2088,9 +2088,9 @@
       : "min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500"}
     style="background-color: {theme?.colors?.background ||
       (backgroundType === 'color' ? backgroundColor : '#ffffff')};
-      --form-text-primary: {colorPalette?.textPrimary || '#1e293b'};
-      --form-text-primary-rgb: {colorPalette?.textPrimaryRGB || '30, 41, 59'};
-      --form-text-secondary: {colorPalette?.textSecondary || '#64748b'};
+      --form-text-primary: {theme?.id === 'ide-dark' ? '#e0e0e0' : (colorPalette?.textPrimary || '#1e293b')};
+      --form-text-primary-rgb: {theme?.id === 'ide-dark' ? '224, 224, 224' : (colorPalette?.textPrimaryRGB || '30, 41, 59')};
+      --form-text-secondary: {theme?.id === 'ide-dark' ? '#a0a0a0' : (colorPalette?.textSecondary || '#64748b')};
       --form-card-bg: {colorPalette?.cardBackground ||
       'rgba(255, 255, 255, 0.95)'};
       --form-card-bg-solid: {colorPalette?.cardBackgroundSolid || '#ffffff'};

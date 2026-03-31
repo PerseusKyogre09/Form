@@ -109,7 +109,7 @@
         >
         <span class="text-slate-500 dark:text-gray-500"> = </span>
         <span class="text-teal-600 dark:text-teal-400">"</span
-        >{codeTitle.stringValue}<span class="text-teal-600 dark:text-teal-400"
+        ><span style="color: {element.textColor || globalTextColor || '#e0e0e0'};">{codeTitle.stringValue}</span><span class="text-teal-600 dark:text-teal-400"
           >"</span
         >
         <span class="text-slate-500 dark:text-gray-500">;</span>
@@ -117,8 +117,8 @@
     {:else}
       <!-- Fallback: plain code-styled title -->
       <div
-        class="w-full text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight text-slate-800 dark:text-gray-200"
-        style="font-family: 'JetBrains Mono', monospace;"
+        class="w-full text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight"
+        style="font-family: 'JetBrains Mono', monospace; color: {element.textColor || globalTextColor || '#e0e0e0'};"
       >
         {getTitleForDisplay()}
       </div>
@@ -133,8 +133,8 @@
         class="relative w-full text-center min-h-[2rem] md:min-h-[3rem] lg:min-h-[4rem] flex items-center justify-center"
       >
         <div
-          class="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-relaxed text-slate-800 dark:text-white"
-          style="font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;"
+          class="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-relaxed"
+          style="font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; color: {element.textColor || globalTextColor || '#e0e0e0'};"
         >
           {displayedText}
           <span
@@ -151,8 +151,8 @@
     <!-- Signature as code comment - Responsive sizing -->
     {#if element.footerText}
       <div
-        class="w-full text-center text-xs sm:text-sm md:text-base lg:text-lg text-slate-500 dark:text-gray-500"
-        style="font-family: 'JetBrains Mono', monospace;"
+        class="w-full text-center text-xs sm:text-sm md:text-base lg:text-lg"
+        style="font-family: 'JetBrains Mono', monospace; color: {element.textColor || globalTextColor || '#a0a0a0'};"
       >
         <span class="text-blue-400 dark:text-blue-500">// </span>
         {element.footerText}

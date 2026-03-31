@@ -98,6 +98,7 @@ export const IDE_DARK_THEME: Theme = {
       --ide-orange-primary: #f97316;
       --ide-orange-light: #fb923c;
       --ide-grid-line: rgba(255, 255, 255, 0.05);
+      color-scheme: dark;
     }
     
     /* Background with subtle grid pattern and circuit traces */
@@ -305,9 +306,11 @@ export const IDE_DARK_THEME: Theme = {
     }
     
     /* Validation error text */
-    .text-red-400,
-    p[style*="color: var(--form-text-secondary)"],
-    [class*="text-sm"] [style*="color"] {
+    .text-red-400 {
+      color: var(--ide-orange-primary) !important;
+    }
+    
+    p[style*="color: var(--form-text-secondary)"] {
       color: var(--ide-dark-text-secondary) !important;
     }
     
