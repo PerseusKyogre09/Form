@@ -55,15 +55,16 @@ export function slideQuestion(element: HTMLElement, direction: 'next' | 'prev', 
 
   const fromX = direction === 'next' ? 100 : -100;
 
-  // Animate the container as a smooth block
+  // Animate the container as a smooth block with enhanced easing
   gsap.fromTo(
     element,
-    { opacity: 0, x: fromX },
+    { opacity: 0, x: fromX, scale: 0.98 },
     {
       opacity: 1,
       x: 0,
-      duration,
-      ease: 'cubic.out'
+      scale: 1,
+      duration: duration,
+      ease: 'power2.out'
     }
   );
 
@@ -83,13 +84,14 @@ export function slideQuestion(element: HTMLElement, direction: 'next' | 'prev', 
   // Apply opacity cascade without position changes to avoid layout shifts
   gsap.fromTo(
     contentChildren,
-    { opacity: 0 },
+    { opacity: 0, y: 10 },
     {
       opacity: 1,
-      duration: duration * 0.6,
-      ease: 'cubic.out',
-      stagger: 0.05,
-      delay: duration * 0.2
+      y: 0,
+      duration: duration * 0.5,
+      ease: 'power2.out',
+      stagger: 0.04,
+      delay: duration * 0.1
     }
   );
 }

@@ -126,6 +126,19 @@
   let countrySearchQuery = "";
   let highlightedCountryIndex = 0;
 
+  // Touch/Swipe gesture handling for mobile
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+  let isSwipeEnabled = true;
+  const SWIPE_THRESHOLD = 50;
+  const SCROLL_THRESHOLD = 30;
+
+  // Scroll detection for mobile
+  let lastScrollTime = 0;
+  const SCROLL_COOLDOWN = 800;
+
   function getFilteredCountries(query: string) {
     if (!query) return countryOptions;
     const lowerQuery = query.toLowerCase();
@@ -134,6 +147,57 @@
         c.code.toLowerCase().includes(lowerQuery) ||
         c.name.toLowerCase().includes(lowerQuery),
     );
+  }
+
+  // Touch gesture handlers for mobile
+  function handleTouchStart(e: TouchEvent) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }
+
+  function handleTouchEnd(e: TouchEvent) {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleSwipe();
+  }
+
+  function handleSwipe() {
+    if (!isSwipeEnabled || !isMobileDevice()) return;
+
+    const diffX = touchStartX - touchEndX;
+    const diffY = Math.abs(touchStartY - touchEndY);
+
+    // Only handle horizontal swipes (ignore vertical scrolls)
+    if (diffY > diffX) return;
+
+    // Swipe left - go to next question
+    if (diffX > SWIPE_THRESHOLD && currentQuestionIndex < questions.length - 1) {
+      validateAndAdvance();
+    }
+    // Swipe right - go to previous question
+    else if (diffX < -SWIPE_THRESHOLD && currentQuestionIndex > 0) {
+      prevQuestion();
+    }
+  }
+
+  // Scroll detection for mobile - enables scroll-to-navigate
+  function handleWheel(e: WheelEvent) {
+    if (!isMobileDevice()) return;
+    const now = Date.now();
+    if (now - lastScrollTime < SCROLL_COOLDOWN) return;
+
+    // Scroll down - go to next question
+    if (e.deltaY > SCROLL_THRESHOLD && currentQuestionIndex < questions.length - 1) {
+      e.preventDefault();
+      lastScrollTime = now;
+      validateAndAdvance();
+    }
+    // Scroll up - go to previous question
+    else if (e.deltaY < -SCROLL_THRESHOLD && currentQuestionIndex > 0) {
+      e.preventDefault();
+      lastScrollTime = now;
+      prevQuestion();
+    }
   }
 
   function handleCountrySearch(e: KeyboardEvent, questionId: string) {
@@ -229,13 +293,14 @@
 
   function animateIn() {
     if (container) {
-      gsap.set(container, { opacity: 0, y: 30, scale: 0.95 });
+      // Smoother entrance animation with better easing
+      gsap.set(container, { opacity: 0, y: 40, scale: 0.92 });
       gsap.to(container, {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.5,
-        ease: "cubic.out",
+        duration: 0.6,
+        ease: "power2.out",
         onComplete: () => {
           // Auto-focus the appropriate input after transition
           if (!isMobileDevice()) {
@@ -405,6 +470,13 @@
     // Apply theme if available
     applyFormTheme();
 
+    // Add touch event listeners for mobile swipe/scroll navigation
+    if (typeof window !== "undefined") {
+      window.addEventListener("touchstart", handleTouchStart, { passive: true });
+      window.addEventListener("touchend", handleTouchEnd, { passive: true });
+      window.addEventListener("wheel", handleWheel, { passive: false });
+    }
+
     // Small delay to ensure DOM is ready before animating
     await tick();
     animateIn();
@@ -413,6 +485,13 @@
   onDestroy(() => {
     if (animationTimer) clearTimeout(animationTimer);
     cleanupTheme();
+    
+    // Clean up event listeners
+    if (typeof window !== "undefined") {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("wheel", handleWheel);
+    }
   });
 
   // Re-apply theme when it changes (for preview mode)
@@ -2185,23 +2264,26 @@
         </div>
 
         <!-- Question Container -->
-        <!-- Question Container -->
         <div
           class={theme && theme.id === "ide-dark"
-            ? "fixed inset-0 flex flex-col justify-center items-center"
-            : "min-h-screen flex flex-col justify-center items-center px-6 pt-10 pb-32 md:px-6 md:py-20 safe-area-pb"}
+            ? "fixed inset-0 flex flex-col justify-center items-center overflow-hidden"
+            : "min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 pt-6 sm:pt-10 pb-24 sm:pb-32 md:px-6 md:py-20 safe-area-pb cursor-grab active:cursor-grabbing"}
+          on:touchstart={handleTouchStart}
+          on:touchend={handleTouchEnd}
+          on:wheel={handleWheel}
+          role="main"
         >
           <div
             bind:this={container}
             class="{theme && theme.id === 'ide-dark'
               ? 'max-w-3xl md:p-12'
-              : 'max-w-3xl md:p-12'} transition-all duration-300"
+              : 'max-w-3xl w-full md:p-12'} transition-all duration-300"
             style="background: transparent; border: none;"
           >
             {#if currentElement}
               <div>
                 {#if !isBlockElement(currentElement)}
-                  <div class="mb-6 md:mb-10">
+                  <div class="mb-4 sm:mb-6 md:mb-10">
                     <!-- Question Label (e.g., "QUESTION 01 — 05") -->
                     {#if currentQuestion && currentQuestion.questionLabel}
                       <div
@@ -2219,8 +2301,8 @@
                     <!-- Question Title with Formatting -->
                     <h3
                       class="{currentQuestion
-                        ? getTextSizeClass(currentQuestion.fontSize || '4xl')
-                        : 'text-3xl md:text-4xl'} {currentQuestion
+                        ? getTextSizeClass(currentQuestion.fontSize || '4xl').replace('text-4xl', 'text-2xl sm:text-3xl md:text-4xl')
+                        : 'text-2xl sm:text-3xl md:text-4xl'} {currentQuestion
                         ? getFontFamilyClass(
                             currentQuestion.fontFamily || 'serif',
                           )
@@ -2244,7 +2326,7 @@
                     <!-- Helper Text -->
                     {#if currentQuestion && currentQuestion.helperText}
                       <p
-                        class="text-base mt-3"
+                        class="text-sm sm:text-base mt-3"
                         style="color: {currentQuestion.textColor ||
                           globalTextColor ||
                           'var(--form-text-secondary)'}; text-shadow: {colorPalette?.isDark
@@ -3234,6 +3316,11 @@
             aria-hidden="true"
             style="position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; overflow: hidden;"
           />
+
+          <!-- Mobile Navigation Hint -->
+          <p class="text-center md:hidden text-xs mt-6" style="color: var(--form-text-secondary); opacity: 0.6;">
+            <i class="fas fa-hand-paper mr-1"></i>Swipe or scroll to navigate
+          </p>
         </div>
       {:else}
         <div class="text-center py-12">
@@ -3544,6 +3631,40 @@
     }
     100% {
       opacity: 1;
+    }
+  }
+
+  /* Mobile touch interaction improvements */
+  :global(body) {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+  }
+
+  :global(textarea),
+  :global(input),
+  :global(button),
+  :global(select),
+  :global(a) {
+    -webkit-user-select: auto;
+  }
+
+  /* Smooth scrolling for mobile */
+  @media (max-width: 768px) {
+    :global(html) {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Enhanced button interaction on mobile */
+  :global(button) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Disable zoom on double-tap for mobile */
+  @supports (touch-action: manipulation) {
+    :global(button),
+    :global(a) {
+      touch-action: manipulation;
     }
   }
 </style>
