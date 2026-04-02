@@ -349,16 +349,18 @@
   async function publishForm() {
     if (!currentFormData) return;
 
+    const wasPublished = currentFormData.published;
     currentForm.update((form) => ({ ...form, published: true }));
 
     try {
       const { data: session } = await authClient.getSession();
       if (!session || !session.user) {
         notifications.add("You must be logged in to publish forms.", "error");
+        currentForm.update((form) => ({ ...form, published: wasPublished }));
         return;
       }
 
-      await fetch("/api/forms", {
+      const response = await fetch("/api/forms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -373,26 +375,37 @@
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error publishing form:", errorText);
+        notifications.add("Failed to publish form. Please try again.", "error");
+        currentForm.update((form) => ({ ...form, published: wasPublished }));
+        return;
+      }
+
       notifications.add("Form published!", "success");
     } catch (err) {
       console.error("Error publishing form:", err);
       notifications.add("Failed to publish form.", "error");
+      currentForm.update((form) => ({ ...form, published: wasPublished }));
     }
   }
 
   async function unpublishForm() {
     if (!currentFormData) return;
 
+    const wasPublished = currentFormData.published;
     currentForm.update((form) => ({ ...form, published: false }));
 
     try {
       const { data: session } = await authClient.getSession();
       if (!session || !session.user) {
         notifications.add("You must be logged in to unpublish forms.", "error");
+        currentForm.update((form) => ({ ...form, published: wasPublished }));
         return;
       }
 
-      await fetch("/api/forms", {
+      const response = await fetch("/api/forms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -407,11 +420,20 @@
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error unpublishing form:", errorText);
+        notifications.add("Failed to unpublish form. Please try again.", "error");
+        currentForm.update((form) => ({ ...form, published: wasPublished }));
+        return;
+      }
+
       notifications.add("Form unpublished!", "success");
       shareLink = "";
     } catch (err) {
       console.error("Error unpublishing form:", err);
       notifications.add("Failed to unpublish form.", "error");
+      currentForm.update((form) => ({ ...form, published: wasPublished }));
     }
   }
 
@@ -419,6 +441,7 @@
     if (!currentFormData) return;
 
     const newStatus = !currentFormData.closed;
+    const oldStatus = currentFormData.closed;
     currentForm.update((form) => ({ ...form, closed: newStatus }));
 
     try {
@@ -428,10 +451,12 @@
           "You must be logged in to change form status.",
           "error",
         );
+        // Revert the optimistic update
+        currentForm.update((form) => ({ ...form, closed: oldStatus }));
         return;
       }
 
-      await fetch("/api/forms", {
+      const response = await fetch("/api/forms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -446,10 +471,21 @@
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error toggling form status:", errorText);
+        notifications.add("Failed to change form status. Please try again.", "error");
+        // Revert the optimistic update
+        currentForm.update((form) => ({ ...form, closed: oldStatus }));
+        return;
+      }
+
       notifications.add(newStatus ? "Form closed!" : "Form opened!", "success");
     } catch (err) {
       console.error("Error toggling form status:", err);
       notifications.add("Failed to change form status.", "error");
+      // Revert the optimistic update
+      currentForm.update((form) => ({ ...form, closed: oldStatus }));
     }
   }
 

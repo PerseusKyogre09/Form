@@ -33,8 +33,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
     
     console.log(`Received ${questionsData.length} questions to save`);
-    
-    const { questions: _, collaborators: __, user: ___, ...formPayload } = data;
 
     // Validate form ID if provided
     if (data.id && typeof data.id !== 'string') {
@@ -70,13 +68,33 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       }
     }
 
-    // Prepare form payload
-    const finalFormPayload = {
-      ...formPayload,
-      user_id: ownerId,
+    // Prepare form payload - explicitly whitelist fields to avoid type issues
+    const finalFormPayload: any = {
+      title: data.title,
       slug: slug,
+      published: data.published ?? false,
+      closed: data.closed ?? false,
+      background_type: data.background_type,
+      background_color: data.background_color,
+      background_image: data.background_image,
+      global_text_color: data.global_text_color,
+      user_id: ownerId,
       updated_at: new Date(),
     };
+
+    // Only add optional JSONB fields if they exist
+    if (data.theme !== undefined) {
+      finalFormPayload.theme = data.theme;
+    }
+    if (data.thank_you_page !== undefined) {
+      finalFormPayload.thank_you_page = data.thank_you_page;
+    }
+    if (data.enable_checkin !== undefined) {
+      finalFormPayload.enable_checkin = data.enable_checkin;
+    }
+    if (data.checkin_name_field_id !== undefined) {
+      finalFormPayload.checkin_name_field_id = data.checkin_name_field_id;
+    }
 
     // Use upsert-like logic with Drizzle (Neon Postgres)
     try {
@@ -90,8 +108,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       } else {
         // Create new form - use the provided ID from the client
         console.log('Creating new form with ID:', data.id);
+        const { updated_at, ...createPayload } = finalFormPayload;
         const insertPayload = {
-          ...finalFormPayload,
+          ...createPayload,
           id: data.id || undefined // Include the client-provided ID, or let database generate if not provided
         };
         
