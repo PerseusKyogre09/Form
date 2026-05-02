@@ -4,6 +4,7 @@
   import { fade, fly } from "svelte/transition";
   import favicon from "$lib/assets/favicon.svg";
   import quillScreenshot from "$lib/assets/demo/quill.png";
+  import heroImage from "$lib/assets/demo/hero.png";
   import { Button } from "bits-ui";
   import { browser } from "$app/environment";
   import { gsap } from "gsap";
@@ -205,7 +206,7 @@
           class="relative hero-gif"
         >
           <img
-            src="https://via.placeholder.com/600x500/000000/ffffff?text=Form+Preview+GIF"
+            src={heroImage}
             alt="Form preview animation"
             class="w-full rounded-lg shadow-2xl border border-black/10 dark:border-white/10 dark:opacity-80 transition-opacity"
           />
