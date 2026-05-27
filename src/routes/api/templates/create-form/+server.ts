@@ -29,6 +29,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       background_color: template.background_color || '#ffffff',
       questions: template.questions_template,
       user_id: user.id,
+      enable_device_tracking: template.enable_device_tracking ?? false,
+      anonymous_voting: template.anonymous_voting ?? false,
     };
 
     // Create the form via the main forms endpoint

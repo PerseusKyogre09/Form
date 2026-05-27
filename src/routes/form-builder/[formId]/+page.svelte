@@ -797,6 +797,8 @@
               formId={currentFormData.id}
               questions={currentFormData.questions}
               enableCheckin={currentFormData.enable_checkin}
+              enableDeviceTracking={currentFormData.enable_device_tracking}
+              anonymousVoting={currentFormData.anonymous_voting}
             />
           {/if}
         {:else}

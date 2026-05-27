@@ -451,6 +451,109 @@
                         {/if}
                     </section>
 
+                    <!-- Anonymous Voting & Fraud Prevention -->
+                    <section class="space-y-4 pt-4 border-t border-slate-100 dark:border-gray-800">
+                        <h4
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                            Anonymous & Secure Voting
+                        </h4>
+                        
+                        <!-- Device Tracking Toggle -->
+                        <button
+                            onclick={() => {
+                                currentForm.update((f) => {
+                                    const nextVal = !f.enable_device_tracking;
+                                    return {
+                                        ...f,
+                                        enable_device_tracking: nextVal,
+                                        // If device tracking is disabled, anonymous voting MUST also be disabled
+                                        anonymous_voting: nextVal ? f.anonymous_voting : false
+                                    };
+                                });
+                                saveForm();
+                            }}
+                            class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.enable_device_tracking
+                                ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-100 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'
+                                : 'bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-gray-700'}"
+                        >
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-shield-alt text-lg"></i>
+                                <div class="flex flex-col items-start">
+                                    <span class="text-xs font-bold"
+                                        >{currentFormData?.enable_device_tracking
+                                            ? "Device Tracking Active"
+                                            : "No Device Tracking"}</span
+                                    >
+                                    <span class="text-[10px] opacity-80"
+                                        >{currentFormData?.enable_device_tracking
+                                            ? "One submission per device"
+                                            : "Allow unlimited submissions"}</span
+                                    >
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-6 rounded-full transition-colors {currentFormData?.enable_device_tracking
+                                    ? 'bg-indigo-500'
+                                    : 'bg-slate-300'}"
+                            >
+                                <div
+                                    class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
+                                    style="transform: translateX({currentFormData?.enable_device_tracking
+                                        ? '18px'
+                                        : '2px'});"
+                                ></div>
+                            </div>
+                        </button>
+
+                        <!-- Anonymous Ballot Toggle -->
+                        <button
+                            onclick={() => {
+                                currentForm.update((f) => {
+                                    const nextAnon = !f.anonymous_voting;
+                                    return {
+                                        ...f,
+                                        anonymous_voting: nextAnon,
+                                        // Enforce device tracking if anonymous ballot is enabled
+                                        enable_device_tracking: nextAnon ? true : f.enable_device_tracking
+                                    };
+                                });
+                                saveForm();
+                            }}
+                            class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.anonymous_voting
+                                ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:border-purple-800 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50'
+                                : 'bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-gray-700'}"
+                        >
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-user-secret text-lg"></i>
+                                <div class="flex flex-col items-start">
+                                    <span class="text-xs font-bold"
+                                        >{currentFormData?.anonymous_voting
+                                            ? "Anonymous Ballot Enabled"
+                                            : "Standard Ballot"}</span
+                                    >
+                                    <span class="text-[10px] opacity-80"
+                                        >{currentFormData?.anonymous_voting
+                                            ? "Anonymize responses & hide IP details"
+                                            : "Display names/IDs if collected"}</span
+                                    >
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-6 rounded-full transition-colors {currentFormData?.anonymous_voting
+                                    ? 'bg-purple-500'
+                                    : 'bg-slate-300'}"
+                            >
+                                <div
+                                    class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
+                                    style="transform: translateX({currentFormData?.anonymous_voting
+                                        ? '18px'
+                                        : '2px'});"
+                                ></div>
+                            </div>
+                        </button>
+                    </section>
+
                     <section class="space-y-4">
                         <h4
                             class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"

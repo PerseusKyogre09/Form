@@ -1,7 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { form_responses } from '$lib/server/schema';
+import { forms, form_responses } from '$lib/server/schema';
+import { eq } from 'drizzle-orm';
 import { hashIP, getClientIP, checkRateLimit, logRequest } from '$lib/utils/rateLimit';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -20,6 +21,27 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!formId || !answers) {
       console.warn('Submission failed: Missing formId or answers');
       return json({ error: 'Missing formId or answers' }, { status: 400 });
+    }
+
+    // Fetch form settings to determine secure policies
+    const formSettings = await db.query.forms.findFirst({
+      where: eq(forms.id, formId),
+      columns: {
+        enable_device_tracking: true,
+        anonymous_voting: true
+      }
+    });
+
+    if (!formSettings) {
+      console.warn('Submission failed: Form not found:', formId);
+      return json({ error: 'Form not found' }, { status: 404 });
+    }
+
+    // Enforce device_id presence if device tracking or anonymous voting is active
+    const requiresDeviceTracking = formSettings.enable_device_tracking || formSettings.anonymous_voting;
+    if (requiresDeviceTracking && !device_id) {
+      console.warn('Submission failed: Missing device_id for secure form:', formId);
+      return json({ error: 'Device verification is required for this form.' }, { status: 400 });
     }
 
     // --- IP-based rate limiting ---
@@ -47,7 +69,19 @@ export const POST: RequestHandler = async ({ request }) => {
     };
 
     if (device_id) {
-      insertData.device_id = device_id;
+      if (requiresDeviceTracking) {
+        // Cryptographically hash the device ID salted with form ID
+        // Ensures user anonymity and prevents cross-form correlation!
+        const secureDeviceIdRaw = `${device_id}_${formId}`;
+        const encoder = new TextEncoder();
+        const cryptoData = encoder.encode(secureDeviceIdRaw);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', cryptoData);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        insertData.device_id = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      } else {
+        // Standard device ID (fallback)
+        insertData.device_id = device_id;
+      }
     }
 
     try {

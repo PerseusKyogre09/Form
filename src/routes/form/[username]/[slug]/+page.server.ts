@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { forms, questions, user as userTable } from '$lib/server/schema';
 import { eq, and } from 'drizzle-orm';
+import type { FormElement } from '$lib/types';
 
 export async function load({ params }) {
   const username = params.username as string;
@@ -42,22 +43,25 @@ export async function load({ params }) {
       .where(eq(questions.form_id, form.id))
       .orderBy(questions.order_index);
 
-    const questionsList = questionsData.map(q => q.data);
+    const questionsList = questionsData.map(q => q.data) as FormElement[];
 
     return {
       form: {
         id: form.id,
+        user_id: form.user_id,
         slug: form.slug,
         title: form.title,
         questions: questionsList,
         published: form.published,
         closed: form.closed || false,
-        backgroundType: form.background_type || 'color',
+        backgroundType: (form.background_type || 'color') as 'color' | 'image',
         backgroundColor: form.background_color || '#ffffff',
         backgroundImage: form.background_image || '',
         globalTextColor: form.global_text_color || '',
         theme: form.theme || undefined,
-        enable_checkin: form.enable_checkin || false
+        enable_checkin: form.enable_checkin || false,
+        enable_device_tracking: form.enable_device_tracking || false,
+        anonymous_voting: form.anonymous_voting || false
       }
     };
   } catch (err: any) {

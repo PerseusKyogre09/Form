@@ -82,6 +82,8 @@ export const forms = pgTable('forms', {
     thank_you_page: jsonb('thank_you_page'),
     enable_checkin: boolean('enable_checkin').default(false),
     checkin_name_field_id: text('checkin_name_field_id'),
+    enable_device_tracking: boolean('enable_device_tracking').default(false),
+    anonymous_voting: boolean('anonymous_voting').default(false),
 });
 
 export const questions = pgTable('questions', {

@@ -56,6 +56,8 @@
   export let theme: Theme | undefined = undefined;
   export let enableCheckin: boolean = false;
   export let successUrl: string = "";
+  export let enableDeviceTracking: boolean = false;
+  export let anonymousVoting: boolean = false;
 
   let currentQuestionIndex = 0;
   let answers: Record<string, any> = {};
@@ -67,6 +69,52 @@
   let isSubmitting = false;
   let alreadySubmitted = false;
   let deviceId: string = "";
+
+  function getCanvasFingerprint(): string {
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return "";
+      canvas.width = 200;
+      canvas.height = 50;
+      ctx.textBaseline = "top";
+      ctx.font = "14px 'Arial'";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "#f60";
+      ctx.fillRect(125, 1, 62, 20);
+      ctx.fillStyle = "#069";
+      ctx.fillText("quill, voting system 2026", 2, 15);
+      ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+      ctx.fillText("quill, voting system 2026", 4, 17);
+      return canvas.toDataURL();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function generateDeviceFingerprint(): string {
+    try {
+      const canvasFp = getCanvasFingerprint();
+      const rawString = [
+        navigator.userAgent,
+        navigator.language,
+        window.screen.width,
+        window.screen.height,
+        window.screen.colorDepth,
+        new Date().getTimezoneOffset(),
+        canvasFp
+      ].join("|");
+
+      let hash = 5381;
+      for (let i = 0; i < rawString.length; i++) {
+        hash = (hash * 33) ^ rawString.charCodeAt(i);
+      }
+      return (hash >>> 0).toString(16);
+    } catch (e) {
+      return crypto.randomUUID();
+    }
+  }
+
   let honeypotValue = "";
   let validationElement: HTMLElement;
   let currentElement: FormElement | undefined;
@@ -428,12 +476,23 @@
   onMount(async () => {
     // --- Device ID management for anti-abuse ---
     if (formId) {
-      const storedDeviceId = localStorage.getItem(`form_device_${formId}`);
-      if (storedDeviceId) {
-        deviceId = storedDeviceId;
+      if (enableDeviceTracking || anonymousVoting) {
+        // Advanced canvas and hardware fingerprinting
+        const fp = generateDeviceFingerprint();
+        let storedUuid = localStorage.getItem(`form_device_uuid_${formId}`);
+        if (!storedUuid) {
+          storedUuid = crypto.randomUUID();
+          localStorage.setItem(`form_device_uuid_${formId}`, storedUuid);
+        }
+        deviceId = `fp_${fp}_${storedUuid}`;
       } else {
-        deviceId = crypto.randomUUID();
-        localStorage.setItem(`form_device_${formId}`, deviceId);
+        const storedDeviceId = localStorage.getItem(`form_device_${formId}`);
+        if (storedDeviceId) {
+          deviceId = storedDeviceId;
+        } else {
+          deviceId = crypto.randomUUID();
+          localStorage.setItem(`form_device_${formId}`, deviceId);
+        }
       }
 
       // Check if already submitted from this device
@@ -2251,6 +2310,7 @@
           </div>
         </div>
       {:else if questions.length > 0}
+
         <!-- Progress Bar (fixed at top) -->
         <div
           class="hidden md:block fixed top-0 left-0 right-0 h-1 z-50"

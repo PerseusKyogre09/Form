@@ -8,9 +8,22 @@
   export let formId: string;
   export let questions: FormElement[] = [];
   export let enableCheckin: boolean = false;
+  export let enableDeviceTracking: boolean = false;
+  export let anonymousVoting: boolean = false;
 
   let questionList: Question[] = [];
   $: questionList = questions.filter(isQuestionElement);
+
+  function getVoterId(deviceId?: string): string {
+    if (!deviceId) return "—";
+    if (deviceId.startsWith("fp_")) {
+      const parts = deviceId.split("_");
+      const hash = parts[1] || "";
+      return `VTR-${hash.substring(0, 6).toUpperCase()}`;
+    }
+    // Handle database-hashed values directly
+    return `VTR-${deviceId.substring(0, 6).toUpperCase()}`;
+  }
 
   // State
   let responses: FormResponse[] = [];
@@ -343,6 +356,16 @@
                   {/if}
                 </th>
               {/each}
+              {#if enableDeviceTracking || anonymousVoting}
+                <th
+                  class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[130px]"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="fas fa-fingerprint text-xs text-indigo-500 dark:text-indigo-400"></span>
+                    <span>Voter ID</span>
+                  </div>
+                </th>
+              {/if}
               {#if enableCheckin}
                 <th
                   class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[120px]"
@@ -403,6 +426,16 @@
                     {/if}
                   </td>
                 {/each}
+                {#if enableDeviceTracking || anonymousVoting}
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold tracking-wide bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/20"
+                    >
+                      <i class="fas fa-fingerprint text-[10px]"></i>
+                      {getVoterId(response.device_id)}
+                    </span>
+                  </td>
+                {/if}
                 {#if enableCheckin}
                   <td class="px-3 py-2 whitespace-nowrap">
                     <button

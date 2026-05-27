@@ -95,6 +95,22 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (data.checkin_name_field_id !== undefined) {
       finalFormPayload.checkin_name_field_id = data.checkin_name_field_id;
     }
+    if (data.enable_device_tracking !== undefined) {
+      finalFormPayload.enable_device_tracking = data.enable_device_tracking;
+    } else if (data.enableDeviceTracking !== undefined) {
+      finalFormPayload.enable_device_tracking = data.enableDeviceTracking;
+    }
+    if (data.anonymous_voting !== undefined) {
+      finalFormPayload.anonymous_voting = data.anonymous_voting;
+      if (data.anonymous_voting) {
+        finalFormPayload.enable_device_tracking = true;
+      }
+    } else if (data.anonymousVoting !== undefined) {
+      finalFormPayload.anonymous_voting = data.anonymousVoting;
+      if (data.anonymousVoting) {
+        finalFormPayload.enable_device_tracking = true;
+      }
+    }
 
     // Use upsert-like logic with Drizzle (Neon Postgres)
     try {
@@ -375,7 +391,9 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
         global_text_color: originalForm.global_text_color,
         thank_you_page: originalForm.thank_you_page,
         enable_checkin: originalForm.enable_checkin,
-        checkin_name_field_id: originalForm.checkin_name_field_id
+        checkin_name_field_id: originalForm.checkin_name_field_id,
+        enable_device_tracking: originalForm.enable_device_tracking,
+        anonymous_voting: originalForm.anonymous_voting
       });
 
       // Duplicate questions

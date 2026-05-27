@@ -36,6 +36,8 @@
         theme={formData.theme}
         globalTextColor={formData.globalTextColor || ""}
         enableCheckin={formData.enable_checkin || false}
+        enableDeviceTracking={formData.enable_device_tracking || false}
+        anonymousVoting={formData.anonymous_voting || false}
         successUrl={`/form/${$page.params.username}/${$page.params.slug}/success`}
         {onSubmit}
       />

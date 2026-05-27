@@ -48,6 +48,8 @@
         backgroundImage={formData.backgroundImage || ""}
         globalTextColor={formData?.globalTextColor || ""}
         theme={formData.theme}
+        enableDeviceTracking={formData.enable_device_tracking || false}
+        anonymousVoting={formData.anonymous_voting || false}
         onSubmit={() => {}}
     />
 {:else}

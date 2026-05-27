@@ -146,6 +146,10 @@ export interface Form {
   collaborators?: FormCollaborator[]; // Shared users with access to this form
   enable_checkin?: boolean; // Whether QR check-in is enabled for this form
   checkin_name_field_id?: string | null; // ID of the question field used as participant name
+  enable_device_tracking?: boolean;
+  enableDeviceTracking?: boolean;
+  anonymous_voting?: boolean;
+  anonymousVoting?: boolean;
 }
 
 export interface FormResponse {
@@ -169,7 +173,7 @@ export interface FormTemplate {
   id: string;
   name: string;
   description: string;
-  category: 'feedback' | 'registration' | 'jobs' | 'capture' | 'nps' | 'contact' | 'booking' | 'support';
+  category: 'feedback' | 'registration' | 'jobs' | 'capture' | 'nps' | 'contact' | 'booking' | 'support' | 'voting';
   icon: string; // emoji or icon name
   thumbnail_url?: string;
   questions_template: FormElement[];
@@ -177,4 +181,6 @@ export interface FormTemplate {
   theme_id?: string;
   use_count?: number;
   preview_text?: string; // Short preview for template card
+  enable_device_tracking?: boolean;
+  anonymous_voting?: boolean;
 }
