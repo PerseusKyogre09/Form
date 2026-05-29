@@ -169,26 +169,11 @@ export async function GET({ params, url }) {
       <!-- Outer Frame Edge -->
       <rect x="0" y="0" width="1200" height="630" fill="none" stroke="${borderCol}" stroke-width="2" />
 
-      <!-- 2. Website Branding Header (Highly visible, elegant & crisp) -->
-      <g transform="translate(100, 26)">
-        <!-- Clean, bold rounded badge matching the theme accent -->
-        <rect width="54" height="54" rx="12" fill="${accentCol}" />
-        
-        <!-- High-fidelity inline Quill feather pen vector using official colors -->
-        <g transform="translate(13, 11)">
-          <!-- Main feather body in Quill Red -->
-          <path d="M19 1 C14 5, 11 12, 14 17 C15 19, 17 21, 20 22 C21 18, 23 11, 27 7 C29 4, 26 1, 22 1 Z" fill="#CD3E3B" />
-          <!-- Feather highlights in Quill Ivory -->
-          <path d="M19 1 C20 5, 21 12, 23 17 C24 19, 25 20, 27 21 C28 18, 29 12, 29 7 C29 5, 27 3, 24 2 Z" fill="#F3ECD0" fill-opacity="0.85" />
-          <!-- Spine/Shaft in Quill Dark Brown -->
-          <path d="M16 18 C18 15, 20 9, 21 2" stroke="#3F2B1B" stroke-width="1.8" stroke-linecap="round" fill="none" />
-          <!-- Pen Nib/Tip in Quill Dark Brown -->
-          <path d="M14 20 L8 26 C7 27, 7 28, 8 29 L9 30 C10 31, 11 31, 12 30 L18 24 Z" fill="#3F2B1B" />
-        </g>
-
+      <!-- 2. Website Branding Header (Highly visible, elegant & crisp typographic header) -->
+      <g transform="translate(100, 36)">
         <!-- Brand Name & Description (High legibility typography) -->
-        <text x="72" y="37" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700" fill="${textPrimary}">Quill</text>
-        <text x="156" y="34" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="${textMuted}">Forms with structure, not noise</text>
+        <text x="0" y="27" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700" fill="${textPrimary}">Quill</text>
+        <text x="84" y="24" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="${textMuted}">Forms with structure, not noise</text>
       </g>
 
       <!-- Separator Rule below topbar -->
