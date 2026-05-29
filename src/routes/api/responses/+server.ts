@@ -1,11 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { forms, form_responses } from '$lib/server/schema';
-import { eq } from 'drizzle-orm';
+import { forms, form_responses, ip_rate_log } from '$lib/server/schema';
+import { eq, and, count } from 'drizzle-orm';
 import { hashIP, getClientIP, checkRateLimit, logRequest } from '$lib/utils/rateLimit';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
     const data = await request.json();
     const { formId, answers, device_id, _hp } = data;
@@ -62,6 +62,38 @@ export const POST: RequestHandler = async ({ request }) => {
       );
     }
 
+    // --- Anti-Ballot Stuffing Check (Signed Cookie + IP Submission Limit) ---
+    const cookieName = `form_submitted_${formId}`;
+    if (requiresDeviceTracking) {
+      // 1. Secure HTTP-only cookie check
+      if (cookies.get(cookieName) === 'true') {
+        console.log('Duplicate cookie submission blocked for form:', formId);
+        return json(
+          { error: "You've already submitted this form. If you think this is a mistake, please contact the organisers." },
+          { status: 409 }
+        );
+      }
+
+      // 2. IP Submission Count check (protect against automated script spoofing of device_id)
+      const [ipSubmissionCount] = await db
+        .select({ value: count() })
+        .from(ip_rate_log)
+        .where(
+          and(
+            eq(ip_rate_log.ip_hash, ipHash),
+            eq(ip_rate_log.form_id, formId)
+          )
+        );
+
+      if ((ipSubmissionCount.value ?? 0) >= 3) {
+        console.warn('Ballot stuffing blocked: IP has exceeded maximum anonymous submissions for form:', formId);
+        return json(
+          { error: "Submission limit exceeded for this network. To ensure fairness, we restrict duplicate entries." },
+          { status: 429 }
+        );
+      }
+    }
+
     // --- Insert response with device_id ---
     const insertData: any = {
       form_id: formId,
@@ -91,6 +123,17 @@ export const POST: RequestHandler = async ({ request }) => {
 
       // Log the request for rate limiting (after successful insert)
       await logRequest(ipHash, formId);
+
+      // Set a secure, long-lived HTTP-only cookie to prevent subsequent browser-based attempts
+      if (requiresDeviceTracking) {
+        cookies.set(cookieName, 'true', {
+          path: '/',
+          maxAge: 60 * 60 * 24 * 365, // 1 year
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict'
+        });
+      }
 
       console.log('Successfully saved response for form:', formId);
       return json({ success: true, submissionId: insertedRow?.id || null });

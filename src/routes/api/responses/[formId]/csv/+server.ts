@@ -7,7 +7,13 @@ import { eq, and, desc } from 'drizzle-orm';
 // Simple CSV escape function
 function escapeCSV(value: string): string {
   if (value === null || value === undefined) return '';
-  const stringValue = String(value);
+  let stringValue = String(value);
+
+  // Prevent CSV Formula Injection / spreadsheet security issues
+  if (/^[=\+\-\@\t\r]/.test(stringValue)) {
+    stringValue = "'" + stringValue;
+  }
+
   if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }

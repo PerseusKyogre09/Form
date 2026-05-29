@@ -1,12 +1,16 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { form_responses, forms } from '$lib/server/schema';
+import { form_responses, forms, form_collaborators } from '$lib/server/schema';
 import { eq, and, ilike, desc, asc, count, sql } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ params, url, locals }) => {
     const user = locals.user;
     const formId = params.formId;
+
+    if (!user) {
+        return json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     try {
         // Verify form ownership (responses are viewable by form owner)
@@ -17,10 +21,18 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 
         if (!form) return json({ error: 'Form not found' }, { status: 404 });
 
-        // Allow unauthenticated basic access for public form stats? 
-        // For now, require auth for response data
-        if (user && form.user_id !== user.id) {
-            return json({ error: 'Forbidden' }, { status: 403 });
+        // Allow owner or valid collaborator
+        if (form.user_id !== user.id) {
+            const collaborator = await db.query.form_collaborators.findFirst({
+                where: and(
+                    eq(form_collaborators.form_id, formId),
+                    eq(form_collaborators.user_id, user.id)
+                )
+            });
+
+            if (!collaborator) {
+                return json({ error: 'Forbidden' }, { status: 403 });
+            }
         }
 
         const page = parseInt(url.searchParams.get('page') || '1');

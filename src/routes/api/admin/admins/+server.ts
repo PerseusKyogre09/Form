@@ -2,8 +2,9 @@ import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { user as userTable, forms, form_collaborators, account, session } from '$lib/server/schema';
 import { eq } from 'drizzle-orm';
+import { env } from '$env/dynamic/private';
 
-const ORIGINAL_ADMIN_EMAIL = 'kyogre.perseus09@gmail.com';
+const ORIGINAL_ADMIN_EMAIL = env.ORIGINAL_ADMIN_EMAIL || 'kyogre.perseus09@gmail.com';
 const MAX_ADMINS = 5;
 
 /** @type {import('@sveltejs/kit').RequestHandler} */

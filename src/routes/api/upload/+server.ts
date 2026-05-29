@@ -13,7 +13,12 @@ cloudinary.config({
     api_secret: CLOUDINARY_API_SECRET
 });
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+    const user = locals.user;
+    if (!user) {
+        return json({ error: 'Unauthorized. Please log in.' }, { status: 401 });
+    }
+
     try {
         const formData = await request.formData();
         const file = formData.get('file') as File;

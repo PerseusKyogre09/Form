@@ -3,6 +3,21 @@ import { db } from '$lib/server/db';
 import { forms, questions, user as userTable } from '$lib/server/schema';
 import { eq, and } from 'drizzle-orm';
 
+// Helper to escape XML/SVG markup characters to prevent Stored XSS injection
+function escapeXML(str: string): string {
+  if (!str) return '';
+  return str.replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+      default: return c;
+    }
+  });
+}
+
 // Helper to wrap long form titles cleanly onto up to 2 lines
 function wrapText(text: string, maxCharsPerLine: number = 28): string[] {
   const words = text.split(' ');
@@ -146,11 +161,11 @@ export async function GET({ params, url }) {
 
   // Handle title lines cleanly
   const titleLines = wrapText(formTitle, 26);
-  const line1 = titleLines[0] || 'Untitled Form';
-  const line2 = titleLines[1] || '';
+  const line1 = escapeXML(titleLines[0] || 'Untitled Form');
+  const line2 = escapeXML(titleLines[1] || '');
 
   // Clean status text devoid of emojis
-  const statusText = `${numQuestions} questions \u2022 Created by ${ownerName} \u2022 ${isFormClosed ? 'Submission closed' : 'Open for responses'}`;
+  const statusText = `${numQuestions} questions \u2022 Created by ${escapeXML(ownerName)} \u2022 ${isFormClosed ? 'Submission closed' : 'Open for responses'}`;
 
   // Clean, high-fidelity premium SVG markup
   const svg = `
@@ -191,7 +206,7 @@ export async function GET({ params, url }) {
 
       <!-- 4. Card Content Details -->
       <!-- Eyebrow text -->
-      <text x="160" y="250" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="${textMuted}" letter-spacing="2" text-transform="uppercase">FORM BY @${username.toUpperCase()}</text>
+      <text x="160" y="250" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="${textMuted}" letter-spacing="2" text-transform="uppercase">FORM BY @${escapeXML(username.toUpperCase())}</text>
 
       <!-- Dynamic Wrapped Form Title -->
       ${line2 ? `
@@ -203,7 +218,7 @@ export async function GET({ params, url }) {
 
       <!-- Status Metadata (No Emojis, premium and clean spacing) -->
       <text x="160" y="${line2 ? '415' : '390'}" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="${textMuted}">
-        ${statusText}
+        ${escapeXML(statusText)}
       </text>
 
       <!-- Mock Action Call Button (Styled precisely matching your primary buttons) -->

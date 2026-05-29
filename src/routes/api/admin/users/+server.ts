@@ -4,12 +4,21 @@ import { user as userTable, account as accountTable } from '$lib/server/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
-const ADMIN_EMAILS = ['kyogre.perseus09@gmail.com'];
+// Helper to check if the user is authenticated and is an admin in the database
+async function verifyAdmin(locals: any): Promise<boolean> {
+    if (!locals.user) return false;
+    const adminUser = await db
+        .select()
+        .from(userTable)
+        .where(eq(userTable.email, locals.user.email))
+        .limit(1);
+    return adminUser.length > 0 && !!adminUser[0].is_admin;
+}
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export async function GET({ locals }) {
     // Check if user is admin
-    if (!locals.user || !ADMIN_EMAILS.includes(locals.user.email)) {
+    if (!(await verifyAdmin(locals))) {
         return json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -26,7 +35,7 @@ export async function GET({ locals }) {
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export async function POST({ request, locals }) {
     // Check if user is admin
-    if (!locals.user || !ADMIN_EMAILS.includes(locals.user.email)) {
+    if (!(await verifyAdmin(locals))) {
         return json({ error: 'Unauthorized' }, { status: 403 });
     }
 
