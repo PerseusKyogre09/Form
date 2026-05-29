@@ -12,6 +12,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
         currentPath === "/signup" ||
         currentPath === "/unauthorized" ||
         currentPath === "/certificate-generator" ||
+        currentPath === "/terms" ||
         currentPath.startsWith("/form/") ||
         currentPath.startsWith("/preview/");
 

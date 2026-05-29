@@ -97,8 +97,11 @@
             // Upload avatar to Cloudinary if a new file is selected
             if (avatarFile) {
                 const formData = new FormData();
-                formData.append('file', avatarFile);
-                formData.append('path', `avatar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+                formData.append("file", avatarFile);
+                formData.append(
+                    "path",
+                    `avatar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                );
 
                 const uploadRes = await fetch("/api/upload", {
                     method: "POST",
@@ -364,7 +367,7 @@
                                     <p
                                         class="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium"
                                     >
-                                        ✓ quill.com/form/<span
+                                        ✓ quill.geekroom-srmist.co.in/form/<span
                                             class="font-semibold"
                                             >{username}</span
                                         >

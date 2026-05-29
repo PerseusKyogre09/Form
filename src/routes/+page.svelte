@@ -334,7 +334,7 @@
           <code
             class="block bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded px-4 py-3 text-sm font-mono text-black/70 dark:text-gray-400 transition-colors"
           >
-            quill.com/user/feedback
+            quill.geekroom-srmist.co.in/user/feedback
           </code>
         </div>
 
@@ -445,13 +445,16 @@
   </section>
 
   <!-- Certificate Generator Section -->
-  <section class="py-20 bg-white dark:bg-gray-950 border-t border-black/10 dark:border-white/10 transition-colors">
+  <section
+    class="py-20 bg-white dark:bg-gray-950 border-t border-black/10 dark:border-white/10 transition-colors"
+  >
     <div class="max-w-4xl mx-auto px-6 animate-on-scroll">
       <h2 class="text-4xl md:text-5xl font-black mb-6">
         Design certificates in seconds.
       </h2>
       <p class="text-xl text-black/60 dark:text-gray-400 mb-8">
-        Create beautiful certificates for your attendees, participants, or winners. No design skills needed. Works instantly—no login required.
+        Create beautiful certificates for your attendees, participants, or
+        winners. No design skills needed. Works instantly—no login required.
       </p>
       <Button.Root
         href="/certificate-generator"
@@ -510,8 +513,9 @@
                 >
               </li>
               <li>
-                <a href="/certificate-generator" class="hover:text-white transition-colors"
-                  >Certificates</a
+                <a
+                  href="/certificate-generator"
+                  class="hover:text-white transition-colors">Certificates</a
                 >
               </li>
               <li>
@@ -538,12 +542,16 @@
             <h4 class="font-bold text-white">Legal</h4>
             <ul class="space-y-2 text-white/60">
               <li>
-                <a href="/" class="hover:text-white transition-colors"
-                  >Privacy</a
+                <a
+                  href="/terms?tab=privacy"
+                  class="hover:text-white transition-colors">Privacy</a
                 >
               </li>
               <li>
-                <a href="/" class="hover:text-white transition-colors">Terms</a>
+                <a
+                  href="/terms?tab=terms"
+                  class="hover:text-white transition-colors">Terms</a
+                >
               </li>
             </ul>
           </div>
