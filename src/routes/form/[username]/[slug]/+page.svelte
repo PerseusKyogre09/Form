@@ -8,8 +8,8 @@
 
   const formData: Form = data.form;
 
-  // Generate the absolute URL for the dynamic social preview card
-  $: ogImageUrl = `${$page.url.origin}/form/${$page.params.username}/${$page.params.slug}/og.svg`;
+  // Generate the absolute URL for the dynamic social preview card (PNG)
+  $: ogImageUrl = `${$page.url.origin}/form/${$page.params.username}/${$page.params.slug}/og.png`;
 
   function onSubmit(answers: Record<string, any>) {
     const username = $page.params.username;
@@ -27,7 +27,7 @@
   <meta property="og:title" content="{formData?.title} - Quill" />
   <meta property="og:description" content="Click to open and fill out this form by @{$page.params.username}." />
   <meta property="og:image" content={ogImageUrl} />
-  <meta property="og:image:type" content="image/svg+xml" />
+  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:type" content="website" />

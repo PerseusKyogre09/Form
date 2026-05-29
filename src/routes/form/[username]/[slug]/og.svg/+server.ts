@@ -4,7 +4,7 @@ import { forms, questions, user as userTable } from '$lib/server/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Helper to wrap long form titles cleanly onto up to 2 lines
-function wrapText(text: string, maxCharsPerLine: number = 32): string[] {
+function wrapText(text: string, maxCharsPerLine: number = 28): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
@@ -19,7 +19,6 @@ function wrapText(text: string, maxCharsPerLine: number = 32): string[] {
   }
   if (currentLine) lines.push(currentLine);
 
-  // Limit to maximum of 2 lines for aesthetic balance inside the preview card
   if (lines.length > 2) {
     lines[1] = lines[1].substring(0, maxCharsPerLine - 3) + '...';
     return [lines[0], lines[1]];
@@ -27,7 +26,7 @@ function wrapText(text: string, maxCharsPerLine: number = 32): string[] {
   return lines;
 }
 
-// Simple brightness estimator to adapt the card styles dynamically
+// Check brightness to match light or dark mode themes
 function isDarkColor(hex: string): boolean {
   if (!hex || hex === 'transparent') return false;
   const cleanHex = hex.replace('#', '');
@@ -46,22 +45,42 @@ function isDarkColor(hex: string): boolean {
   return false;
 }
 
-export async function GET({ params }) {
+// Estimate if a color is too bright or close to white to ensure contrast on buttons
+function isLightColor(hex: string): boolean {
+  if (!hex) return true;
+  const cleanHex = hex.replace('#', '');
+  let r = 255, g = 255, b = 255;
+  if (cleanHex.length === 3) {
+    r = parseInt(cleanHex[0] + cleanHex[0], 16);
+    g = parseInt(cleanHex[1] + cleanHex[1], 16);
+    b = parseInt(cleanHex[2] + cleanHex[2], 16);
+  } else if (cleanHex.length === 6) {
+    r = parseInt(cleanHex.substring(0, 2), 16);
+    g = parseInt(cleanHex.substring(2, 4), 16);
+    b = parseInt(cleanHex.substring(4, 6), 16);
+  }
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.7;
+}
+
+export async function GET({ params, url }) {
   const username = params.username as string;
   const slug = params.slug as string;
+  const origin = url.origin;
+  const logoUrl = `${origin}/favicon.svg`;
 
-  let formTitle = 'Quill Form';
+  let formTitle = 'Untitled Form';
   let ownerName = username;
   let numQuestions = 0;
   let isFormClosed = false;
 
-  // Default design system colors (Quill Warm Paper Theme)
-  let canvasBg = '#f4f1ea';      // --bg-canvas
-  let cardBg = '#ffffff';        // --surface-strong
-  let borderCol = '#d9d3c8';     // --border
-  let textPrimary = '#1f2328';   // --text
-  let textMuted = '#5f6872';     // --text-muted
-  let accentCol = '#4f61ba';     // --accent
+  // Ground canvas elements in Quill's high-end Warm Paper brand style
+  let canvasBg = '#f4f1ea';      // --bg-canvas light
+  let cardBg = '#ffffff';        // --surface-strong light
+  let borderCol = '#d9d3c8';     // --border light
+  let textPrimary = '#1f2328';   // --text light
+  let textMuted = '#5f6872';     // --text-muted light
+  let accentCol = '#4f61ba';     // --accent light
   let btnText = '#ffffff';
 
   try {
@@ -97,134 +116,144 @@ export async function GET({ params }) {
         const formBgColor = form.background_color;
         const isDark = formBgColor ? isDarkColor(formBgColor) : false;
 
-        // Extract accent from theme preference if present
+        // Extract custom theme accent color
         const customTheme = form.theme as any;
         if (customTheme?.accentColor) {
           accentCol = customTheme.accentColor;
         }
 
-        // If the form has a custom color, let's personalized the preview!
-        if (formBgColor) {
-          canvasBg = formBgColor;
-          if (isDark) {
-            // Apply Quill Dark Sepia variables
-            cardBg = '#1f1d19';       // --surface
-            borderCol = '#38332a';    // --border
-            textPrimary = '#ece6dc';  // --text
-            textMuted = '#b7aea2';    // --text-muted
-            if (!customTheme?.accentColor) accentCol = '#8ea0ff'; // --accent dark fallback
-            btnText = '#181713';
-          } else {
-            // Light custom background variables
-            cardBg = '#ffffff';
-            borderCol = '#d9d3c8';
-            textPrimary = '#1f2328';
-            textMuted = '#5f6872';
-            btnText = '#ffffff';
-          }
+        // Apply theme-aware ground rules (always clean, soft Warm Paper or Graphite framing)
+        if (isDark) {
+          canvasBg = '#181713';      // --bg-canvas dark
+          cardBg = '#23211c';        // --surface-strong dark
+          borderCol = '#38332a';     // --border dark
+          textPrimary = '#ece6dc';   // --text dark
+          textMuted = '#b7aea2';     // --text-muted dark
+          if (!customTheme?.accentColor) accentCol = '#8ea0ff'; // --accent dark fallback
+        } else {
+          canvasBg = '#f4f1ea';
+          cardBg = '#ffffff';
+          borderCol = '#d9d3c8';
+          textPrimary = '#1f2328';
+          textMuted = '#5f6872';
         }
+
+        // Contrast adaptation for primary mock action button
+        btnText = isLightColor(accentCol) ? '#181713' : '#ffffff';
       }
     }
   } catch (err) {
-    console.error('Error generating dynamic preview image data:', err);
-    // Keep standard fallback values so crawler requests never crash
+    console.error('Error rendering dynamic SVG preview details:', err);
   }
 
-  // Handle title lines safely using our wrapping engine
-  const titleLines = wrapText(formTitle, 28);
+  // Handle title lines cleanly
+  const titleLines = wrapText(formTitle, 26);
   const line1 = titleLines[0] || 'Untitled Form';
   const line2 = titleLines[1] || '';
 
-  // Construct a visually pristine, lightweight, perfectly styled SVG image
-  // mimicking the exact typography, card outlines, header bar, and buttons of Quill.
+  // Clean status text devoid of emojis
+  const statusText = `${numQuestions} questions \u2022 Created by ${ownerName} \u2022 ${isFormClosed ? 'Submission closed' : 'Open for responses'}`;
+
+  // Clean, high-fidelity premium SVG markup
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
       <defs>
-        <!-- Dynamic Canvas Decorative Subtle Grid (Quill style structure) -->
-        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="${borderCol}" stroke-width="0.3" stroke-opacity="0.6" />
+        <!-- Fine background grids mimicking premium editor blueprints -->
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="${borderCol}" stroke-width="0.5" stroke-opacity="0.6" />
         </pattern>
       </defs>
 
-      <!-- 1. Background Canvas -->
+      <!-- 1. Background Frame -->
       <rect width="1200" height="630" fill="${canvasBg}" />
       <rect width="1200" height="630" fill="url(#grid)" />
 
-      <!-- 2. Decorative Canvas Border (Mimicking browser screen wrapper) -->
+      <!-- Outer Frame Edge -->
       <rect x="0" y="0" width="1200" height="630" fill="none" stroke="${borderCol}" stroke-width="2" />
 
-      <!-- 3. Top Branding Header Bar (Matches Quill topbar exactly) -->
-      <!-- Top separator line -->
-      <line x1="0" y1="90" x2="1200" y2="90" stroke="${borderCol}" stroke-width="1.5" />
-      
-      <!-- Quill Branded Badge (Left side of topbar) -->
-      <g transform="translate(100, 31)">
-        <!-- Rounded square favicon backing matching accent color -->
-        <rect width="28" height="28" rx="8" fill="${accentCol}" />
-        
-        <!-- Elegant minimalist white Quill feather icon path -->
-        <path d="M 9 19 L 9 17 C 9 14.5 10 12.5 12 11 C 13.5 10 15 9.5 16.5 7 L 17 6 C 16 7.5 14.5 8 13.5 8.5 C 11.5 9.5 10.5 11 9.5 13 L 9.5 15 C 8.5 15 7.5 15.5 7 16 Z" fill="#ffffff" />
-        <path d="M 8 20 C 8.5 18 10 16 11 15" stroke="#ffffff" stroke-width="1" stroke-linecap="round" />
+      <!-- 2. Website Branding Header (Highly visible, elegant & crisp) -->
+      <g transform="translate(100, 26)">
+        <!-- Rounded square favicon container -->
+        <clipPath id="logo-clip">
+          <rect width="54" height="54" rx="12" />
+        </clipPath>
+        <g clip-path="url(#logo-clip)">
+          <rect width="54" height="54" fill="#ffffff" />
+          <!-- Render the authentic Quill favicon vector image -->
+          <image width="54" height="54" href="${logoUrl}" />
+        </g>
 
-        <!-- Logo typography styled precisely like Inter font -->
-        <text x="40" y="21" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="600" fill="${textPrimary}">Quill</text>
-        <text x="95" y="20" font-family="Inter, system-ui, sans-serif" font-size="14" fill="${textMuted}">Forms with structure, not noise</text>
+        <!-- Brand Name & Description (High legibility typography) -->
+        <text x="72" y="37" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700" fill="${textPrimary}">Quill</text>
+        <text x="156" y="34" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="${textMuted}">Forms with structure, not noise</text>
       </g>
 
-      <!-- 4. Main Form Card Container (Mimics .surface .panel-section exactly) -->
-      <!-- Subtle shadow box representation -->
-      <rect x="153" y="163" width="894" height="364" rx="14" fill="#000000" fill-opacity="0.02" />
-      
-      <!-- Card Border & Core surface -->
-      <rect x="150" y="160" width="894" height="364" rx="12" fill="${cardBg}" stroke="${borderCol}" stroke-width="1.5" />
-      
-      <!-- Form Accent Color Left Highlight Strip (Signifying active state) -->
-      <rect x="150" y="160" width="8" height="364" rx="2" fill="${accentCol}" />
+      <!-- Separator Rule below topbar -->
+      <line x1="0" y1="110" x2="1200" y2="110" stroke="${borderCol}" stroke-width="1.5" />
 
-      <!-- 5. Card Content Block -->
-      <!-- Eyebrow Tag: Form by author -->
-      <text x="210" y="225" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="${textMuted}" letter-spacing="2" text-transform="uppercase">FORM BY @${username.toUpperCase()}</text>
+      <!-- 3. Form Central Panel Card -->
+      <!-- Shadow backing -->
+      <rect x="103" y="183" width="994" height="364" rx="16" fill="#000000" fill-opacity="0.03" />
+      
+      <!-- Card Container -->
+      <rect x="100" y="180" width="994" height="364" rx="14" fill="${cardBg}" stroke="${borderCol}" stroke-width="1.5" />
+      
+      <!-- Left Edge Highlight Strip (matching form accent) -->
+      <rect x="100" y="180" width="10" height="364" rx="3" fill="${accentCol}" />
 
-      <!-- Form Title Block (Wraps to 2 lines cleanly if long) -->
+      <!-- 4. Card Content Details -->
+      <!-- Eyebrow text -->
+      <text x="160" y="250" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="${textMuted}" letter-spacing="2" text-transform="uppercase">FORM BY @${username.toUpperCase()}</text>
+
+      <!-- Dynamic Wrapped Form Title -->
       ${line2 ? `
-        <text x="210" y="280" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="700" fill="${textPrimary}">${line1}</text>
-        <text x="210" y="335" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="700" fill="${textPrimary}">${line2}</text>
+        <text x="160" y="310" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700" fill="${textPrimary}">${line1}</text>
+        <text x="160" y="365" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700" fill="${textPrimary}">${line2}</text>
       ` : `
-        <text x="210" y="300" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700" fill="${textPrimary}">${line1}</text>
+        <text x="160" y="335" font-family="Inter, system-ui, sans-serif" font-size="46" font-weight="700" fill="${textPrimary}">${line1}</text>
       `}
 
-      <!-- Form Details & Status Indicators -->
-      <g transform="translate(210, ${line2 ? '375' : '355'})">
-        <!-- Submissions Details -->
-        <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="16" fill="${textMuted}">
-          📝 Contains ${numQuestions} questions • Created by ${ownerName} • ${isFormClosed ? 'Submission closed' : 'Open for responses'}
-        </text>
-      </g>
+      <!-- Status Metadata (No Emojis, premium and clean spacing) -->
+      <text x="160" y="${line2 ? '415' : '390'}" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="${textMuted}">
+        ${statusText}
+      </text>
 
-      <!-- 6. Mock Interactive Button (Styled exactly like btn-primary) -->
-      <g transform="translate(210, 425)">
-        <rect width="210" height="46" rx="10" fill="${textPrimary}" />
-        <text x="105" y="28" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="${cardBg}" text-anchor="middle">
+      <!-- Mock Action Call Button (Styled precisely matching your primary buttons) -->
+      <g transform="translate(160, 445)">
+        <rect width="210" height="52" rx="10" fill="${accentCol}" />
+        <text x="105" y="31" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="600" fill="${btnText}" text-anchor="middle">
           ${isFormClosed ? 'View status' : 'Fill out form'}
         </text>
       </g>
-      
-      <!-- Subtle checklist graphics on right side (aesthetic visual weight balance, no fancy glows) -->
-      <g transform="translate(840, 240)" opacity="0.8">
-        <!-- Clipboard backing -->
-        <rect x="0" y="0" width="100" height="130" rx="10" fill="none" stroke="${borderCol}" stroke-width="2" />
-        <rect x="35" y="-10" width="30" height="16" rx="4" fill="${accentCol}" />
+
+      <!-- 5. Minimalist Premium Form Vector Illustration (Balances visual weight on the right side) -->
+      <g transform="translate(830, 250)">
+        <!-- Stacked back card shadow layer -->
+        <rect x="18" y="-12" width="130" height="170" rx="12" fill="none" stroke="${borderCol}" stroke-width="1.5" transform="rotate(5, 83, 73)" />
         
-        <!-- Checklist items -->
-        <line x1="20" y1="30" x2="80" y2="30" stroke="${borderCol}" stroke-width="2" stroke-linecap="round" />
-        <line x1="20" y1="55" x2="65" y2="55" stroke="${borderCol}" stroke-width="2" stroke-linecap="round" />
-        <line x1="20" y1="80" x2="75" y2="80" stroke="${borderCol}" stroke-width="2" stroke-linecap="round" />
-        <line x1="20" y1="105" x2="50" y2="105" stroke="${borderCol}" stroke-width="2" stroke-linecap="round" />
+        <!-- Stacked front card container representing form interface -->
+        <rect x="0" y="0" width="130" height="170" rx="12" fill="${cardBg}" stroke="${borderCol}" stroke-width="1.5" />
         
-        <!-- Checklist checks -->
-        <circle cx="20" cy="30" r="4" fill="${accentCol}" />
-        <circle cx="20" cy="55" r="4" fill="${accentCol}" />
-        <circle cx="20" cy="80" r="4" fill="${accentCol}" />
+        <!-- Active form header element -->
+        <rect x="12" y="12" width="106" height="40" rx="6" fill="${accentCol}" fill-opacity="0.08" />
+        <rect x="20" y="22" width="50" height="6" rx="2" fill="${accentCol}" />
+        <rect x="20" y="34" width="70" height="4" rx="2" fill="${textMuted}" />
+
+        <!-- Mock form inputs (Deliberate fields structure) -->
+        <!-- Field 1 label -->
+        <rect x="12" y="66" width="65" height="5" rx="2" fill="${textMuted}" fill-opacity="0.7" />
+        <!-- Field 1 text line -->
+        <rect x="12" y="78" width="106" height="24" rx="6" fill="none" stroke="${borderCol}" stroke-width="1.5" />
+        <line x1="22" y1="84" x2="22" y2="96" stroke="${accentCol}" stroke-width="2" />
+        
+        <!-- Field 2 label -->
+        <rect x="12" y="116" width="45" height="5" rx="2" fill="${textMuted}" fill-opacity="0.7" />
+        <!-- Field 2 choice options -->
+        <circle cx="17" cy="134" r="5" fill="none" stroke="${borderCol}" stroke-width="1.5" />
+        <rect x="28" y="132" width="50" height="4" rx="2" fill="${textMuted}" fill-opacity="0.5" />
+
+        <circle cx="17" cy="150" r="5" fill="${accentCol}" />
+        <rect x="28" y="148" width="35" height="4" rx="2" fill="${textPrimary}" />
       </g>
     </svg>
   `;
