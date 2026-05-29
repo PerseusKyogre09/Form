@@ -185,7 +185,6 @@ export async function GET({ params, url }) {
           <!-- Pen Nib/Tip in Quill Dark Brown -->
           <path d="M14 20 L8 26 C7 27, 7 28, 8 29 L9 30 C10 31, 11 31, 12 30 L18 24 Z" fill="#3F2B1B" />
         </g>
-      </g>
 
         <!-- Brand Name & Description (High legibility typography) -->
         <text x="72" y="37" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700" fill="${textPrimary}">Quill</text>
