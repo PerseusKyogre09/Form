@@ -37,7 +37,25 @@
 </script>
 
 <svelte:head>
-	<title>Quill</title>
+	<title>Quill - Beautiful Form Builder</title>
+	<meta name="description" content="Create beautiful, customizable forms with Quill. No coding required. Collect responses, analyze data, and share instantly." />
+	<meta name="keywords" content="form builder, survey, questionnaire, form creation, form responses" />
+	
+	<!-- Open Graph Tags for Social Sharing -->
+	<meta property="og:title" content="Quill - Beautiful Form Builder" />
+	<meta property="og:description" content="Create beautiful, customizable forms without coding. Collect responses and analyze data instantly." />
+	<meta property="og:type" content="website" />
+	<meta property="og:image" content="https://quill.geekroom-srmist.co.in/preview.jpg" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	
+	<!-- Twitter Card Tags -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Quill - Beautiful Form Builder" />
+	<meta name="twitter:description" content="Create beautiful, customizable forms without coding. Collect responses and analyze data instantly." />
+	<meta name="twitter:image" content="https://quill.geekroom-srmist.co.in/preview.jpg" />
+
 	<link rel="icon" href={favicon} />
 	<link
 		rel="stylesheet"
