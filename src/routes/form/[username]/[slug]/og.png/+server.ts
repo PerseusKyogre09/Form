@@ -13,12 +13,12 @@ export async function GET({ params, url }) {
     throw redirect(302, `/form/${username}/${slug}/og.svg?v=${version}`);
   }
 
-  // In production, construct the absolute SVG endpoint URL with the version parameter
-  const svgUrl = `${origin}/form/${username}/${slug}/og.svg?v=${version}`;
+  // In production, construct the absolute SVG endpoint URL forwarding all cache-busting query parameters
+  const searchParams = url.searchParams.toString();
+  const svgUrl = `${origin}/form/${username}/${slug}/og.svg${searchParams ? `?${searchParams}` : ''}`;
 
   // Redirect permanently (301) to images.weserv.nl (runs on Cloudflare's own network)
   // This converts the SVG to a crisp PNG and caches it globally on their edge for 31 days.
-  // This takes absolute zero CPU/memory load on your own Cloudflare Worker!
   const pngUrl = `https://images.weserv.nl/?url=${encodeURIComponent(svgUrl)}&output=png`;
 
   throw redirect(301, pngUrl);

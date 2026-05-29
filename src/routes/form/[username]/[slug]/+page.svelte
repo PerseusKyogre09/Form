@@ -10,7 +10,7 @@
 
   // Generate the absolute URL for the dynamic social preview card (PNG) with cache invalidation
   $: updatedAtStr = formData?.updated_at ? new Date(formData.updated_at).getTime().toString() : '1';
-  $: ogImageUrl = `${$page.url.origin}/form/${$page.params.username}/${$page.params.slug}/og.png?v=${updatedAtStr}`;
+  $: ogImageUrl = `${$page.url.origin}/form/${$page.params.username}/${$page.params.slug}/og.png?v=${updatedAtStr}&d=6`;
 
   function onSubmit(answers: Record<string, any>) {
     const username = $page.params.username;
