@@ -8,6 +8,9 @@
 
   const formData: Form = data.form;
 
+  // Generate the absolute URL for the dynamic social preview card
+  $: ogImageUrl = `${$page.url.origin}/form/${$page.params.username}/${$page.params.slug}/og.svg`;
+
   function onSubmit(answers: Record<string, any>) {
     const username = $page.params.username;
     const slug = $page.params.slug;
@@ -19,9 +22,21 @@
   <title>{formData?.title} - Form</title>
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Fill out {formData?.title}" />
-  <meta property="og:title" content="{formData?.title} - Quill Form" />
-  <meta property="og:description" content="You're invited to fill out a form" />
+  
+  <!-- Dynamic Open Graph Preview Tags -->
+  <meta property="og:title" content="{formData?.title} - Quill" />
+  <meta property="og:description" content="Click to open and fill out this form by @{$page.params.username}." />
+  <meta property="og:image" content={ogImageUrl} />
+  <meta property="og:image:type" content="image/svg+xml" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:type" content="website" />
+
+  <!-- Dynamic Twitter Card Preview Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{formData?.title} - Quill" />
+  <meta name="twitter:description" content="Click to open and fill out this form by @{$page.params.username}." />
+  <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
 
 <div class="min-h-screen bg-[color:var(--bg-canvas)]">
