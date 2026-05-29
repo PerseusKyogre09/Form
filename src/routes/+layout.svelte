@@ -4,6 +4,7 @@
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
 	import NotificationContainer from "$lib/components/NotificationContainer.svelte";
+	import Footer from "$lib/components/Footer.svelte";
 	import { themePreference, applyTheme } from "$lib/stores/theme";
 
 	let { children } = $props();
@@ -14,6 +15,24 @@
 			themePreference.set(pref);
 			applyTheme(pref);
 		}
+	});
+
+	// List of paths where the footer should be hidden (builder, certificate, login, dashboard, etc.)
+	const excludedPaths = [
+		"/form-builder",
+		"/certificate-generator",
+		"/login",
+		"/signup",
+		"/form",
+		"/preview",
+		"/checkin",
+		"/dashboard"
+	];
+
+	// Derived state to determine if footer should be rendered
+	let showFooter = $derived.by(() => {
+		const path = $page.url.pathname;
+		return !excludedPaths.some(p => path === p || path.startsWith(p + "/"));
 	});
 </script>
 
@@ -28,6 +47,11 @@
 
 <NotificationContainer />
 
-<div class="min-h-screen">
-	{@render children()}
+<div class="min-h-screen flex flex-col">
+	<div class="flex-1">
+		{@render children()}
+	</div>
+	{#if showFooter}
+		<Footer />
+	{/if}
 </div>

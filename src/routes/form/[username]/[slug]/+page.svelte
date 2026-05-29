@@ -24,7 +24,7 @@
   <meta property="og:type" content="website" />
 </svelte:head>
 
-<div class="min-h-screen bg-[#ffffff]">
+<div class="min-h-screen bg-[color:var(--bg-canvas)]">
   {#if formData}
     <div class="min-h-screen">
       <FormPreview

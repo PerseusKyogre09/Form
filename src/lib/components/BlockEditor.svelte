@@ -62,6 +62,8 @@
   function handleDragEnd(event: DragEvent) {
     dispatch("dragend", event);
   }
+
+  $: showCardPreview = block.showCard !== false;
 </script>
 
 <div
@@ -406,7 +408,7 @@
     {:else}
       <!-- Card Style Preview (with or without IDE theme) -->
       <div
-        class="block-preview rounded-lg border {block.showCard === false
+        class="block-preview rounded-lg border {!showCardPreview
           ? 'border-gray-600 dark:border-gray-500'
           : 'border-gray-200 dark:border-gray-700'} p-4 min-h-[120px] flex flex-col"
         style="background-color: {block.backgroundColor || '#ffffff'};"

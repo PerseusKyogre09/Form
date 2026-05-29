@@ -609,10 +609,10 @@
 </script>
 
 <div
-  class="min-h-screen bg-slate-50 dark:bg-gray-950 text-slate-900 dark:text-gray-100 transition-colors duration-200 font-sans"
+  class="app-shell"
 >
   <header
-    class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-slate-200 dark:border-gray-800 transition-colors"
+    class="app-topbar"
   >
     <div
       class="max-w-[1400px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between relative"
@@ -620,7 +620,7 @@
       <div class="flex items-center gap-2 md:gap-4 flex-1 justify-start">
         <button
           on:click={goBack}
-          class="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-full transition-colors shrink-0"
+          class="icon-btn h-9 w-9 shrink-0 border-transparent bg-transparent"
           aria-label="Go Back"
         >
           <span class="fas fa-arrow-left text-slate-600 dark:text-slate-400"
@@ -634,7 +634,7 @@
             currentForm.update((f) => ({ ...f, title: newTitle }));
           }}
           placeholder="Untitled Form"
-          class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white bg-transparent border-none focus:ring-0 p-0 w-full md:w-64 placeholder:text-slate-400 dark:placeholder:text-gray-500 min-w-[50px] overflow-hidden text-ellipsis whitespace-nowrap"
+          class="w-full min-w-[50px] overflow-hidden border-none bg-transparent p-0 text-lg font-semibold tracking-tight text-[color:var(--text)] placeholder:text-[color:var(--text-soft)] focus:ring-0 md:w-64"
         />
       </div>
 
@@ -646,14 +646,14 @@
         {#if currentFormData?.published}
           <button
             on:click={unpublishForm}
-            class="hidden md:block px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all active:scale-95"
+            class="btn btn-danger hidden md:inline-flex"
           >
             Unpublish Form
           </button>
         {:else}
           <button
             on:click={generateShareLink}
-            class="hidden md:block px-5 py-2 text-sm font-semibold text-white bg-primary hover:bg-indigo-600 rounded-lg shadow-sm transition-all active:scale-95"
+            class="btn btn-primary hidden md:inline-flex"
           >
             Publish Form
           </button>
@@ -662,13 +662,13 @@
         <!-- Desktop Right Sidebar Toggle -->
         <button
           on:click={toggleRightSidebar}
-          class="hidden xl:flex items-center justify-center p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg text-slate-600 dark:text-slate-400 transition-all active:scale-95"
+          class="icon-btn hidden xl:inline-flex h-9 w-9 border-transparent bg-transparent"
           aria-label="Toggle Settings Sidebar"
           title="Toggle Settings Sidebar"
         >
           <i
             class="fas fa-cog text-xl {isRightSidebarOpen
-              ? 'text-primary rotate-90'
+              ? 'text-[color:var(--accent)] rotate-90'
               : ''} transition-all duration-300"
           ></i>
         </button>
@@ -676,10 +676,10 @@
         <!-- Mobile Settings Button -->
         <button
           on:click={() => (isSettingsOpen = true)}
-          class="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg xl:hidden"
+          class="icon-btn h-9 w-9 border-transparent bg-transparent xl:hidden"
           aria-label="Open Form Settings"
         >
-          <span class="fas fa-cog text-slate-600 dark:text-slate-400 text-xl"
+          <span class="fas fa-cog text-xl muted"
           ></span>
         </button>
       </div>
@@ -688,17 +688,17 @@
 
   <!-- Desktop Sidebar -->
   <aside
-    class="hidden lg:flex fixed left-0 top-16 bottom-0 bg-white dark:bg-gray-900 border-r border-slate-200 dark:border-gray-800 flex-col transition-all duration-300 z-40 {isSidebarOpen
+    class="surface-strong hidden lg:flex fixed left-0 top-16 bottom-0 border-r app-divider flex-col transition-all duration-300 z-40 {isSidebarOpen
       ? 'w-64'
       : 'w-20'}"
   >
     <div class="flex-1 py-6 flex flex-col gap-2">
       <button
         on:click={() => (view = "edit")}
-        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        class="mx-3 flex items-center gap-3 rounded-[10px] px-4 py-3 transition-colors {view ===
         'edit'
-          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
+          ? 'bg-[color:var(--surface-muted)] text-[color:var(--text)]'
+          : 'muted hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text)]'}"
       >
         <i class="fas fa-edit w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -714,10 +714,10 @@
             view = "preview";
           }
         }}
-        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        class="mx-3 flex items-center gap-3 rounded-[10px] px-4 py-3 transition-colors {view ===
         'preview'
-          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
+          ? 'bg-[color:var(--surface-muted)] text-[color:var(--text)]'
+          : 'muted hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text)]'}"
       >
         <i class="fas fa-eye w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -727,10 +727,10 @@
 
       <button
         on:click={() => (view = "thankYou")}
-        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        class="mx-3 flex items-center gap-3 rounded-[10px] px-4 py-3 transition-colors {view ===
         'thankYou'
-          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
+          ? 'bg-[color:var(--surface-muted)] text-[color:var(--text)]'
+          : 'muted hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text)]'}"
       >
         <i class="fas fa-heart w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -740,10 +740,10 @@
 
       <button
         on:click={() => (view = "responses")}
-        class="mx-3 flex items-center gap-3 px-4 py-3 rounded-xl transition-all {view ===
+        class="mx-3 flex items-center gap-3 rounded-[10px] px-4 py-3 transition-colors {view ===
         'responses'
-          ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-          : 'text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white'}"
+          ? 'bg-[color:var(--surface-muted)] text-[color:var(--text)]'
+          : 'muted hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text)]'}"
       >
         <i class="fas fa-chart-bar w-5 text-lg"></i>
         {#if isSidebarOpen}
@@ -753,10 +753,10 @@
     </div>
 
     <!-- Collapse Toggle -->
-    <div class="p-4 border-t border-slate-100 dark:border-gray-800">
+    <div class="border-t app-divider p-4">
       <button
         on:click={toggleSidebar}
-        class="w-full flex items-center justify-center py-3 rounded-xl text-slate-400 dark:text-gray-500 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-600 dark:hover:text-gray-300 transition-all font-medium text-sm"
+        class="flex w-full items-center justify-center rounded-[10px] py-3 text-sm font-medium muted transition-colors hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text)]"
         aria-label="Toggle Sidebar"
       >
         <i class="fas fa-bars"></i>
@@ -810,7 +810,7 @@
 
             <!-- Desktop Right Sidebar -->
             <aside
-              class="hidden xl:flex fixed right-0 top-16 bottom-0 bg-white dark:bg-gray-900 border-l border-slate-200 dark:border-gray-800 flex-col transition-all duration-300 z-40 {isRightSidebarOpen
+              class="surface-strong hidden xl:flex fixed right-0 top-16 bottom-0 border-l app-divider flex-col transition-all duration-300 z-40 {isRightSidebarOpen
                 ? 'w-80'
                 : 'w-0 overflow-hidden border-none'}"
             >
@@ -833,7 +833,7 @@
             <div class="fixed inset-0 z-[60] lg:hidden">
               <!-- Backdrop -->
               <div
-                class="absolute inset-0 bg-black/20 backdrop-blur-sm"
+                class="absolute inset-0 bg-black/25"
                 on:click={() => (isSettingsOpen = false)}
                 on:keydown={(e) =>
                   e.key === "Enter" && (isSettingsOpen = false)}
@@ -844,20 +844,18 @@
 
               <!-- Drawer -->
               <div
-                class="absolute inset-y-0 right-0 w-full max-w-xs bg-white dark:bg-gray-900 shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300"
+                class="surface-strong absolute inset-y-0 right-0 w-full max-w-xs overflow-y-auto border-l app-divider p-6 shadow-lg transform transition-transform duration-300"
               >
                 <div class="flex items-center justify-between mb-6">
-                  <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+                  <h2 class="text-lg font-semibold text-[color:var(--text)]">
                     Settings
                   </h2>
                   <button
                     on:click={() => (isSettingsOpen = false)}
-                    class="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                    class="icon-btn h-9 w-9 border-transparent bg-transparent"
                     aria-label="Close settings pane"
                   >
-                    <span
-                      class="fas fa-times text-slate-500 dark:text-slate-400 text-xl"
-                    ></span>
+                    <span class="fas fa-times text-xl muted"></span>
                   </button>
                 </div>
 
@@ -882,13 +880,13 @@
         <!-- Mobile Bottom Navigation (hidden during preview overlay) -->
         {#if view && view !== "preview"}
           <div
-            class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-slate-200 dark:border-gray-800 px-6 py-2 z-50 flex justify-around items-center safe-area-pb shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-colors"
+            class="surface-strong lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t app-divider px-6 py-2 safe-area-pb"
           >
             <button
               class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
               'edit'
-                ? 'text-primary'
-                : 'text-slate-400 hover:text-slate-600'}"
+                ? 'text-[color:var(--accent)]'
+                : 'muted hover:text-[color:var(--text)]'}"
               on:click={() => (view = "edit")}
             >
               <span class="fas fa-edit text-xl"></span>
@@ -897,8 +895,8 @@
             <button
               class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
               'preview'
-                ? 'text-primary'
-                : 'text-slate-400 hover:text-slate-600'}"
+                ? 'text-[color:var(--accent)]'
+                : 'muted hover:text-[color:var(--text)]'}"
               on:click={() => {
                 if (isMobileDevice) {
                   notifications.add("Preview works best on desktop. Please switch to a desktop or tablet.", "info");
@@ -913,8 +911,8 @@
             <button
               class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
               'thankYou'
-                ? 'text-primary'
-                : 'text-slate-400 hover:text-slate-600'}"
+                ? 'text-[color:var(--accent)]'
+                : 'muted hover:text-[color:var(--text)]'}"
               on:click={() => (view = "thankYou")}
             >
               <span class="fas fa-heart text-xl"></span>
@@ -923,8 +921,8 @@
             <button
               class="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors {view ===
               'responses'
-                ? 'text-primary'
-                : 'text-slate-400 hover:text-slate-600'}"
+                ? 'text-[color:var(--accent)]'
+                : 'muted hover:text-[color:var(--text)]'}"
               on:click={() => (view = "responses")}
             >
               <span class="fas fa-chart-bar text-xl"></span>

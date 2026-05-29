@@ -2,8 +2,8 @@
   import { page } from "$app/stores";
   import FormErrorScreen from "../../../../lib/components/FormErrorScreen.svelte";
 
-  let errorCode = 404;
-  let errorMessage = "Form not found";
+  let errorCode = $state(404);
+  let errorMessage = $state("Form not found");
 
   $effect.pre(() => {
     if ($page.status) {

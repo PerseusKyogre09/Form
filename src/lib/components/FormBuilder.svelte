@@ -140,7 +140,7 @@
        Let's keep the title input but make it look like part of the form flow or hidden if redundant.
         actually, let's keep it simple and clean. -->
 
-  <div class="space-y-6 pb-20">
+  <div class="space-y-5 pb-20">
     <!-- Added padding bottom for floating buttons if needed, or just spacing -->
     {#each form.questions || [] as element, idx (element.id)}
       <div
@@ -178,20 +178,16 @@
     {/each}
 
     {#if !form.questions || form.questions.length === 0}
-      <div
-        class="border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-xl p-12 text-center bg-slate-50 dark:bg-gray-900/50"
-      >
-        <div
-          class="mb-4 bg-slate-100 dark:bg-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-        >
+      <div class="empty-state p-12">
+        <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full border surface-strong">
           <span
-            class="fas fa-file-circle-plus text-3xl text-slate-400 dark:text-gray-500"
+            class="fas fa-file-circle-plus text-2xl muted"
           ></span>
         </div>
-        <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+        <h3 class="text-lg font-semibold text-[color:var(--text)] mb-1">
           Start building your form
         </h3>
-        <p class="text-slate-500 dark:text-gray-400 mb-6">
+        <p class="mb-6 text-sm leading-6 muted">
           Add questions or content blocks to get started.
         </p>
       </div>
@@ -200,138 +196,118 @@
     <div class="flex flex-wrap items-center gap-4 pt-4">
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
-          class="flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+          class="btn btn-primary"
         >
           <span class="fas fa-plus"></span>
           Add Question
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl shadow-xl w-64 py-2 z-50 max-h-[80vh] overflow-y-auto"
+            class="surface surface-strong w-64 max-h-[80vh] overflow-y-auto py-2 z-50"
             side="bottom"
             sideOffset={12}
             align="start"
           >
             <div
-              class="px-4 py-2 text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wider"
+              class="px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] muted-soft"
             >
               Input Fields
             </div>
             <DropdownMenu.Item
               onSelect={() => addQuestion("text")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
               <span
-                class="fas fa-align-left text-slate-400 dark:text-gray-500 text-xl"
+                class="fas fa-align-left text-xl muted"
               ></span> Short Text
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("long-text")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
               <span
-                class="fas fa-align-justify text-slate-400 dark:text-gray-500 text-xl"
+                class="fas fa-align-justify text-xl muted"
               ></span> Long Text
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("number")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-hashtag text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Number
+              <span class="fas fa-hashtag text-xl muted"></span> Number
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("email")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-envelope text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Email
+              <span class="fas fa-envelope text-xl muted"></span> Email
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("phone")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-phone text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Phone Number
+              <span class="fas fa-phone text-xl muted"></span> Phone Number
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("date")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-calendar text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Date
+              <span class="fas fa-calendar text-xl muted"></span> Date
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("image-upload")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-image text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Image Upload
+              <span class="fas fa-image text-xl muted"></span> Image Upload
             </DropdownMenu.Item>
 
             <DropdownMenu.Separator
-              class="my-2 h-px bg-slate-100 dark:bg-gray-800"
+              class="my-2 h-px bg-[color:var(--border)]"
             />
             <div
-              class="px-4 py-2 text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wider"
+              class="px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] muted-soft"
             >
               Selection
             </div>
 
             <DropdownMenu.Item
               onSelect={() => addQuestion("multiple-choice")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-list-ul text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Multiple Choice
+              <span class="fas fa-list-ul text-xl muted"></span> Multiple Choice
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("dropdown")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-caret-square-down text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Dropdown
+              <span class="fas fa-caret-square-down text-xl muted"></span> Dropdown
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("checkboxes")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-check-square text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Checkboxes
+              <span class="fas fa-check-square text-xl muted"></span> Checkboxes
             </DropdownMenu.Item>
 
             <DropdownMenu.Separator
-              class="my-2 h-px bg-slate-100 dark:bg-gray-800"
+              class="my-2 h-px bg-[color:var(--border)]"
             />
             <div
-              class="px-4 py-2 text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wider"
+              class="px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] muted-soft"
             >
               Special
             </div>
 
             <DropdownMenu.Item
               onSelect={() => addQuestion("yes-no")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-thumbs-up text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Yes/No
+              <span class="fas fa-thumbs-up text-xl muted"></span> Yes/No
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => addQuestion("rating")}
-              class="px-4 py-3 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 cursor-pointer transition-colors flex items-center gap-3"
+              class="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-muted)]"
             >
-              <span
-                class="fas fa-star text-slate-400 dark:text-gray-500 text-xl"
-              ></span> Rating
+              <span class="fas fa-star text-xl muted"></span> Rating
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
@@ -339,7 +315,7 @@
 
       <button
         on:click={addBlock}
-        class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-gray-800 transition-all active:scale-95"
+        class="btn btn-secondary"
       >
         <span class="fas fa-shapes"></span>
         Add Block

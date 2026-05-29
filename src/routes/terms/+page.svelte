@@ -321,13 +321,13 @@
 </svelte:head>
 
 <div
-  class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300 pb-20"
+  class="app-shell pb-20"
 >
   <!-- Nav Bar -->
   <nav
-    class="fixed top-0 w-full z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-colors"
+    class="app-topbar fixed top-0 w-full"
   >
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="page-container flex h-16 items-center justify-between">
       <div class="flex items-center gap-6">
         <a href="/" class="flex items-center gap-2 group">
           <img
@@ -364,22 +364,20 @@
 
   <!-- Hero Header Section -->
   <header
-    class="pt-32 pb-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors"
+    class="border-b app-divider pt-32 pb-16 surface-strong"
   >
-    <div class="max-w-5xl mx-auto px-6">
+    <div class="page-container max-w-5xl">
       <div
         class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300 mb-4 uppercase tracking-wider"
       >
         <Globe class="w-3.5 h-3.5 animate-spin-slow text-indigo-500" />
         Fully Compliant Worldwide
       </div>
-      <h1
-        class="text-4xl md:text-5xl font-black tracking-tight text-gray-950 dark:text-white mb-4 leading-tight"
-      >
+      <h1 class="mb-4 text-4xl font-semibold tracking-tight text-[color:var(--text)] md:text-5xl leading-tight">
         Global Compliance & Trust Hub
       </h1>
       <p
-        class="max-w-3xl text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium"
+        class="max-w-3xl text-lg leading-relaxed muted"
       >
         Quill respects the data sovereignty of every nation. Below you will find
         our comprehensive, highly detailed **Terms of Service** and **Privacy
@@ -409,14 +407,14 @@
   </header>
 
   <!-- Main Content Layout -->
-  <main class="max-w-7xl mx-auto px-6 mt-12">
+  <main class="page-container mt-12 max-w-7xl">
     <div class="grid lg:grid-cols-[280px_1fr] gap-12 items-start">
       <!-- Sticky Sidebar Navigation & Quick Summaries -->
       <aside
         class="sticky top-24 hidden lg:flex flex-col gap-6 max-h-[calc(100vh-120px)] overflow-y-auto pr-2"
       >
         <div
-          class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm transition-colors"
+          class="surface panel-section"
         >
           <h3
             class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4 flex items-center gap-2"
@@ -452,7 +450,7 @@
 
         <!-- Compliance Quick Badges -->
         <div
-          class="bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl p-5 transition-colors"
+          class="surface panel-section"
         >
           <h4
             class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"
@@ -504,7 +502,7 @@
       <section class="min-w-0">
         <!-- Interactive Controls (Search & Tab Switches) -->
         <div
-          class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm mb-8 transition-colors"
+          class="surface panel-section mb-8"
         >
           <!-- Tabs Switcher -->
           <div class="flex border-b border-gray-100 dark:border-gray-800 mb-6">
@@ -539,7 +537,7 @@
               type="text"
               placeholder="Search global compliance clauses (e.g., GDPR, CCPA, LGPD, DPDP, cookies, open source)..."
               bind:value={searchQuery}
-              class="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 focus:border-black dark:focus:border-gray-600 transition-all text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 font-medium"
+              class="field w-full pl-12 pr-4 py-3.5 text-sm"
             />
             {#if searchQuery}
               <button
@@ -555,7 +553,8 @@
         <!-- Warning Alert if no search match -->
         {#if (activeTab === "terms" && filteredTerms.length === 0) || (activeTab === "privacy" && filteredPrivacy.length === 0)}
           <div
-            class="flex items-start gap-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-6 transition-colors"
+            class="rounded-[12px] border p-6"
+            style="background: color-mix(in srgb, var(--warning) 10%, var(--surface-strong)); border-color: color-mix(in srgb, var(--warning) 20%, var(--border));"
           >
             <AlertTriangle
               class="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
@@ -581,14 +580,14 @@
             {#each filteredTerms as section (section.id)}
               <article
                 id={section.id}
-                class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 md:p-8 shadow-sm transition-all duration-300"
+                class="surface p-6 md:p-8 transition-all duration-300"
               >
                 <!-- Section Header -->
                 <div
                   class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800"
                 >
                   <h2
-                    class="text-xl md:text-2xl font-black text-gray-950 dark:text-white tracking-tight"
+                    class="text-xl md:text-2xl font-semibold text-[color:var(--text)] tracking-tight"
                   >
                     {section.title}
                   </h2>
@@ -632,14 +631,14 @@
             {#each filteredPrivacy as section (section.id)}
               <article
                 id={section.id}
-                class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 md:p-8 shadow-sm transition-all duration-300"
+                class="surface p-6 md:p-8 transition-all duration-300"
               >
                 <!-- Section Header -->
                 <div
                   class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800"
                 >
                   <h2
-                    class="text-xl md:text-2xl font-black text-gray-950 dark:text-white tracking-tight"
+                    class="text-xl md:text-2xl font-semibold text-[color:var(--text)] tracking-tight"
                   >
                     {section.title}
                   </h2>
@@ -683,7 +682,7 @@
 
         <!-- Trust Statement Badge at the bottom -->
         <div
-          class="mt-12 text-center p-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm transition-colors"
+          class="surface mt-12 p-8 text-center"
         >
           <ShieldCheck class="w-10 h-10 mx-auto text-indigo-500 mb-3" />
           <h3 class="text-base font-bold text-gray-950 dark:text-white">

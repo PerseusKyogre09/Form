@@ -3,41 +3,375 @@
 @tailwind utilities;
 
 @layer base {
-  /* Smooth theme transition */
-  html {
-    transition: background-color 0.2s ease, color 0.2s ease;
+  :root {
+    color-scheme: light;
+    --font-sans:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    --font-mono:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      monospace;
+
+    --bg-canvas: #f4f1ea;
+    --bg-subtle: #eeebe4;
+    --surface: rgba(252, 251, 248, 0.92);
+    --surface-strong: #ffffff;
+    --surface-muted: #f7f4ed;
+    --border: #d9d3c8;
+    --border-strong: #c9c1b2;
+    --text: #1f2328;
+    --text-muted: #5f6872;
+    --text-soft: #7d8690;
+    --accent: #4f61ba;
+    --accent-strong: #4657a8;
+    --accent-soft: rgba(79, 97, 186, 0.12);
+    --success: #2f7a55;
+    --warning: #9a6a24;
+    --danger: #b5474f;
+    --shadow-sm: 0 1px 2px rgba(27, 31, 35, 0.05);
+    --shadow-md: 0 10px 24px rgba(31, 35, 40, 0.06);
+    --shadow-lg: 0 20px 40px rgba(31, 35, 40, 0.08);
+    --focus-ring: 0 0 0 3px rgba(124, 138, 230, 0.28);
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
   }
 
-  /* Dark mode base overrides */
+  html {
+    font-family: var(--font-sans);
+    background: var(--bg-canvas);
+    color: var(--text);
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease;
+  }
+
   html.dark {
     color-scheme: dark;
+    --bg-canvas: #181713;
+    --bg-subtle: #1f1d19;
+    --surface: rgba(31, 29, 25, 0.92);
+    --surface-strong: #23211c;
+    --surface-muted: #1d1b17;
+    --border: #38332a;
+    --border-strong: #4a4438;
+    --text: #ece6dc;
+    --text-muted: #b7aea2;
+    --text-soft: #938b80;
+    --accent: #8ea0ff;
+    --accent-strong: #a2b1ff;
+    --accent-soft: rgba(142, 160, 255, 0.18);
+    --success: #69b28b;
+    --warning: #d3a363;
+    --danger: #dd7a81;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18);
+    --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 24px 44px rgba(0, 0, 0, 0.26);
+    --focus-ring: 0 0 0 3px rgba(142, 160, 255, 0.3);
   }
 
-  html.dark body {
-    background-color: #030712; /* gray-950 */
-    color: #f3f4f6; /* gray-100 */
+  body {
+    min-height: 100vh;
+    background: var(--bg-canvas);
+    color: var(--text);
+    text-rendering: optimizeLegibility;
   }
 
-  /* Form element defaults in dark mode */
-  html.dark input,
-  html.dark textarea,
-  html.dark select {
-    color-scheme: dark;
+  * {
+    border-color: var(--border);
   }
 
-  /* Scrollbar styling for dark mode */
+  ::selection {
+    background: var(--accent-soft);
+  }
+
+  a {
+    color: inherit;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [role="button"]:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-soft);
+  }
+
   html.dark ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
+
   html.dark ::-webkit-scrollbar-track {
-    background: #1f2937;
+    background: var(--bg-subtle);
   }
+
   html.dark ::-webkit-scrollbar-thumb {
-    background: #4b5563;
-    border-radius: 4px;
+    background: #4d473d;
+    border-radius: 999px;
   }
-  html.dark ::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
+}
+
+@layer components {
+  .app-shell {
+    @apply min-h-screen text-[color:var(--text)];
+    background:
+      radial-gradient(circle at top, rgba(255, 255, 255, 0.24), transparent 32%),
+      var(--bg-canvas);
+  }
+
+  .page-container {
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .page-stack {
+    @apply py-6 sm:py-8 lg:py-10;
+  }
+
+  .section-stack {
+    @apply space-y-6;
+  }
+
+  .surface {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .surface-strong {
+    background: var(--surface-strong);
+  }
+
+  .surface-muted {
+    background: var(--surface-muted);
+  }
+
+  .panel-section {
+    @apply p-4 sm:p-5 lg:p-6;
+  }
+
+  .panel-grid {
+    @apply grid gap-4 sm:gap-5 lg:gap-6;
+  }
+
+  .page-title {
+    @apply text-[28px] font-semibold leading-tight tracking-tight sm:text-[32px];
+    color: var(--text);
+  }
+
+  .section-title {
+    @apply text-lg font-semibold tracking-tight;
+    color: var(--text);
+  }
+
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.12em];
+    color: var(--text-soft);
+  }
+
+  .muted {
+    color: var(--text-muted);
+  }
+
+  .muted-soft {
+    color: var(--text-soft);
+  }
+
+  .app-divider {
+    border-color: var(--border);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] border px-3.5 py-2 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+    border-color: var(--border);
+    min-height: 40px;
+  }
+
+  .btn-sm {
+    @apply rounded-[8px] px-3 py-1.5 text-xs;
+    min-height: 36px;
+  }
+
+  .btn-primary {
+    background: var(--text);
+    border-color: transparent;
+    color: var(--surface-strong);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-primary:hover {
+    background: color-mix(in srgb, var(--text) 92%, white);
+  }
+
+  .btn-secondary {
+    background: var(--surface-strong);
+    color: var(--text);
+  }
+
+  .btn-secondary:hover,
+  .btn-ghost:hover {
+    background: var(--surface-muted);
+  }
+
+  .btn-ghost {
+    @apply border-transparent;
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .btn-danger {
+    background: color-mix(in srgb, var(--danger) 12%, var(--surface-strong));
+    border-color: color-mix(in srgb, var(--danger) 22%, var(--border));
+    color: var(--danger);
+  }
+
+  .icon-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-[10px] border transition-colors duration-150;
+    background: var(--surface-strong);
+    border-color: var(--border);
+    color: var(--text-muted);
+  }
+
+  .icon-btn:hover {
+    background: var(--surface-muted);
+    color: var(--text);
+  }
+
+  .field,
+  .select,
+  .textarea {
+    @apply w-full rounded-[10px] border px-3.5 py-2.5 text-sm transition-colors duration-150;
+    background: var(--surface-strong);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .textarea {
+    @apply min-h-[112px];
+  }
+
+  .field:hover,
+  .select:hover,
+  .textarea:hover {
+    border-color: var(--border-strong);
+  }
+
+  .field:focus,
+  .select:focus,
+  .textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium;
+    color: var(--text);
+  }
+
+  .hint {
+    @apply text-xs;
+    color: var(--text-soft);
+  }
+
+  .segmented {
+    @apply inline-flex items-center gap-1 rounded-[10px] border p-1;
+    background: var(--surface-muted);
+    border-color: var(--border);
+  }
+
+  .segmented-item {
+    @apply rounded-[8px] px-3 py-1.5 text-sm font-medium transition-colors duration-150;
+    color: var(--text-muted);
+  }
+
+  .segmented-item[data-state="active"] {
+    background: var(--surface-strong);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium;
+  }
+
+  .badge-success {
+    background: color-mix(in srgb, var(--success) 12%, var(--surface-strong));
+    border-color: color-mix(in srgb, var(--success) 22%, var(--border));
+    color: var(--success);
+  }
+
+  .badge-muted {
+    background: var(--surface-muted);
+    border-color: var(--border);
+    color: var(--text-muted);
+  }
+
+  .app-topbar {
+    @apply sticky top-0 z-40 border-b;
+    background: color-mix(in srgb, var(--bg-canvas) 88%, transparent);
+    border-color: var(--border);
+    backdrop-filter: blur(10px);
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background: rgba(17, 18, 20, 0.34);
+  }
+
+  .modal-panel {
+    @apply w-full overflow-hidden;
+    max-height: min(88vh, 960px);
+    max-width: min(960px, 100%);
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .empty-state {
+    @apply flex flex-col items-center justify-center rounded-[12px] border border-dashed px-6 py-12 text-center;
+    background: var(--surface-muted);
+    border-color: var(--border);
+  }
+
+  .table-wrap {
+    @apply overflow-x-auto;
+  }
+
+  .table-base {
+    @apply w-full border-collapse text-left text-sm;
+  }
+
+  .table-base thead tr {
+    background: var(--surface-muted);
+  }
+
+  .table-base th {
+    @apply px-3 py-2 text-xs font-medium uppercase tracking-[0.08em];
+    color: var(--text-soft);
+  }
+
+  .table-base td {
+    @apply px-3 py-3 align-top;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+  }
+
+  .table-base tbody tr:hover {
+    background: color-mix(in srgb, var(--surface-muted) 80%, transparent);
   }
 }

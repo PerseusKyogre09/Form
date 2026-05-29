@@ -1,14 +1,15 @@
-<!-- src/routes/dashboard/+page.svelte -->
 <script lang="ts">
   import { onMount } from "svelte";
-  import { gsap } from "gsap";
-  import { Avatar } from "bits-ui";
   import { authClient } from "$lib/authClient";
   import { goto } from "$app/navigation";
-  import type { Form, FormTemplate } from "../../lib/types";
-  import favicon from "$lib/assets/favicon.svg";
+  import type { Form, FormTemplate } from "$lib/types";
   import DashboardHeader from "$lib/components/DashboardHeader.svelte";
   import TemplateGallery from "$lib/components/TemplateGallery.svelte";
+  import EmptyState from "$lib/components/ui/EmptyState.svelte";
+  import ModalShell from "$lib/components/ui/ModalShell.svelte";
+  import PageHeader from "$lib/components/ui/PageHeader.svelte";
+  import Surface from "$lib/components/ui/Surface.svelte";
+  import { notifications } from "$lib/stores/notifications";
 
   let allForms = $state<Form[]>([]);
   let sharedForms = $state<Form[]>([]);
@@ -19,21 +20,17 @@
   let activeTab = $state<"personal" | "workspace">("personal");
   const PAGE_SIZE = 20;
   let user = $state<any>(null);
-  let userId = $derived(user?.id);
-  
-  // Duplicate form modal state
+
   let showDuplicateModal = $state(false);
   let formToDuplicate = $state<Form | null>(null);
   let duplicating = $state(false);
 
-  // Template gallery state
   let showTemplateGallery = $state(false);
   let showFormCreatedModal = $state(false);
   let createdFormId = $state<string | null>(null);
   let createdFormTemplate = $state<FormTemplate | null>(null);
   let isCreatingForm = $state(false);
 
-  // Derived filtered forms based on active tab
   let filteredForms = $derived(
     (activeTab === "personal" ? allForms : sharedForms).filter((form) =>
       (form.title ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
@@ -41,79 +38,50 @@
   );
 
   onMount(async () => {
-    // Get session from Better Auth
     const { data: session } = await authClient.getSession();
-    if (session?.user) {
-      user = session.user;
-      loadForms();
-      loadSharedForms();
-    } else {
+    if (!session?.user) {
       goto("/login");
+      return;
     }
+
+    user = session.user;
+    await Promise.all([loadForms(), loadSharedForms()]);
   });
 
   function generateGradient(id: string) {
     let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
     const hue = Math.abs(hash % 360);
-    return `linear-gradient(135deg, hsl(${hue}, 70%, 96%) 0%, hsl(${(hue + 60) % 360}, 70%, 96%) 100%)`;
+    return `linear-gradient(145deg, hsl(${hue}, 42%, 94%) 0%, hsl(${(hue + 30) % 360}, 28%, 97%) 100%)`;
   }
 
   async function loadForms() {
     try {
-      // Use our API endpoint which handles auth and joins
       const res = await fetch("/api/forms");
       if (!res.ok) throw new Error("Failed to load forms");
       const data = await res.json();
-
-      if (Array.isArray(data)) {
-        allForms = data as Form[];
-      }
+      if (Array.isArray(data)) allForms = data as Form[];
       hasMore = allForms.length >= PAGE_SIZE;
-
-      // Animate in forms
-      setTimeout(() => {
-        document.querySelectorAll(".form-card").forEach((card, idx) => {
-          gsap.fromTo(
-            card,
-            { opacity: 0, y: 20 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.5,
-              ease: "back.out",
-              delay: idx * 0.05,
-            },
-          );
-        });
-      }, 0);
     } catch (error) {
       console.error("Error loading forms:", error);
+      notifications.add("Failed to load forms.", "error");
     } finally {
       loading = false;
     }
   }
 
   async function loadSharedForms() {
-    // The /api/forms endpoint already returns forms the user collaborates on
-    // So shared forms are those in the API response where user_id !== current user
     try {
       const res = await fetch("/api/forms");
       if (!res.ok) return;
       const data = await res.json();
 
       if (Array.isArray(data) && user) {
-        // Separate owned vs shared
         const owned: Form[] = [];
         const shared: Form[] = [];
         data.forEach((f: Form) => {
-          if (f.user_id === user.id) {
-            owned.push(f);
-          } else {
-            shared.push(f);
-          }
+          if (f.user_id === user.id) owned.push(f);
+          else shared.push(f);
         });
         allForms = owned;
         sharedForms = shared;
@@ -125,33 +93,32 @@
   }
 
   async function loadMoreForms() {
-    // For now, all forms are loaded at once via the API
+    loadingMore = true;
     hasMore = false;
+    loadingMore = false;
   }
 
   function handleTemplateSelect(template: FormTemplate) {
     if (!template.id) {
-      // Blank form - use default path
       window.location.href = "/form-builder";
-    } else {
-      // Create form from template
-      createFormFromTemplate(template.id, template);
+      return;
     }
+    createFormFromTemplate(template.id, template);
   }
 
   async function createFormFromTemplate(templateId: string, template: FormTemplate) {
     try {
       isCreatingForm = true;
       showTemplateGallery = false;
-      const res = await fetch('/api/templates/create-form', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/templates/create-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ templateId }),
       });
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || 'Failed to create form');
+        throw new Error(error.error || "Failed to create form");
       }
 
       const { formId } = await res.json();
@@ -159,17 +126,15 @@
       createdFormTemplate = template;
       showFormCreatedModal = true;
     } catch (error) {
-      console.error('Error creating form from template:', error);
-      alert('Failed to create form from template. Please try again.');
+      console.error("Error creating form from template:", error);
+      notifications.add("Failed to create form from template.", "error");
     } finally {
       isCreatingForm = false;
     }
   }
 
   function openFormBuilder() {
-    if (createdFormId) {
-      window.location.href = `/form-builder/${createdFormId}`;
-    }
+    if (createdFormId) window.location.href = `/form-builder/${createdFormId}`;
   }
 
   function openNewFormMenu() {
@@ -182,23 +147,18 @@
 
   async function deleteForm(formId: string, formTitle: string | null) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${formTitle ?? 'Untitled Form'}"? This action cannot be undone.`,
+      `Delete "${formTitle ?? "Untitled Form"}"? This cannot be undone.`,
     );
-
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`/api/forms?formId=${formId}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`/api/forms?formId=${formId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete form");
-
-      // Remove from UI
       allForms = allForms.filter((f) => f.id !== formId);
+      notifications.add("Form deleted.", "success");
     } catch (error) {
       console.error("Error deleting form:", error);
-      alert("Failed to delete form. Please try again.");
+      notifications.add("Failed to delete form.", "error");
     }
   }
 
@@ -210,18 +170,15 @@
   async function duplicateForm(includeResponses: boolean) {
     if (!formToDuplicate) return;
 
-    const originalTitle = formToDuplicate.title;
     duplicating = true;
     try {
       const res = await fetch("/api/forms", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "duplicate",
           formId: formToDuplicate.id,
-          includeResponses: includeResponses,
+          includeResponses,
         }),
       });
 
@@ -230,17 +187,14 @@
         throw new Error(errorData.error || "Failed to duplicate form");
       }
 
-      const data = await res.json();
-      
-      // Reload forms to show the new duplicated form
       await loadForms();
-      
+      await loadSharedForms();
       showDuplicateModal = false;
       formToDuplicate = null;
-      alert(`Form "${originalTitle}" duplicated successfully!`);
+      notifications.add("Form duplicated.", "success");
     } catch (error) {
       console.error("Error duplicating form:", error);
-      alert("Failed to duplicate form. Please try again.");
+      notifications.add("Failed to duplicate form.", "error");
     } finally {
       duplicating = false;
     }
@@ -263,457 +217,347 @@
   }
 </script>
 
-<div
-  class="min-h-screen bg-[#F8F9FA] dark:bg-gray-950 font-sans text-slate-900 dark:text-gray-100 transition-colors"
->
+<div class="app-shell">
   <DashboardHeader onNewForm={openNewFormMenu} />
 
-  <!-- Main Content -->
-  <main class="max-w-[1600px] mx-auto px-6 py-10">
-    <!-- Section Header -->
-    <div
-      class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
-    >
-      <div class="flex flex-col gap-5">
-        <div>
-          <h1
-            class="text-4xl font-serif font-bold text-slate-900 dark:text-white mb-3 tracking-tight"
-          >
-            {activeTab === "personal" ? "My Forms" : "Workspace"}
-          </h1>
-          <div
-            class="flex items-center gap-3 text-sm font-medium text-gray-500 dark:text-gray-400"
-          >
-            <span class="flex items-center gap-2 px-1">
-              <i
-                class="fas {activeTab === 'personal'
-                  ? 'fa-user'
-                  : 'fa-users'} text-gray-400 dark:text-gray-500"
-              ></i>
-              {activeTab === "personal" ? "Personal Forms" : "Shared with Me"}
-            </span>
-            <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"
-            ></span>
-            <span>{filteredForms.length} Forms</span>
-          </div>
-        </div>
+  <main class="page-container page-stack section-stack">
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <PageHeader
+        eyebrow="Workspace"
+        title={activeTab === "personal" ? "Your forms" : "Shared with you"}
+        description={activeTab === "personal"
+          ? "Create, organize, and publish forms without losing sight of the details that matter."
+          : "Collaborative forms you can review and edit live with your team."}
+      />
 
-        <!-- View Toggle -->
-        <div class="flex bg-gray-100/80 dark:bg-gray-800 p-1 rounded-lg w-fit">
+      <div class="flex flex-col gap-3 sm:items-start lg:items-end">
+        <div class="segmented">
           <button
-            onclick={() => (activeTab = "personal")}
-            class="px-4 py-1.5 {activeTab === 'personal'
-              ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
-              : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'} text-sm font-medium transition-all"
-            >Personal</button
+            type="button"
+            class="segmented-item"
+            data-state={activeTab === "personal" ? "active" : "inactive"}
+            on:click={() => (activeTab = "personal")}
           >
+            Personal
+          </button>
           <button
-            onclick={() => (activeTab = "workspace")}
-            class="px-4 py-1.5 {activeTab === 'workspace'
-              ? 'bg-white dark:bg-gray-700 rounded-md shadow-sm text-slate-800 dark:text-white'
-              : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'} text-sm font-medium transition-all"
-            >Workspace{#if sharedForms.length > 0}
-              <span
-                class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-full"
-              >
+            type="button"
+            class="segmented-item"
+            data-state={activeTab === "workspace" ? "active" : "inactive"}
+            on:click={() => (activeTab = "workspace")}
+          >
+            Workspace
+            {#if sharedForms.length > 0}
+              <span class="ml-1 rounded-full border px-1.5 py-0.5 text-[11px] badge-muted">
                 {sharedForms.length}
               </span>
-            {/if}</button
-          >
+            {/if}
+          </button>
         </div>
-      </div>
 
-      <!-- Search and Filter -->
-      <div class="flex items-center gap-3 w-full md:w-auto">
-        <div class="relative flex-1 md:w-80 group">
-          <i
-            class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-indigo-500 transition-colors"
-          ></i>
-          <input
-            type="text"
-            placeholder="Search forms..."
-            bind:value={searchQuery}
-            class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
-          />
-          {#if searchQuery}
-            <button
-              onclick={() => (searchQuery = "")}
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              aria-label="Clear search"
-            >
-              <i class="fas fa-times-circle"></i>
-            </button>
-          {/if}
+        <div class="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+          <div class="relative min-w-0 sm:w-[320px]">
+            <i class="fas fa-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs muted"></i>
+            <input
+              type="text"
+              placeholder="Search forms"
+              bind:value={searchQuery}
+              class="field pl-9 pr-9"
+            />
+            {#if searchQuery}
+              <button class="absolute right-2 top-1/2 -translate-y-1/2 icon-btn h-8 w-8 border-transparent bg-transparent" on:click={() => (searchQuery = "")} aria-label="Clear search">
+                <i class="fas fa-times text-xs"></i>
+              </button>
+            {/if}
+          </div>
+          <button type="button" class="btn btn-secondary lg:hidden" on:click={openNewFormMenu}>
+            <i class="fas fa-plus text-xs"></i>
+            <span>New form</span>
+          </button>
         </div>
-        <button
-          class="p-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 hover:border-indigo-200 dark:hover:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
-          aria-label="Filter forms"
-        >
-          <i class="fas fa-filter"></i>
-        </button>
       </div>
     </div>
 
-    <!-- Forms Grid -->
-    {#if loading}
-      <div class="flex items-center justify-center py-32">
-        <div class="flex flex-col items-center gap-4">
-          <div
-            class="w-10 h-10 border-4 border-indigo-100 dark:border-indigo-900 border-t-indigo-600 rounded-full animate-spin"
-          ></div>
-          <p class="text-slate-500 dark:text-gray-400 font-medium">
-            Loading your workspace...
-          </p>
+    <Surface className="panel-section">
+      <div class="mb-5 flex items-center justify-between gap-3">
+        <div class="text-sm muted">
+          {filteredForms.length} form{filteredForms.length === 1 ? "" : "s"}
         </div>
       </div>
-    {:else}
-      <div
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-      >
-        <!-- Create New Form Card - Only show on Personal tab -->
-        {#if activeTab === "personal" && !searchQuery}
-          <button
-            type="button"
-            onclick={openNewFormMenu}
-            class="group relative bg-[#F8FAFC] dark:bg-gray-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-[320px] text-center p-6 order-last md:order-none w-full"
-          >
-            <div
-              class="w-16 h-16 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-slate-100 dark:border-gray-700 flex items-center justify-center text-slate-300 dark:text-gray-500 group-hover:text-indigo-500 group-hover:scale-110 group-hover:shadow-md transition-all duration-300"
-            >
-              <i class="fas fa-plus text-2xl"></i>
-            </div>
-            <div>
-              <h3
-                class="text-lg font-bold text-slate-800 dark:text-gray-200 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
-              >
-                Create New Form
-              </h3>
-              <p
-                class="text-sm text-slate-400 dark:text-gray-500 px-4 group-hover:text-slate-500 dark:group-hover:text-gray-400 transition-colors"
-              >
-                Start from a template or blank canvas
-              </p>
-            </div>
-          </button>
-        {/if}
 
-        {#each filteredForms as form (form.id)}
-          <div
-            class="form-card group relative bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-200/60 dark:border-gray-800 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/5 hover:border-indigo-100 dark:hover:border-indigo-800 transition-all duration-300 cursor-pointer flex flex-col h-[320px]"
-            role="button"
-            tabindex="0"
-            onclick={() => navigateToBuilder(form)}
-            onkeydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
-          >
-            <!-- Thumbnail Area -->
-            <div
-              class="relative h-40 w-full rounded-xl overflow-hidden mb-4 border border-gray-100/50 dark:border-gray-800"
-              style="background: {generateGradient(form.title ?? '')}"
+      {#if loading}
+        <div class="flex items-center justify-center py-20">
+          <div class="flex flex-col items-center gap-3">
+            <div class="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--border)] border-t-[color:var(--accent)]"></div>
+            <p class="text-sm muted">Loading your forms…</p>
+          </div>
+        </div>
+      {:else}
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {#if activeTab === "personal" && !searchQuery}
+            <button
+              type="button"
+              on:click={openNewFormMenu}
+              class="flex min-h-[220px] flex-col items-start justify-between rounded-[12px] border border-dashed p-5 text-left transition-colors surface-muted hover:border-[color:var(--accent)]"
             >
-              <!-- Decorative elements -->
-              <div class="absolute inset-0 opacity-40">
-                <div
-                  class="absolute top-4 left-4 w-24 h-4 bg-white/60 rounded-full"
-                ></div>
-                <div
-                  class="absolute top-12 left-4 right-4 h-2 bg-white/40 rounded-full"
-                ></div>
-                <div
-                  class="absolute top-20 left-4 right-12 h-2 bg-white/40 rounded-full"
-                ></div>
-                <div
-                  class="absolute top-28 left-4 right-8 h-2 bg-white/40 rounded-full"
-                ></div>
+              <div class="space-y-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-[10px] border surface-strong">
+                  <i class="fas fa-plus text-sm text-[color:var(--accent)]"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight text-[color:var(--text)]">Create a new form</h3>
+                  <p class="mt-1 text-sm leading-6 muted">Start from a blank canvas or one of your templates.</p>
+                </div>
               </div>
+              <span class="text-sm font-medium text-[color:var(--accent)]">Choose a template</span>
+            </button>
+          {/if}
 
-              <!-- Menu Trigger -->
-              <div class="absolute top-3 right-3 z-20">
-                <div class="relative group/menu">
-                  <button
-                    onclick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    class="w-8 h-8 flex items-center justify-center bg-white/80 hover:bg-white backdrop-blur-sm rounded-lg text-gray-400 hover:text-indigo-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200"
-                    aria-label="Form options"
-                  >
-                    <i class="fas fa-ellipsis-h"></i>
-                  </button>
+          {#each filteredForms as form (form.id)}
+            <Surface className="form-card overflow-hidden transition-transform duration-150 hover:-translate-y-0.5">
+              <div
+                role="button"
+                tabindex="0"
+                class="flex h-full min-h-[220px] cursor-pointer flex-col"
+                on:click={() => navigateToBuilder(form)}
+                on:keydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
+              >
+                <div class="relative h-28 border-b app-divider px-5 py-4" style={`background:${generateGradient(form.title ?? form.id)};`}>
+                  <div class="absolute inset-0 opacity-60">
+                    <div class="absolute left-5 top-5 h-2 w-16 rounded-full bg-white/60"></div>
+                    <div class="absolute left-5 top-11 h-2 w-24 rounded-full bg-white/45"></div>
+                    <div class="absolute left-5 top-17 h-2 w-20 rounded-full bg-white/35"></div>
+                  </div>
+                  <div class="relative z-10 flex items-start justify-between gap-3">
+                    {#if form.published}
+                      <span class="status-badge badge-success">
+                        <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                        Published
+                      </span>
+                    {:else}
+                      <span class="status-badge badge-muted">
+                        <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                        Draft
+                      </span>
+                    {/if}
 
-                  <!-- Dropdown menu -->
-                  <div
-                    class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 transform origin-top-right scale-95 group-hover/menu:scale-100"
-                  >
+                    <div class="relative group/menu">
+                      <button
+                        type="button"
+                        class="icon-btn h-8 w-8 border-transparent bg-white/80"
+                        aria-label="Form options"
+                        on:click={(e) => e.stopPropagation()}
+                      >
+                        <i class="fas fa-ellipsis-h text-xs"></i>
+                      </button>
+                      <div class="invisible absolute right-0 top-full z-20 mt-2 w-44 translate-y-1 opacity-0 transition-all duration-150 group-hover/menu:visible group-hover/menu:translate-y-0 group-hover/menu:opacity-100">
+                        <div class="surface surface-strong overflow-hidden py-1">
+                          <button
+                            type="button"
+                            on:click={(e) => {
+                              e.stopPropagation();
+                              openDuplicateModal(form);
+                            }}
+                            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[color:var(--text)] hover:bg-[color:var(--surface-muted)]"
+                          >
+                            <i class="fas fa-copy text-xs muted"></i>
+                            <span>Duplicate</span>
+                          </button>
+                          <button
+                            type="button"
+                            on:click={(e) => {
+                              e.stopPropagation();
+                              deleteForm(form.id, form.title);
+                            }}
+                            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[color:var(--danger)] hover:bg-[color:var(--surface-muted)]"
+                          >
+                            <i class="fas fa-trash text-xs"></i>
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-1 flex-col gap-4 p-5">
+                  <div class="space-y-1.5">
+                    <h3 class="line-clamp-1 text-lg font-semibold tracking-tight text-[color:var(--text)]">
+                      {form.title || "Untitled Form"}
+                    </h3>
+                    <p class="text-sm muted">
+                      {form.questions?.length || 0} item{(form.questions?.length || 0) === 1 ? "" : "s"} • Edited {formatDate(form.updated_at)}
+                    </p>
+                  </div>
+
+                  <div class="mt-auto flex items-center gap-2">
                     <button
-                      onclick={(e) => {
+                      type="button"
+                      class="btn btn-primary flex-1"
+                      on:click={(e) => {
+                        e.stopPropagation();
+                        navigateToBuilder(form);
+                      }}
+                    >
+                      <i class="fas fa-pen-to-square text-xs"></i>
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      on:click={(e) => {
                         e.stopPropagation();
                         openDuplicateModal(form);
                       }}
-                      class="w-full text-left px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/30 flex items-center gap-2 font-medium text-sm rounded-lg"
+                      aria-label="Duplicate form"
                     >
-                      <i class="fas fa-copy w-4"></i> Duplicate Form
-                    </button>
-                    <button
-                      onclick={(e) => {
-                        e.stopPropagation();
-                        deleteForm(form.id, form.title);
-                      }}
-                      class="w-full text-left px-4 py-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 font-medium text-sm rounded-lg"
-                    >
-                      <i class="fas fa-trash w-4"></i> Delete Form
+                      <i class="fas fa-copy text-xs"></i>
                     </button>
                   </div>
                 </div>
               </div>
-
-              <!-- Status Badge -->
-              <div class="absolute bottom-3 left-3">
-                {#if form.published}
-                  <span
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100/80 backdrop-blur-md text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-emerald-200/50 shadow-sm"
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                    ></span> Published
-                  </span>
-                {:else}
-                  <span
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100/80 backdrop-blur-md text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-slate-200/50 shadow-sm"
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Draft
-                  </span>
-                {/if}
-              </div>
-            </div>
-
-            <!-- Content -->
-            <div class="flex-1 flex flex-col">
-              <h3
-                class="font-bold text-slate-800 dark:text-gray-100 text-lg leading-tight mb-2 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
-              >
-                {form.title}
-              </h3>
-
-              <div
-                class="flex items-center gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 mb-auto"
-              >
-                <div class="flex items-center gap-1.5">
-                  <i class="fas fa-list-ul"></i>
-                  {form.questions?.length || 0} questions
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <i class="fas fa-clock"></i>
-                  Edited {formatDate(form.updated_at)}
-                </div>
-              </div>
-
-              <!-- Actions -->
-              <div
-                class="flex items-center gap-3 pt-4 border-t border-gray-50 dark:border-gray-800 mt-4"
-              >
-                <button
-                  onclick={(e) => {
-                    e.stopPropagation();
-                    navigateToBuilder(form);
-                  }}
-                  class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 font-semibold text-sm transition-all duration-200"
-                >
-                  <i class="fas fa-pen-to-square"></i> Edit Form
-                </button>
-                <button
-                  onclick={(e) => {
-                    e.stopPropagation(); /* Future Analytics nav */
-                  }}
-                  class="w-10 h-10 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
-                  aria-label="View analytics"
-                >
-                  <i class="far fa-chart-bar text-lg"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        {/each}
-      </div>
-
-      {#if searchQuery && filteredForms.length === 0}
-        <div class="text-center py-20">
-          <div class="mb-4">
-            <i class="fas fa-search text-5xl text-gray-200 dark:text-gray-700"
-            ></i>
-          </div>
-          <h3 class="text-xl font-bold text-slate-800 dark:text-gray-200 mb-2">
-            No forms found
-          </h3>
-          <p class="text-slate-400 dark:text-gray-500">
-            Try adjusting your search query for "{searchQuery}"
-          </p>
-          <button
-            onclick={() => (searchQuery = "")}
-            class="mt-6 text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
-          >
-            Clear Search
-          </button>
+            </Surface>
+          {/each}
         </div>
-      {:else if !searchQuery && filteredForms.length === 0}
-        <div class="text-center py-20">
-          <div class="mb-4">
-            <i
-              class="fas {activeTab === 'personal'
-                ? 'fa-file-circle-plus'
-                : 'fa-handshake'} text-5xl text-gray-200 dark:text-gray-700"
+
+        {#if searchQuery && filteredForms.length === 0}
+          <div class="pt-6">
+            <EmptyState
+              icon="fa-search"
+              title="No forms match your search"
+              description={`Try a different name or clear the current search for "${searchQuery}".`}
             >
-            </i>
+              <button class="btn btn-secondary mt-5" type="button" on:click={() => (searchQuery = "")}>
+                Clear search
+              </button>
+            </EmptyState>
           </div>
-          <h3 class="text-xl font-bold text-slate-800 dark:text-gray-200 mb-2">
-            {activeTab === "personal" ? "No forms yet" : "No shared forms yet"}
-          </h3>
-          <p class="text-slate-400 dark:text-gray-500">
-            {activeTab === "personal"
-              ? "Create your first form to get started"
-              : "Forms shared with you will appear here"}
-          </p>
-          {#if activeTab === "personal"}
-            <a
-              href="/form-builder"
-              class="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+        {:else if !searchQuery && filteredForms.length === 0}
+          <div class="pt-6">
+            <EmptyState
+              icon={activeTab === "personal" ? "fa-file-circle-plus" : "fa-handshake"}
+              title={activeTab === "personal" ? "No forms yet" : "Nothing shared with you yet"}
+              description={activeTab === "personal"
+                ? "Create your first form to start collecting responses."
+                : "Forms shared with you will appear here once a teammate adds you."}
             >
-              <i class="fas fa-plus"></i> Create Form
-            </a>
-          {/if}
-        </div>
-      {/if}
+              {#if activeTab === "personal"}
+                <button type="button" class="btn btn-primary mt-5" on:click={openNewFormMenu}>
+                  <i class="fas fa-plus text-xs"></i>
+                  <span>Create form</span>
+                </button>
+              {/if}
+            </EmptyState>
+          </div>
+        {/if}
 
-      {#if hasMore && !searchQuery && activeTab === "personal"}
-        <div class="text-center mt-12 mb-8">
-          <button
-            onclick={() => loadMoreForms()}
-            disabled={loadingMore}
-            class="px-6 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-slate-600 dark:text-gray-300 rounded-full font-medium shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all disabled:opacity-50"
-          >
-            {#if loadingMore}
-              <i class="fas fa-spinner fa-spin mr-2"></i> Loading...
-            {:else}
-              Load More Forms
-            {/if}
-          </button>
-        </div>
+        {#if hasMore && !searchQuery && activeTab === "personal"}
+          <div class="mt-6 flex justify-center">
+            <button type="button" class="btn btn-secondary" disabled={loadingMore} on:click={loadMoreForms}>
+              {#if loadingMore}
+                <i class="fas fa-spinner fa-spin text-xs"></i>
+                <span>Loading…</span>
+              {:else}
+                <span>Load more</span>
+              {/if}
+            </button>
+          </div>
+        {/if}
       {/if}
-    {/if}
+    </Surface>
   </main>
 
-  <!-- Duplicate Form Modal -->
   {#if showDuplicateModal && formToDuplicate}
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-sm w-full p-6">
-        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-4">
-          Duplicate Form
-        </h2>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">
-          Duplicate "{formToDuplicate.title}"?
-        </p>
-        <div class="space-y-3 mb-6">
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            📋 Form structure will be copied
-          </p>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            ⚠️ Responses are not copied
-          </p>
-        </div>
-        <div class="flex gap-3">
+    <ModalShell
+      title="Duplicate form"
+      description={`Create a copy of "${formToDuplicate.title || "Untitled Form"}".`}
+      maxWidthClass="max-w-md"
+      onClose={() => {
+        showDuplicateModal = false;
+        formToDuplicate = null;
+      }}
+    >
+      <div class="space-y-5 p-5">
+        <Surface muted={true} className="panel-section">
+          <ul class="space-y-2 text-sm leading-6 muted">
+            <li>Form structure and design are copied.</li>
+            <li>Responses are not copied in the current workflow.</li>
+          </ul>
+        </Surface>
+        <div class="flex justify-end gap-2">
           <button
-            onclick={() => {
+            type="button"
+            class="btn btn-secondary"
+            disabled={duplicating}
+            on:click={() => {
               showDuplicateModal = false;
               formToDuplicate = null;
             }}
-            disabled={duplicating}
-            class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
-          <button
-            onclick={() => duplicateForm(false)}
-            disabled={duplicating}
-            class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
+          <button type="button" class="btn btn-primary" disabled={duplicating} on:click={() => duplicateForm(false)}>
             {#if duplicating}
-              <i class="fas fa-spinner fa-spin"></i>
-              Duplicating...
+              <i class="fas fa-spinner fa-spin text-xs"></i>
+              <span>Duplicating…</span>
             {:else}
-              <i class="fas fa-copy"></i>
-              Duplicate
+              <i class="fas fa-copy text-xs"></i>
+              <span>Duplicate</span>
             {/if}
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   {/if}
 
-  <!-- Template Gallery Modal -->
   {#if showTemplateGallery}
-    <TemplateGallery 
-      onSelect={handleTemplateSelect}
-      onCancel={() => (showTemplateGallery = false)}
-    />
+    <TemplateGallery onSelect={handleTemplateSelect} onCancel={() => (showTemplateGallery = false)} />
   {/if}
 
-  <!-- Form Created Confirmation Modal -->
   {#if showFormCreatedModal && createdFormTemplate}
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6">
-        <!-- Success Icon -->
-        <div class="flex justify-center mb-4">
-          <div class="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-            <i class="fas fa-check text-xl text-green-600 dark:text-green-400"></i>
-          </div>
-        </div>
-
-        <!-- Title and Description -->
-        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-1 text-center">
-          Ready to go!
-        </h2>
-        <p class="text-sm text-gray-600 dark:text-gray-300 text-center mb-5">
-          Your form has been created from the template.
-        </p>
-
-        <!-- Template Details -->
-        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-5 border border-gray-200 dark:border-gray-600">
-          <div class="flex items-start gap-2.5">
-            <i class="fas {createdFormTemplate.icon} text-lg flex-shrink-0 text-gray-700 dark:text-gray-400"></i>
-            <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-sm text-slate-900 dark:text-white leading-tight">
-                {createdFormTemplate.name}
-              </h3>
-              <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
-                {createdFormTemplate.description}
+    <ModalShell
+      title="Form created"
+      description="The template has been copied into a new draft."
+      maxWidthClass="max-w-md"
+      onClose={() => {
+        showFormCreatedModal = false;
+        createdFormId = null;
+        createdFormTemplate = null;
+      }}
+    >
+      <div class="space-y-5 p-5">
+        <Surface muted={true} className="panel-section">
+          <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-[10px] border surface-strong">
+              <i class={`fas ${createdFormTemplate.icon} text-sm muted`}></i>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-[color:var(--text)]">{createdFormTemplate.name}</h3>
+              <p class="mt-1 text-sm leading-6 muted">{createdFormTemplate.description}</p>
+              <p class="mt-2 text-xs muted-soft">
+                {createdFormTemplate.questions_template?.length ?? 0} questions
               </p>
-              <div class="text-xs text-gray-600 dark:text-gray-400 mt-1.5 flex items-center gap-1">
-                <i class="fas fa-list-check w-3"></i>
-                <span>{createdFormTemplate.questions_template?.length ?? 0} questions</span>
-              </div>
             </div>
           </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-2">
+        </Surface>
+        <div class="flex justify-end gap-2">
           <button
-            onclick={() => {
+            type="button"
+            class="btn btn-secondary"
+            on:click={() => {
               showFormCreatedModal = false;
               createdFormId = null;
               createdFormTemplate = null;
             }}
-            class="flex-1 px-3 py-2 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
-            <i class="fas fa-times w-3"></i> Cancel
+            Close
           </button>
-          <button
-            onclick={openFormBuilder}
-            disabled={isCreatingForm}
-            class="flex-1 px-3 py-2 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-          >
-            <i class="fas fa-pen-to-square w-3"></i>
-            Edit Form
+          <button type="button" class="btn btn-primary" on:click={openFormBuilder}>
+            <i class="fas fa-pen-to-square text-xs"></i>
+            <span>Open builder</span>
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   {/if}
 </div>

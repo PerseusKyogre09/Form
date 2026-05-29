@@ -1,9 +1,9 @@
-<!-- src/routes/form/[username]/[slug]/success/+page.svelte -->
 <script lang="ts">
   import { page } from "$app/stores";
   import { onMount } from "svelte";
   import type { Theme, ThankYouPage } from "$lib/types";
   import ThankYouPageDisplay from "$lib/components/ThankYouPageDisplay.svelte";
+  import Surface from "$lib/components/ui/Surface.svelte";
   import QRCode from "qrcode";
 
   let theme: Theme | null = null;
@@ -15,7 +15,6 @@
   let submissionId: string | null = null;
   let qrDataUrl: string | null = null;
 
-  // Check if data was passed from server
   $: if ($page.data?.theme !== undefined) {
     theme = $page.data.theme;
     backgroundColor = $page.data.backgroundColor || "#ffffff";
@@ -26,31 +25,23 @@
   }
 
   onMount(async () => {
-    // Retrieve submission ID from URL or localStorage
     const urlSubmissionId = $page.url.searchParams.get("submissionId");
 
     if (urlSubmissionId) {
       submissionId = urlSubmissionId;
-      // Re-save to localStorage just in case they cleared it
-      if (formId)
-        localStorage.setItem(`form_submission_id_${formId}`, submissionId);
+      if (formId) localStorage.setItem(`form_submission_id_${formId}`, submissionId);
     } else if (formId) {
       submissionId = localStorage.getItem(`form_submission_id_${formId}`);
     }
 
-    // Generate QR code if check-in is enabled and we have a submission ID
     if (enableCheckin && submissionId) {
       try {
-        const qrPayload = JSON.stringify({
-          type: "quill-checkin",
-          formId,
-          submissionId,
-        });
+        const qrPayload = JSON.stringify({ type: "quill-checkin", formId, submissionId });
         qrDataUrl = await QRCode.toDataURL(qrPayload, {
           width: 280,
           margin: 2,
           color: {
-            dark: theme && theme.id === "ide-dark" ? "#14b8a6" : "#1e293b",
+            dark: theme && theme.id === "ide-dark" ? "#14b8a6" : "#1f2328",
             light: "#ffffff",
           },
           errorCorrectionLevel: "M",
@@ -63,50 +54,38 @@
 
   function downloadQR() {
     if (!qrDataUrl) return;
-    // Create a nicer "Entry Pass" canvas
     const canvas = document.createElement("canvas");
     canvas.width = 400;
     canvas.height = 540;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Background
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, 400, 540);
-
-    // Header bar
-    ctx.fillStyle = "#1e293b";
+    ctx.fillStyle = "#1f2328";
     ctx.fillRect(0, 0, 400, 60);
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 22px Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("Entry Pass", 200, 40);
 
-    // Form info
-    ctx.fillStyle = "#64748b";
+    ctx.fillStyle = "#5f6872";
     ctx.font = "14px Arial, sans-serif";
-    const formLabel = `${$page.params.username}/${$page.params.slug}`;
-    ctx.fillText(formLabel, 200, 90);
+    ctx.fillText(`${$page.params.username}/${$page.params.slug}`, 200, 90);
 
-    // QR Code
     const img = new Image();
     img.onload = () => {
       ctx.drawImage(img, 60, 110, 280, 280);
-
-      // Submission ID
-      ctx.fillStyle = "#94a3b8";
+      ctx.fillStyle = "#7d8690";
       ctx.font = "11px monospace";
       ctx.fillText(`ID: ${submissionId?.substring(0, 8)}...`, 200, 420);
-
-      // Footer
-      ctx.fillStyle = "#e2e8f0";
+      ctx.fillStyle = "#ece8e0";
       ctx.fillRect(0, 460, 400, 80);
-      ctx.fillStyle = "#64748b";
+      ctx.fillStyle = "#5f6872";
       ctx.font = "12px Arial, sans-serif";
       ctx.fillText("Present this QR code at the event for check-in", 200, 495);
       ctx.fillText("Powered by Quill", 200, 520);
 
-      // Download
       canvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
@@ -127,167 +106,70 @@
   <title>Form Submitted - Thank You</title>
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Thank you for submitting the form" />
-  <meta property="og:title" content="Thank You - Form Submitted" />
-  <meta property="og:description" content="Your response has been received" />
 </svelte:head>
 
 <div
-  class="min-h-screen flex items-center justify-center transition-colors duration-200"
-  style="background-color: {theme && theme.id === 'ide-dark'
-    ? '#1a1a1a'
-    : backgroundColor};"
+  class="min-h-screen transition-colors duration-200"
+  style={`background-color:${theme && theme.id === "ide-dark" ? "#1a1a1a" : backgroundColor};`}
 >
   {#if loading}
-    <div class="flex flex-row gap-2">
-      <div class="w-4 h-4 rounded-full bg-blue-700 animate-bounce"></div>
-      <div
-        class="w-4 h-4 rounded-full bg-blue-700 animate-bounce [animation-delay:-.3s]"
-      ></div>
-      <div
-        class="w-4 h-4 rounded-full bg-blue-700 animate-bounce [animation-delay:-.5s]"
-      ></div>
+    <div class="flex min-h-screen items-center justify-center">
+      <div class="flex flex-col items-center gap-3">
+        <div class="h-8 w-8 animate-spin rounded-full border-2 border-[color:rgba(255,255,255,0.35)] border-t-[color:rgba(255,255,255,0.9)]"></div>
+        <p class="text-sm text-white/80">Preparing your confirmation…</p>
+      </div>
     </div>
   {:else if thankYouPageConfig?.enabled}
-    <div class="flex flex-col items-center gap-8">
+    <div class="space-y-8">
       <ThankYouPageDisplay
         config={thankYouPageConfig}
-        formInfo={$page.data.username && $page.data.slug
-          ? `Form: ${$page.data.username}/${$page.data.slug}`
-          : ""}
+        formInfo={$page.data.username && $page.data.slug ? `Form: ${$page.data.username}/${$page.data.slug}` : ""}
       />
 
-      <!-- QR Check-in Section (shown below ThankYouPageDisplay) -->
       {#if enableCheckin && qrDataUrl}
-        <div class="text-center max-w-sm mx-auto px-6 pb-12">
-          <div
-            class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
-          >
-            <h3 class="text-lg font-bold text-slate-800 mb-2">
-              Your Entry Pass
-            </h3>
-            <p class="text-sm text-slate-500 mb-6">
-              Present this QR code at the event for check-in
-            </p>
-            <img
-              src={qrDataUrl}
-              alt="Check-in QR Code"
-              class="mx-auto mb-6 rounded-lg"
-            />
-            <button
-              on:click={downloadQR}
-              class="w-full flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-xl transition-colors shadow-lg"
-            >
-              <i class="fas fa-download"></i>
-              Download Entry Pass
+        <div class="mx-auto max-w-sm px-4 pb-10">
+          <Surface className="panel-section text-center surface-strong">
+            <h3 class="section-title">Entry pass</h3>
+            <p class="mt-1 text-sm muted">Present this code during check-in.</p>
+            <img src={qrDataUrl} alt="Check-in QR code" class="mx-auto my-6 rounded-[10px] border bg-white p-2" />
+            <button type="button" on:click={downloadQR} class="btn btn-primary w-full">
+              <i class="fas fa-download text-xs"></i>
+              <span>Download pass</span>
             </button>
-          </div>
+          </Surface>
         </div>
       {/if}
     </div>
   {:else}
-    <!-- Fallback to default design -->
-    <div class="text-center max-w-md px-6">
-      <div class="mb-6">
-        <div
-          class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-          style="background-color: {theme && theme.id === 'ide-dark'
-            ? 'rgba(20,184,166,0.2)'
-            : 'rgba(34,197,94,0.2)'};"
-        >
-          <svg
-            class="w-8 h-8"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            style="color: {theme && theme.id === 'ide-dark'
-              ? '#14b8a6'
-              : '#22c55e'};"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clip-rule="evenodd"
-            />
-          </svg>
+    <div class="flex min-h-screen items-center justify-center px-4 py-10">
+      <Surface className="panel-section max-w-md text-center surface-strong">
+        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full" style={`background:${theme && theme.id === "ide-dark" ? "rgba(20,184,166,0.16)" : "rgba(47,122,85,0.12)"}; color:${theme && theme.id === "ide-dark" ? "#14b8a6" : "#2f7a55"};`}>
+          <i class="fas fa-check text-lg"></i>
         </div>
-        <h1
-          class="text-4xl font-bold mb-2"
-          style="color: {theme && theme.id === 'ide-dark'
-            ? '#e0e0e0'
-            : '#000000'};"
-        >
-          Thank You!
-        </h1>
-        <p
-          class="text-lg mb-6"
-          style="color: {theme && theme.id === 'ide-dark'
-            ? '#a0a0a0'
-            : '#4b5563'};"
-        >
-          Your response has been recorded successfully.
-        </p>
-      </div>
+        <h1 class="text-[30px] font-semibold tracking-tight text-[color:var(--text)]">Thank you</h1>
+        <p class="mt-2 text-base leading-7 muted">Your response has been recorded successfully.</p>
 
-      <!-- QR Check-in Section (shown below default thank you) -->
-      {#if enableCheckin && qrDataUrl}
-        <div
-          class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8"
-        >
-          <h3 class="text-lg font-bold text-slate-800 mb-2">Your Entry Pass</h3>
-          <p class="text-sm text-slate-500 mb-6">
-            Present this QR code at the event for check-in
-          </p>
-          <img
-            src={qrDataUrl}
-            alt="Check-in QR Code"
-            class="mx-auto mb-6 rounded-lg"
-          />
-          <button
-            on:click={downloadQR}
-            class="w-full flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-xl transition-colors shadow-lg"
-          >
-            <i class="fas fa-download"></i>
-            Download Entry Pass
-          </button>
-        </div>
-      {/if}
+        {#if enableCheckin && qrDataUrl}
+          <Surface className="panel-section surface-muted mt-6">
+            <h3 class="section-title">Entry pass</h3>
+            <p class="mt-1 text-sm muted">Present this code during check-in.</p>
+            <img src={qrDataUrl} alt="Check-in QR code" class="mx-auto my-5 rounded-[10px] border bg-white p-2" />
+            <button type="button" on:click={downloadQR} class="btn btn-primary w-full">
+              <i class="fas fa-download text-xs"></i>
+              <span>Download pass</span>
+            </button>
+          </Surface>
+        {/if}
 
-      <div class="space-y-4">
-        <p
-          class="text-sm mb-6"
-          style="color: {theme && theme.id === 'ide-dark'
-            ? '#808080'
-            : '#6b7280'};"
-        >
-          Form: <span
-            class="font-mono"
-            style="color: {theme && theme.id === 'ide-dark'
-              ? '#b0b0b0'
-              : '#374151'};">{$page.params.username}/{$page.params.slug}</span
-          >
+        <p class="mt-6 text-sm muted-soft">
+          Form: <span class="font-mono">{$page.params.username}/{$page.params.slug}</span>
         </p>
 
-        <a
-          href="/"
-          class="block px-6 py-3 rounded-md font-medium transition-colors text-white"
-          style="background-color: {theme && theme.id === 'ide-dark'
-            ? '#14b8a6'
-            : '#000000'};"
-        >
-          Create Another Form
-        </a>
-
-        <a
-          href="/"
-          class="block px-6 py-3 rounded-md font-medium transition-colors"
-          style="background-color: {theme && theme.id === 'ide-dark'
-            ? 'rgba(20,184,166,0.1)'
-            : '#f3f4f6'}; color: {theme && theme.id === 'ide-dark'
-            ? '#e0e0e0'
-            : '#000000'};"
-        >
-          Back to Home
-        </a>
-      </div>
+        <div class="mt-6 flex flex-col gap-2">
+          <a href="/" class="btn btn-primary">Create another form</a>
+          <a href="/" class="btn btn-secondary">Back to home</a>
+        </div>
+      </Surface>
     </div>
   {/if}
 </div>

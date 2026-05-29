@@ -188,7 +188,7 @@
 {#if isOpen}
   <!-- Modal Backdrop -->
   <div
-    class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+    class="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4"
     onclick={closeModal}
     role="button"
     tabindex="0"
@@ -196,12 +196,12 @@
   >
     <!-- Modal Content -->
     <div
-      class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col"
+      class="bg-white dark:bg-gray-900 w-full max-w-lg max-h-[88dvh] sm:max-h-[90vh] flex flex-col rounded-t-[18px] sm:rounded-[16px] shadow-2xl"
       onclick={(e) => e.stopPropagation()}
       role="dialog"
     >
       <!-- Header -->
-      <div class="p-6 border-b border-slate-100 dark:border-gray-800">
+      <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-gray-800">
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-bold text-slate-900 dark:text-white">
             Share Form
@@ -219,7 +219,7 @@
       </div>
 
       <!-- Content -->
-      <div class="overflow-y-auto flex-1 p-6 space-y-6">
+      <div class="overflow-y-auto flex-1 p-4 sm:p-6 space-y-6">
         <!-- Notification -->
         {#if showMessage}
           <div
@@ -261,7 +261,7 @@
             <div class="flex gap-2">
               <select
                 bind:value={selectedRole}
-                class="flex-1 px-3 py-2 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                class="flex-1 min-h-[44px] px-3 py-2 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="viewer">Viewer (Read-only)</option>
                 <option value="editor">Editor (Can edit)</option>
@@ -274,7 +274,7 @@
             <div class="space-y-2">
               {#each searchResults as user (user.id)}
                 <div
-                  class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"
+                  class="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-gray-800 rounded-xl hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div class="flex items-center gap-3 min-w-0">
                     <div
@@ -296,7 +296,7 @@
                   <button
                     onclick={() => addCollaborator(user.id, user.username)}
                     disabled={adding}
-                    class="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-indigo-600 disabled:opacity-50 flex-shrink-0 transition-colors"
+                    class="min-h-[44px] px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-indigo-600 disabled:opacity-50 flex-shrink-0 transition-colors"
                   >
                     {#if adding}
                       <i class="fas fa-spinner animate-spin"></i>
@@ -337,7 +337,7 @@
             <div class="space-y-2">
               {#each collaborators as collab (collab.id)}
                 <div
-                  class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg"
+                  class="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-gray-800 rounded-xl"
                 >
                   <div class="flex items-center gap-3 min-w-0">
                     <div
@@ -370,7 +370,7 @@
                           collab.user_id,
                           e.currentTarget.value as "viewer" | "editor",
                         )}
-                      class="px-2 py-1.5 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 text-slate-900 dark:text-white rounded text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                      class="min-h-[40px] px-2 py-1.5 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 text-slate-900 dark:text-white rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="viewer">Viewer</option>
                       <option value="editor">Editor</option>
@@ -383,8 +383,9 @@
                             collab.user?.email?.split("@")[0] ||
                             "User",
                         )}
-                      class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                      class="h-10 w-10 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                       title="Remove collaborator"
+                      aria-label="Remove collaborator"
                     >
                       <i class="fas fa-trash-alt text-xs"></i>
                     </button>
@@ -398,11 +399,11 @@
 
       <!-- Footer -->
       <div
-        class="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end"
+        class="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end bg-white dark:bg-gray-900"
       >
         <button
           onclick={closeModal}
-          class="px-4 py-2 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-800 dark:text-gray-200 rounded-lg font-semibold text-sm transition-colors"
+          class="min-h-[44px] px-4 py-2 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-800 dark:text-gray-200 rounded-lg font-semibold text-sm transition-colors"
         >
           Close
         </button>

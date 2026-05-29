@@ -31,15 +31,15 @@
 </script>
 
 <div
-    class="flex flex-col h-full bg-white dark:bg-gray-900 border-l border-slate-200 dark:border-gray-800"
+    class="flex h-full flex-col border-l app-divider surface-strong"
 >
     <!-- Persistent Top Header -->
     <div
-        class="p-6 border-b border-slate-100 dark:border-gray-800 space-y-4 bg-slate-50/50 dark:bg-gray-900/50"
+        class="space-y-4 border-b app-divider bg-[color:var(--surface-muted)] p-6"
     >
         <div class="space-y-3">
             <h3
-                class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1"
+                class="px-1 text-[10px] font-semibold uppercase tracking-[0.12em] muted-soft"
             >
                 Share & Preview
             </h3>
@@ -47,14 +47,14 @@
             {#if shareLink && currentFormData?.published}
                 <div class="flex gap-2">
                     <input
-                        class="flex-1 text-xs bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg py-2 px-3 focus:ring-1 focus:ring-primary outline-none truncate"
+                        class="field flex-1 truncate py-2 text-xs"
                         readonly
                         type="text"
                         value={shareLink}
                     />
                     <button
                         onclick={copyToClipboard}
-                        class="bg-primary text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-600 transition-colors shadow-sm"
+                        class="btn btn-primary btn-sm"
                         aria-label="Copy Share Link"
                     >
                         <i class="fas fa-copy"></i>
@@ -67,24 +67,24 @@
                     <a
                         href={shareLink}
                         target="_blank"
-                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary transition-all text-center no-underline shadow-sm group"
+                        class="flex items-center justify-center gap-2 rounded-[10px] border px-3 py-3 text-center no-underline transition-colors surface-strong hover:bg-[color:var(--surface-muted)]"
                     >
                         <span
-                            class="fas fa-external-link-alt text-slate-400 group-hover:text-primary text-xs"
+                            class="fas fa-external-link-alt text-xs muted"
                         ></span>
                         <span
-                            class="text-[10px] font-bold text-slate-600 dark:text-gray-300 group-hover:text-slate-900 dark:group-hover:text-white"
+                            class="text-[10px] font-semibold text-[color:var(--text)]"
                             >Preview</span
                         >
                     </a>
                 {:else}
                     <button
-                        class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 opacity-50 cursor-not-allowed shadow-none"
+                        class="flex cursor-not-allowed items-center justify-center gap-2 rounded-[10px] border px-3 py-3 opacity-50 surface-muted"
                     >
                         <span class="fas fa-eye-slash text-slate-400 text-xs"
                         ></span>
                         <span
-                            class="text-[10px] font-bold text-slate-500 dark:text-gray-400"
+                            class="text-[10px] font-semibold muted"
                             >Unpublished</span
                         >
                     </button>
@@ -92,7 +92,7 @@
 
                 <button
                     onclick={saveForm}
-                    class="flex items-center justify-center gap-2 p-3 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition-all shadow-sm"
+                    class="btn btn-primary"
                 >
                     <span class="fas fa-save text-xs"></span>
                     <span class="text-[10px] font-bold">Save</span>
@@ -105,14 +105,14 @@
     <div class="flex-1 flex overflow-hidden">
         <!-- Tab Sidebar (Vertical Icons) -->
         <div
-            class="w-16 border-r border-slate-100 dark:border-gray-800 flex flex-col items-center py-6 gap-4 bg-slate-50/30 dark:bg-gray-900/30"
+            class="flex w-16 flex-col items-center gap-4 border-r app-divider bg-[color:var(--surface-muted)] py-6"
         >
             <button
                 onclick={() => (activeTab = "themes")}
-                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                class="flex h-10 w-10 items-center justify-center rounded-[10px] transition-colors {activeTab ===
                 'themes'
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                    ? 'bg-[color:var(--text)] text-[color:var(--surface-strong)]'
+                    : 'muted hover:bg-[color:var(--surface-strong)] hover:text-[color:var(--text)]'}"
                 aria-label="Themes"
                 title="Themes"
             >
@@ -121,10 +121,10 @@
 
             <button
                 onclick={() => (activeTab = "background")}
-                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                class="flex h-10 w-10 items-center justify-center rounded-[10px] transition-colors {activeTab ===
                 'background'
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                    ? 'bg-[color:var(--text)] text-[color:var(--surface-strong)]'
+                    : 'muted hover:bg-[color:var(--surface-strong)] hover:text-[color:var(--text)]'}"
                 aria-label="Appearance"
                 title="Appearance"
             >
@@ -133,10 +133,10 @@
 
             <button
                 onclick={() => (activeTab = "settings")}
-                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                class="flex h-10 w-10 items-center justify-center rounded-[10px] transition-colors {activeTab ===
                 'settings'
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                    ? 'bg-[color:var(--text)] text-[color:var(--surface-strong)]'
+                    : 'muted hover:bg-[color:var(--surface-strong)] hover:text-[color:var(--text)]'}"
                 aria-label="Configuration"
                 title="Configuration"
             >
@@ -145,10 +145,10 @@
 
             <button
                 onclick={() => (activeTab = "sharing")}
-                class="w-10 h-10 flex items-center justify-center rounded-xl transition-all {activeTab ===
+                class="flex h-10 w-10 items-center justify-center rounded-[10px] transition-colors {activeTab ===
                 'sharing'
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                    : 'text-slate-400 hover:bg-white hover:text-slate-600'}"
+                    ? 'bg-[color:var(--text)] text-[color:var(--surface-strong)]'
+                    : 'muted hover:bg-[color:var(--surface-strong)] hover:text-[color:var(--text)]'}"
                 aria-label="Share"
                 title="Share"
             >
@@ -161,12 +161,10 @@
             {#if activeTab === "themes"}
                 <div class="space-y-6">
                     <header>
-                        <h3
-                            class="text-sm font-bold text-slate-900 dark:text-white mb-1"
-                        >
+                        <h3 class="text-sm font-semibold text-[color:var(--text)] mb-1">
                             Themes
                         </h3>
-                        <p class="text-xs text-slate-500">
+                        <p class="text-xs muted">
                             Select a predefined style for your form.
                         </p>
                     </header>
@@ -175,12 +173,10 @@
             {:else if activeTab === "background"}
                 <div class="space-y-8">
                     <header>
-                        <h3
-                            class="text-sm font-bold text-slate-900 dark:text-white mb-1"
-                        >
+                        <h3 class="text-sm font-semibold text-[color:var(--text)] mb-1">
                             Appearance
                         </h3>
-                        <p class="text-xs text-slate-500">
+                        <p class="text-xs muted">
                             Customize the look and feel of your form.
                         </p>
                     </header>

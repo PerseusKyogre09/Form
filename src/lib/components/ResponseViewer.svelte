@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import type { FormResponse, FormElement, Question } from "../types";
   import { isQuestionElement } from "../types";
-  import { Button } from "bits-ui";
+  import { notifications } from "../stores/notifications";
 
   export let formId: string;
   export let questions: FormElement[] = [];
@@ -112,13 +112,23 @@
     return new Date(timestamp).toLocaleString();
   }
 
+  function formatAnswerValue(question: Question, value: unknown): string {
+    if (value === undefined || value === null || value === "") return "—";
+    if (question.type === "image-upload") return "Image uploaded";
+    if (Array.isArray(value)) return value.join(", ");
+    return String(value);
+  }
+
   async function downloadCSV() {
     try {
       const response = await fetch(`/api/responses/${formId}/csv`);
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        alert(`Error downloading CSV: ${error.error || response.statusText}`);
+        notifications.add(
+          `Error downloading CSV: ${error.error || response.statusText}`,
+          "error",
+        );
         return;
       }
 
@@ -133,7 +143,7 @@
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Error downloading CSV:", err);
-      alert("Failed to download CSV. Please try again.");
+      notifications.add("Failed to download CSV. Please try again.", "error");
     }
   }
 
@@ -153,7 +163,7 @@
       currentPage = 1;
     } catch (error) {
       console.error("Error deleting responses:", error);
-      alert("Failed to delete responses. Please try again.");
+      notifications.add("Failed to delete responses. Please try again.", "error");
     }
   }
 
@@ -182,36 +192,28 @@
       if (responseIndex !== -1) {
         responses[responseIndex].checked_in = currentStatus;
       }
-      alert("Failed to update check-in status.");
+      notifications.add("Failed to update check-in status.", "error");
     }
   }
 </script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-  <div class="mb-6 flex items-center justify-between">
+<div class="py-2">
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h2
-        class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight"
-      >
+      <h2 class="text-2xl font-semibold tracking-tight text-[color:var(--text)]">
         Responses
       </h2>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+      <p class="mt-1 text-xs muted">
         {totalCount} total response{totalCount !== 1 ? "s" : ""}
       </p>
     </div>
     {#if responses.length > 0 || Object.keys(filters).length > 0}
-      <div class="flex gap-2">
-        <button
-          on:click={downloadCSV}
-          class="inline-flex items-center px-3 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-medium rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black dark:focus:ring-white focus:ring-offset-white dark:focus:ring-offset-gray-900"
-        >
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <button on:click={downloadCSV} class="btn btn-secondary btn-sm justify-center">
           <span class="fas fa-download mr-1.5"></span>
           Download CSV
         </button>
-        <button
-          on:click={deleteAllResponses}
-          class="inline-flex items-center px-3 py-2 bg-red-600 dark:bg-red-700 text-white text-xs font-medium rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-red-400 focus:ring-offset-white dark:focus:ring-offset-gray-900"
-        >
+        <button on:click={deleteAllResponses} class="btn btn-danger btn-sm justify-center">
           <span class="fas fa-trash mr-1.5"></span>
           Delete All
         </button>
@@ -219,15 +221,11 @@
     {/if}
   </div>
 
-  <div
-    class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[300px]"
-  >
+  <div class="surface surface-strong flex min-h-[300px] flex-col overflow-hidden">
     {#if loading && responses.length === 0}
       <div class="flex-1 flex flex-col items-center justify-center p-8">
-        <div
-          class="w-6 h-6 border-4 border-gray-200 dark:border-gray-700 border-t-black dark:border-t-white rounded-full animate-spin mb-2"
-        ></div>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
+        <div class="mb-2 h-6 w-6 animate-spin rounded-full border-2 border-[color:var(--border)] border-t-[color:var(--accent)]"></div>
+        <p class="text-xs muted">
           Loading responses...
         </p>
       </div>
@@ -235,21 +233,100 @@
       <div
         class="flex-1 flex flex-col items-center justify-center p-8 text-center"
       >
-        <div
-          class="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-3"
-        >
-          <span class="fas fa-inbox text-gray-300 dark:text-gray-600 text-lg"
-          ></span>
+        <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-full border surface-muted">
+          <span class="fas fa-inbox text-lg muted-soft"></span>
         </div>
-        <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+        <h3 class="text-sm font-medium text-[color:var(--text)]">
           No responses yet
         </h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        <p class="mt-0.5 text-xs muted">
           Share your form link to start collecting responses.
         </p>
       </div>
     {:else}
-      <div class="overflow-x-auto flex-1">
+      <div class="flex flex-1 flex-col md:hidden">
+        <div class="flex items-center justify-between border-b border-[color:var(--border)] px-4 py-3">
+          <p class="text-xs font-medium text-[color:var(--text)]">
+            {responses.length} response{responses.length !== 1 ? "s" : ""} on this page
+          </p>
+          <p class="text-[11px] muted">
+            Page {currentPage} of {Math.max(totalPages, 1)}
+          </p>
+        </div>
+
+        <div class="space-y-3 p-3">
+          {#each responses as response}
+            <article class="rounded-[12px] border border-[color:var(--border)] bg-[color:var(--surface-elevated)] p-4 shadow-sm">
+              <div class="mb-3 flex items-start justify-between gap-3">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[color:var(--text-soft)]">
+                    Submitted
+                  </p>
+                  <p class="mt-1 text-sm font-medium text-[color:var(--text)]">
+                    {formatDate(response.timestamp)}
+                  </p>
+                </div>
+                {#if enableCheckin}
+                  <button
+                    on:click={() => toggleCheckin(response.id, !!response.checked_in)}
+                    class="relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {response.checked_in
+                      ? 'bg-green-500'
+                      : 'bg-gray-200 dark:bg-gray-700'}"
+                    role="switch"
+                    aria-checked={response.checked_in}
+                  >
+                    <span class="sr-only">Toggle check-in</span>
+                    <span
+                      aria-hidden="true"
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {response.checked_in
+                        ? 'translate-x-2'
+                        : '-translate-x-2'}"
+                    ></span>
+                  </button>
+                {/if}
+              </div>
+
+              {#if enableDeviceTracking || anonymousVoting}
+                <div class="mb-3">
+                  <span class="inline-flex items-center gap-1.5 rounded-md border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-xs font-mono font-bold tracking-wide text-indigo-700 dark:border-indigo-900/20 dark:bg-indigo-950/30 dark:text-indigo-400">
+                    <i class="fas fa-fingerprint text-[10px]"></i>
+                    {getVoterId(response.device_id)}
+                  </span>
+                </div>
+              {/if}
+
+              <dl class="space-y-3">
+                {#each questionList as question}
+                  <div class="space-y-1">
+                    <dt class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-soft)]">
+                      {question.title}
+                    </dt>
+                    <dd class="text-sm text-[color:var(--text)] break-words">
+                      {#if response.answers[question.id] === undefined || response.answers[question.id] === null || response.answers[question.id] === ""}
+                        <span class="muted">—</span>
+                      {:else if question.type === "image-upload"}
+                        <a
+                          href={response.answers[question.id] as string}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex items-center gap-1 text-[color:var(--accent)] hover:underline"
+                        >
+                          <span class="fas fa-image text-xs"></span>
+                          <span>View image</span>
+                        </a>
+                      {:else}
+                        {formatAnswerValue(question, response.answers[question.id])}
+                      {/if}
+                    </dd>
+                  </div>
+                {/each}
+              </dl>
+            </article>
+          {/each}
+        </div>
+      </div>
+
+      <div class="hidden overflow-x-auto flex-1 md:block">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr
@@ -270,6 +347,7 @@
                   <div class="relative">
                     <button
                       on:click={() => handleSort("created_at", "meta")}
+                      aria-label="Sort by timestamp"
                       class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                     >
                       <span class="fas fa-sort"></span>
@@ -289,6 +367,7 @@
                     <div class="relative">
                       <button
                         on:click={() => togglePopover(question.id)}
+                        aria-label={`Filter responses for ${question.title}`}
                         class={`p-1.5 rounded transition-colors ${
                           filters[question.id]
                             ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
@@ -305,11 +384,13 @@
                           <div class="space-y-4">
                             <div>
                               <label
+                                for={`filter-${question.id}`}
                                 class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
                                 >Filter</label
                               >
                               <div class="relative">
                                 <input
+                                  id={`filter-${question.id}`}
                                   type="text"
                                   placeholder="Search..."
                                   class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent outline-none"
@@ -324,6 +405,7 @@
                                   <button
                                     on:click={() =>
                                       handleFilterChange(question.id, "")}
+                                    aria-label="Clear filter"
                                     class="absolute right-2 top-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                                   >
                                     <span class="fas fa-times text-xs"></span>
@@ -333,17 +415,19 @@
                             </div>
                           </div>
                           <button
+                            aria-label="Close filter"
                             class="absolute top-2 right-2 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400"
                             on:click={() => (openPopoverId = null)}
                           >
                             <span class="fas fa-times"></span>
                           </button>
                         </div>
-                        <div
-                          class="fixed inset-0 z-10"
+                        <button
+                          type="button"
+                          class="fixed inset-0 z-10 cursor-default"
+                          aria-label="Dismiss filter"
                           on:click={() => (openPopoverId = null)}
-                          style="cursor: default;"
-                        ></div>
+                        ></button>
                       {/if}
                     </div>
                   </div>
@@ -465,7 +549,7 @@
 
       <!-- Pagination -->
       <div
-        class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between"
+        class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <div class="text-xs text-gray-500 dark:text-gray-400">
           Showing <span class="font-medium"
@@ -477,7 +561,7 @@
           >
           of <span class="font-medium">{totalCount}</span> results
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 self-end sm:self-auto">
           <button
             on:click={prevPage}
             disabled={currentPage === 1}

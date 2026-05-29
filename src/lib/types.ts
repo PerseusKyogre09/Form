@@ -158,6 +158,7 @@ export interface FormResponse {
   timestamp: number;
   answers: Record<string, string | number | boolean | string[]>;
   checked_in?: boolean;
+  device_id?: string;
 }
 
 export function isBlockElement(element: FormElement): element is BlockElement {

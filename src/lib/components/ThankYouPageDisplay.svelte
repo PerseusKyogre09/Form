@@ -2,9 +2,8 @@
   import type { ThankYouPage } from "../types";
 
   export let config: ThankYouPage | undefined;
-  export let formInfo: string = "";
+  export let formInfo = "";
 
-  // Determine if we should show custom or fallback
   const isCustomized =
     config?.enabled &&
     (config.title || config.subtitle || config.buttons.length > 0);
@@ -17,31 +16,31 @@
     youtube: { name: "YouTube", icon: "fab fa-youtube" },
     tiktok: { name: "TikTok", icon: "fab fa-tiktok" },
   };
+
+  function alphaColor(hex: string | undefined, alpha = 0.12) {
+    if (!hex?.startsWith("#") || hex.length !== 7) return "";
+    const r = Number.parseInt(hex.slice(1, 3), 16);
+    const g = Number.parseInt(hex.slice(3, 5), 16);
+    const b = Number.parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
 </script>
 
 {#if isCustomized && config}
   <div
-    class="min-h-screen flex items-center justify-center p-4 transition-colors w-full dark:bg-gray-950"
-    style="background-color: {config.backgroundType === 'color'
-      ? config.backgroundColor
-      : '#ffffff'}; background-image: {config.backgroundType === 'image' && config.backgroundImage
-      ? `url('${config.backgroundImage}')`
-      : 'none'}; background-size: cover; background-position: center;"
+    class="flex min-h-screen w-full items-center justify-center p-4"
+    style={`background-color:${config.backgroundType === "color" ? config.backgroundColor : "#ffffff"}; background-image:${config.backgroundType === "image" && config.backgroundImage ? `url('${config.backgroundImage}')` : "none"}; background-size:cover; background-position:center;`}
   >
-    <div class="text-center w-full max-w-2xl">
+    <div
+      class="w-full max-w-2xl rounded-[14px] border px-6 py-10 text-center shadow-sm sm:px-10"
+      style={`background:${alphaColor(config.backgroundColor, 0.88) || "rgba(255,255,255,0.88)"}; border-color:${alphaColor(config.textColor || config.titleColor, 0.18) || "rgba(0,0,0,0.08)"}; color:${config.textColor || "#1f2328"}; backdrop-filter: blur(8px);`}
+    >
       {#if config.showSuccessIcon}
         <div
-          class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 transition-colors"
-          style="background-color: {config.successIconColor
-            ? `rgba(${parseInt(config.successIconColor.slice(1, 3), 16)},${parseInt(config.successIconColor.slice(3, 5), 16)},${parseInt(config.successIconColor.slice(5, 7), 16)},0.2)`
-            : ''};"
+          class="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full"
+          style={`background:${alphaColor(config.successIconColor || config.titleColor, 0.16) || "rgba(47,122,85,0.12)"}; color:${config.successIconColor || config.titleColor || "#2f7a55"};`}
         >
-          <svg
-            class="w-8 h-8 text-green-500 dark:text-green-400"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            style="color: {config.successIconColor || ''};"
-          >
+          <svg class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20">
             <path
               fill-rule="evenodd"
               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -52,42 +51,28 @@
       {/if}
 
       {#if config.title}
-        <h1
-          class="text-4xl font-bold mb-2 text-gray-900 dark:text-white transition-colors"
-          style="color: {config.titleColor || ''};"
-        >
+        <h1 class="text-[32px] font-semibold tracking-tight" style={`color:${config.titleColor || config.textColor || "#1f2328"};`}>
           {config.title}
         </h1>
       {/if}
 
       {#if config.subtitle}
-        <p
-          class="text-lg mb-6 text-gray-600 dark:text-gray-400 transition-colors"
-          style="color: {config.subtitleColor || ''};"
-        >
+        <p class="mx-auto mt-3 max-w-xl text-base leading-7" style={`color:${config.subtitleColor || config.textColor || "#5f6872"};`}>
           {config.subtitle}
         </p>
       {/if}
 
       {#if config.buttons.length > 0}
-        <div class="space-y-3 mb-6">
+        <div class="mt-8 space-y-3">
           {#each config.buttons as button}
             <a
               href={button.url}
               target="_blank"
               rel="noopener noreferrer"
-              class={`block px-6 py-3 rounded-lg font-medium transition-colors ${
-                button.variant === "primary"
-                  ? "hover:opacity-90 bg-gray-900 dark:bg-white text-white dark:text-gray-900"
-                  : "hover:opacity-80 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
-              }`}
+              class="block rounded-[10px] border px-5 py-3 text-sm font-medium transition-colors"
               style={button.variant === "primary"
-                ? config.titleColor
-                  ? `background-color: ${config.titleColor}; color: white;`
-                  : ""
-                : config.titleColor
-                  ? `background-color: rgba(${parseInt(config.titleColor.slice(1, 3), 16)},${parseInt(config.titleColor.slice(3, 5), 16)},${parseInt(config.titleColor.slice(5, 7), 16)},0.1); color: ${config.titleColor};`
-                  : ""}
+                ? `background:${config.titleColor || "#1f2328"}; border-color:${config.titleColor || "#1f2328"}; color:white;`
+                : `background:${alphaColor(config.titleColor, 0.1) || "rgba(255,255,255,0.82)"}; border-color:${alphaColor(config.titleColor, 0.18) || "rgba(0,0,0,0.08)"}; color:${config.titleColor || config.textColor || "#1f2328"};`}
             >
               {button.label}
             </a>
@@ -96,17 +81,15 @@
       {/if}
 
       {#if config.socialLinks.length > 0}
-        <div class="flex justify-center gap-4 mb-6">
+        <div class="mt-8 flex justify-center gap-3">
           {#each config.socialLinks as link}
             {#if link.url}
               <a
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="w-10 h-10 rounded-full flex items-center justify-center transition-colors bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-                style={config.titleColor
-                  ? `background-color: rgba(${parseInt(config.titleColor.slice(1, 3), 16)},${parseInt(config.titleColor.slice(3, 5), 16)},${parseInt(config.titleColor.slice(5, 7), 16)},0.1); color: ${config.titleColor};`
-                  : ""}
+                class="flex h-10 w-10 items-center justify-center rounded-full border"
+                style={`background:${alphaColor(config.titleColor, 0.1) || "rgba(255,255,255,0.82)"}; border-color:${alphaColor(config.titleColor, 0.18) || "rgba(0,0,0,0.08)"}; color:${config.titleColor || config.textColor || "#1f2328"};`}
                 title={socialPlatforms[link.platform]?.name}
               >
                 <i class={socialPlatforms[link.platform]?.icon}></i>
@@ -117,22 +100,12 @@
       {/if}
 
       {#if config.showFormInfo && formInfo}
-        <p
-          class="text-sm mt-6 text-gray-400 dark:text-gray-500 transition-colors"
-          style="color: {config.textColor || ''};"
-        >
+        <p class="mt-8 text-sm" style={`color:${config.textColor || config.subtitleColor || "#7d8690"};`}>
           {formInfo}
         </p>
       {/if}
     </div>
   </div>
 {:else}
-  <!-- Fallback to default design -->
   <slot name="fallback" />
 {/if}
-
-<style>
-  :global(a) {
-    transition: all 0.3s ease;
-  }
-</style>

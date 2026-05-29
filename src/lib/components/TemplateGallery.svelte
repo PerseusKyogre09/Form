@@ -1,8 +1,10 @@
-<!-- src/lib/components/TemplateGallery.svelte -->
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import type { FormTemplate } from '../types';
-  import { FORM_TEMPLATES, TEMPLATE_CATEGORIES } from '../templates';
+  import { onMount } from "svelte";
+  import type { FormTemplate } from "../types";
+  import { isQuestionElement } from "../types";
+  import { FORM_TEMPLATES, TEMPLATE_CATEGORIES } from "../templates";
+  import ModalShell from "./ui/ModalShell.svelte";
+  import Surface from "./ui/Surface.svelte";
 
   interface Props {
     onSelect: (template: FormTemplate) => void;
@@ -11,7 +13,7 @@
 
   let { onSelect, onCancel }: Props = $props();
 
-  let selectedCategory = $state<string>('all');
+  let selectedCategory = $state<string>("all");
   let filteredTemplates = $state<FormTemplate[]>([]);
   let previewTemplate = $state<FormTemplate | null>(null);
 
@@ -20,11 +22,10 @@
   });
 
   function updateFiltered() {
-    if (selectedCategory === 'all') {
-      filteredTemplates = FORM_TEMPLATES;
-    } else {
-      filteredTemplates = FORM_TEMPLATES.filter(t => t.category === selectedCategory);
-    }
+    filteredTemplates =
+      selectedCategory === "all"
+        ? FORM_TEMPLATES
+        : FORM_TEMPLATES.filter((template) => template.category === selectedCategory);
   }
 
   function handleCategoryChange(category: string) {
@@ -37,169 +38,156 @@
   }
 </script>
 
-<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-    <!-- Header -->
-    <div class="border-b border-gray-200 dark:border-gray-800 p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Choose a Template</h2>
-          <p class="text-gray-500 dark:text-gray-400 mt-1">Start with a pre-built template or create from scratch</p>
-        </div>
+<ModalShell
+  title="Choose a template"
+  description="Start from a focused draft or begin with a blank form."
+  maxWidthClass="max-w-6xl"
+  onClose={onCancel}
+>
+  <div class="border-b app-divider px-5 py-4">
+    <div class="flex gap-2 overflow-x-auto">
+      {#each TEMPLATE_CATEGORIES as category}
         <button
-          onclick={onCancel}
-          class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
+          type="button"
+          on:click={() => handleCategoryChange(category.id)}
+          class="btn btn-sm whitespace-nowrap"
+          class:btn-primary={selectedCategory === category.id}
+          class:btn-secondary={selectedCategory !== category.id}
         >
-          ✕
+          <i class={`fas ${category.icon} text-[11px]`}></i>
+          <span>{category.name}</span>
         </button>
-      </div>
-    </div>
-
-    <!-- Categories -->
-    <div class="border-b border-gray-200 dark:border-gray-800 px-6 py-4 overflow-x-auto">
-      <div class="flex gap-2">
-        {#each TEMPLATE_CATEGORIES as category}
-          <button
-            onclick={() => handleCategoryChange(category.id)}
-            class="px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all flex items-center gap-2 {
-              selectedCategory === category.id
-                ? 'bg-indigo-600 text-white shadow-lg'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }"
-          >
-            <i class="fas {category.icon} w-4"></i>
-            {category.name}
-          </button>
-        {/each}
-      </div>
-    </div>
-
-    <!-- Template Grid -->
-    <div class="flex-1 overflow-y-auto p-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Blank Form Option -->
-        <button
-          onclick={() => onSelect({} as FormTemplate)}
-          class="group p-6 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all text-center"
-        >
-          <div class="flex justify-center mb-3">
-            <i class="fas fa-file-lines text-4xl text-gray-400 group-hover:text-indigo-500 transition-colors"></i>
-          </div>
-          <h3 class="font-bold text-gray-900 dark:text-white">Blank Form</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Start from scratch</p>
-        </button>
-
-        <!-- Template Cards -->
-        {#each filteredTemplates as template}
-          <button
-            onclick={() => handleSelectTemplate(template)}
-            class="group p-6 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-lg dark:hover:shadow-indigo-900/30 transition-all text-left overflow-hidden"
-            style="background: linear-gradient(135deg, {template.background_color} 0%, {template.background_color}dd 100%)"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <i class="fas {template.icon} text-2xl text-gray-700 dark:text-gray-600"></i>
-              <span class="text-xs font-bold px-2 py-1 bg-white/80 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full">
-                {template.preview_text}
-              </span>
-            </div>
-            <h3 class="font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-              {template.name}
-            </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-              {template.description}
-            </p>
-            <div
-              onclick={(e) => {
-                e.stopPropagation();
-                previewTemplate = template;
-              }}
-              role="button"
-              tabindex="0"
-              class="mt-3 text-xs text-indigo-600 dark:text-indigo-400 font-medium hover:underline cursor-pointer"
-              onkeydown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  previewTemplate = template;
-                }
-              }}
-            >
-              Preview →
-            </div>
-          </button>
-        {/each}
-      </div>
+      {/each}
     </div>
   </div>
-</div>
 
-<!-- Preview Modal -->
-{#if previewTemplate}
-  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-      <!-- Preview Header -->
-      <div class="border-b border-gray-200 dark:border-gray-800 p-6 flex items-start justify-between">
-        <div>
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white">{previewTemplate.name}</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{previewTemplate.description}</p>
+  <div class="max-h-[72vh] overflow-y-auto p-5">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <button
+        type="button"
+        on:click={() => onSelect({} as FormTemplate)}
+        class="flex min-h-[220px] flex-col items-start justify-between rounded-[12px] border border-dashed p-5 text-left transition-colors surface-muted hover:border-[color:var(--accent)]"
+      >
+        <div class="space-y-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-[10px] border surface-strong">
+            <i class="fas fa-file-lines text-sm text-[color:var(--accent)]"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-semibold tracking-tight text-[color:var(--text)]">Blank form</h3>
+            <p class="mt-1 text-sm leading-6 muted">Start from scratch and shape the flow yourself.</p>
+          </div>
         </div>
-        <button
-          onclick={() => (previewTemplate = null)}
-          class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl"
-        >
-          ✕
-        </button>
-      </div>
+        <span class="text-sm font-medium text-[color:var(--accent)]">Open blank builder</span>
+      </button>
 
-      <!-- Preview Content -->
-      <div class="flex-1 overflow-y-auto p-6">
-        <div class="space-y-4">
-          {#each previewTemplate.questions_template as question}
-            <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <div class="flex items-start justify-between mb-2">
-                <h4 class="font-semibold text-gray-900 dark:text-white">{question.title}</h4>
-                <span class="text-xs px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-full font-medium">
-                  {question.type}
-                </span>
-              </div>
-              {#if question.options}
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  • {question.options.join(', ')}
+      {#each filteredTemplates as template}
+        <button
+          type="button"
+          on:click={() => handleSelectTemplate(template)}
+          class="overflow-hidden rounded-[12px] border text-left shadow-sm transition-transform duration-150 hover:-translate-y-0.5"
+          style={`background: linear-gradient(160deg, ${template.background_color || "#f5f1e8"} 0%, color-mix(in srgb, ${template.background_color || "#f5f1e8"} 72%, white) 100%); border-color: var(--border);`}
+        >
+          <div class="flex min-h-[220px] flex-col justify-between p-5">
+            <div class="space-y-4">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-[10px] border border-white/55 bg-white/65 text-sm text-[color:var(--text)]">
+                  <i class={`fas ${template.icon}`}></i>
                 </div>
-              {/if}
-              {#if question.required}
-                <span class="text-xs text-red-600 dark:text-red-400 font-medium">Required</span>
-              {/if}
+                {#if template.preview_text}
+                  <span class="rounded-full border border-white/55 bg-white/65 px-2.5 py-1 text-[11px] font-medium text-[color:var(--text)]">
+                    {template.preview_text}
+                  </span>
+                {/if}
+              </div>
+              <div>
+                <h3 class="text-base font-semibold tracking-tight text-[color:var(--text)]">{template.name}</h3>
+                <p class="mt-1 line-clamp-2 text-sm leading-6 text-[color:color-mix(in_srgb,var(--text) 72%, transparent)]">
+                  {template.description}
+                </p>
+              </div>
             </div>
-          {/each}
-        </div>
+
+            <div class="flex items-center justify-between gap-3 pt-4">
+              <span class="text-xs muted-soft">
+                {template.questions_template.length} questions
+              </span>
+              <span
+                role="button"
+                tabindex="0"
+                class="text-sm font-medium text-[color:var(--accent)]"
+                on:click={(event) => {
+                  event.stopPropagation();
+                  previewTemplate = template;
+                }}
+                on:keydown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    previewTemplate = template;
+                  }
+                }}
+              >
+                Preview
+              </span>
+            </div>
+          </div>
+        </button>
+      {/each}
+    </div>
+  </div>
+</ModalShell>
+
+{#if previewTemplate}
+  <ModalShell
+    title={previewTemplate.name}
+    description={previewTemplate.description}
+    maxWidthClass="max-w-2xl"
+    onClose={() => (previewTemplate = null)}
+  >
+    <div class="space-y-4 p-5">
+      <div class="space-y-3">
+        {#each previewTemplate.questions_template as question}
+          <Surface muted={true} className="panel-section">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h4 class="text-sm font-semibold text-[color:var(--text)]">{question.title}</h4>
+                {#if isQuestionElement(question) && question.options}
+                  <p class="mt-1 text-sm leading-6 muted">{question.options.join(", ")}</p>
+                {/if}
+              </div>
+              <span class="status-badge badge-muted">{isQuestionElement(question) ? question.type : "block"}</span>
+            </div>
+            {#if isQuestionElement(question) && question.required}
+              <p class="mt-2 text-xs text-[color:var(--danger)]">Required</p>
+            {/if}
+          </Surface>
+        {/each}
       </div>
 
-      <!-- Preview Actions -->
-      <div class="border-t border-gray-200 dark:border-gray-800 p-6 flex gap-3">
-        <button
-          onclick={() => (previewTemplate = null)}
-          class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
+      <div class="flex justify-end gap-2">
+        <button type="button" class="btn btn-secondary" on:click={() => (previewTemplate = null)}>
           Back
         </button>
         <button
-          onclick={() => {
+          type="button"
+          class="btn btn-primary"
+          on:click={() => {
+            if (!previewTemplate) return;
             handleSelectTemplate(previewTemplate);
             previewTemplate = null;
           }}
-          class="flex-1 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
         >
-          Use This Template
+          Use template
         </button>
       </div>
     </div>
-  </div>
+  </ModalShell>
 {/if}
 
 <style>
   :global(.line-clamp-2) {
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;

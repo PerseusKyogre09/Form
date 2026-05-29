@@ -69,6 +69,9 @@
   let isSubmitting = false;
   let alreadySubmitted = false;
   let deviceId: string = "";
+  let draftRestored = false;
+  let autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
+  const MOBILE_BREAKPOINT = 768;
 
   function getCanvasFingerprint(): string {
     try {
@@ -174,18 +177,118 @@
   let countrySearchQuery = "";
   let highlightedCountryIndex = 0;
 
-  // Touch/Swipe gesture handling for mobile
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchEndX = 0;
-  let touchEndY = 0;
-  let isSwipeEnabled = true;
-  const SWIPE_THRESHOLD = 50;
-  const SCROLL_THRESHOLD = 30;
+  function getDraftStorageKey() {
+    return `form_draft_${formId}`;
+  }
 
-  // Scroll detection for mobile
-  let lastScrollTime = 0;
-  const SCROLL_COOLDOWN = 800;
+  function isMobileDevice() {
+    return typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT;
+  }
+
+  function persistDraft() {
+    if (!browser || !formId || alreadySubmitted) return;
+    const draft = {
+      answers,
+      phoneCountries,
+      currentQuestionIndex,
+      updatedAt: Date.now(),
+    };
+    localStorage.setItem(getDraftStorageKey(), JSON.stringify(draft));
+  }
+
+  function restoreDraft() {
+    if (!browser || !formId) return;
+    const raw = localStorage.getItem(getDraftStorageKey());
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      answers = parsed.answers || {};
+      phoneCountries = parsed.phoneCountries || {};
+      if (typeof parsed.currentQuestionIndex === "number") {
+        currentQuestionIndex = parsed.currentQuestionIndex;
+      }
+    } catch (error) {
+      console.warn("Failed to restore draft", error);
+    }
+  }
+
+  function clearDraft() {
+    if (!browser || !formId) return;
+    localStorage.removeItem(getDraftStorageKey());
+  }
+
+  function queueAutoAdvance() {
+    if (!isMobileDevice() || !hasNextVisibleQuestion || validationError || isSubmitting) return;
+    if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+    autoAdvanceTimer = setTimeout(() => {
+      autoAdvanceTimer = null;
+      if (!validationError && canAdvanceValue) {
+        nextQuestion();
+      }
+    }, 180);
+  }
+
+  function handleAnswerInput(questionId: string, value: any) {
+    answers[questionId] = value;
+    validationError = "";
+    if (currentQuestion && currentQuestion.id === questionId) {
+      validateCurrentQuestion();
+    }
+  }
+
+  function handleSingleSelect(questionId: string, value: string) {
+    handleAnswerInput(questionId, value);
+    queueAutoAdvance();
+  }
+
+  function handleRatingSelect(questionId: string, rating: number) {
+    handleAnswerInput(questionId, rating);
+    queueAutoAdvance();
+  }
+
+  function getTextInputType(question: Question) {
+    switch (question.type) {
+      case "email":
+        return "email";
+      case "number":
+        return "number";
+      case "date":
+        return "date";
+      case "phone":
+        return "tel";
+      default:
+        return "text";
+    }
+  }
+
+  function getInputMode(question: Question) {
+    switch (question.type) {
+      case "email":
+        return "email";
+      case "number":
+        return "numeric";
+      case "phone":
+        return "tel";
+      default:
+        return "text";
+    }
+  }
+
+  function getAutoComplete(question: Question) {
+    const title = (question.title || "").toLowerCase();
+    if (question.type === "email") return "email";
+    if (question.type === "phone") return "tel";
+    if (title.includes("name")) return "name";
+    if (title.includes("city")) return "address-level2";
+    if (title.includes("country")) return "country-name";
+    if (title.includes("company") || title.includes("organisation")) return "organization";
+    return "on";
+  }
+
+  function getEnterKeyHint(question: Question) {
+    return hasNextVisibleQuestion ? "next" : "done";
+  }
 
   function getFilteredCountries(query: string) {
     if (!query) return countryOptions;
@@ -195,57 +298,6 @@
         c.code.toLowerCase().includes(lowerQuery) ||
         c.name.toLowerCase().includes(lowerQuery),
     );
-  }
-
-  // Touch gesture handlers for mobile
-  function handleTouchStart(e: TouchEvent) {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-  }
-
-  function handleTouchEnd(e: TouchEvent) {
-    touchEndX = e.changedTouches[0].screenX;
-    touchEndY = e.changedTouches[0].screenY;
-    handleSwipe();
-  }
-
-  function handleSwipe() {
-    if (!isSwipeEnabled || !isMobileDevice()) return;
-
-    const diffX = touchStartX - touchEndX;
-    const diffY = Math.abs(touchStartY - touchEndY);
-
-    // Only handle horizontal swipes (ignore vertical scrolls)
-    if (diffY > diffX) return;
-
-    // Swipe left - go to next question
-    if (diffX > SWIPE_THRESHOLD && currentQuestionIndex < questions.length - 1) {
-      validateAndAdvance();
-    }
-    // Swipe right - go to previous question
-    else if (diffX < -SWIPE_THRESHOLD && currentQuestionIndex > 0) {
-      prevQuestion();
-    }
-  }
-
-  // Scroll detection for mobile - enables scroll-to-navigate
-  function handleWheel(e: WheelEvent) {
-    if (!isMobileDevice()) return;
-    const now = Date.now();
-    if (now - lastScrollTime < SCROLL_COOLDOWN) return;
-
-    // Scroll down - go to next question
-    if (e.deltaY > SCROLL_THRESHOLD && currentQuestionIndex < questions.length - 1) {
-      e.preventDefault();
-      lastScrollTime = now;
-      validateAndAdvance();
-    }
-    // Scroll up - go to previous question
-    else if (e.deltaY < -SCROLL_THRESHOLD && currentQuestionIndex > 0) {
-      e.preventDefault();
-      lastScrollTime = now;
-      prevQuestion();
-    }
   }
 
   function handleCountrySearch(e: KeyboardEvent, questionId: string) {
@@ -502,6 +554,11 @@
       }
     }
 
+    if (!alreadySubmitted) {
+      restoreDraft();
+      draftRestored = true;
+    }
+
     // Ensure all questions have exitAnimation set (for backward compatibility)
     questions.forEach((el) => {
       if (!isBlockElement(el) && !el.exitAnimation) {
@@ -529,13 +586,6 @@
     // Apply theme if available
     applyFormTheme();
 
-    // Add touch event listeners for mobile swipe/scroll navigation
-    if (typeof window !== "undefined") {
-      window.addEventListener("touchstart", handleTouchStart, { passive: true });
-      window.addEventListener("touchend", handleTouchEnd, { passive: true });
-      window.addEventListener("wheel", handleWheel, { passive: false });
-    }
-
     // Small delay to ensure DOM is ready before animating
     await tick();
     animateIn();
@@ -544,13 +594,7 @@
   onDestroy(() => {
     if (animationTimer) clearTimeout(animationTimer);
     cleanupTheme();
-    
-    // Clean up event listeners
-    if (typeof window !== "undefined") {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
-      window.removeEventListener("wheel", handleWheel);
-    }
+    if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
   });
 
   // Re-apply theme when it changes (for preview mode)
@@ -1703,11 +1747,6 @@
     }
   }
 
-  // Helper to detect if device is mobile
-  function isMobileDevice() {
-    return typeof window !== "undefined" && window.innerWidth < 768;
-  }
-
   function handleKeyboardFlow(e: KeyboardEvent, questionId: string) {
     const isMobile = isMobileDevice();
 
@@ -2080,6 +2119,7 @@
         // Mark as submitted in localStorage
         if (formId) {
           localStorage.setItem(`form_submitted_${formId}`, "true");
+          clearDraft();
           // Store submissionId for QR check-in
           if (submissionId) {
             localStorage.setItem(`form_submission_id_${formId}`, submissionId);
@@ -2109,6 +2149,7 @@
         alreadySubmitted = true;
         if (formId) {
           localStorage.setItem(`form_submitted_${formId}`, "true");
+          clearDraft();
         }
         isSubmitting = false;
       } else if (response.status === 429) {
@@ -2137,6 +2178,12 @@
     currentQuestionIndex = 0;
   } else if (currentQuestionIndex >= questions.length) {
     currentQuestionIndex = questions.length - 1;
+  }
+  $: if (draftRestored) {
+    void answers;
+    void phoneCountries;
+    void currentQuestionIndex;
+    persistDraft();
   }
   $: currentElement = questions[currentQuestionIndex];
   $: currentQuestion =
@@ -2245,7 +2292,7 @@
         style="background-image: url('{backgroundImage}'); background-size: cover; background-position: center; background-repeat: no-repeat; filter: blur(0px);"
       ></div>
     {/if}
-    <div class="max-w-2xl mx-auto relative z-10">
+    <div class="relative z-10 mx-auto max-w-2xl">
       {#if isClosed}
         <div class="min-h-screen flex items-center justify-center">
           <div
@@ -2324,23 +2371,31 @@
         </div>
 
         <!-- Question Container -->
-        <div
-          class={theme && theme.id === "ide-dark"
-            ? "fixed inset-0 flex flex-col justify-center items-center overflow-hidden"
-            : "min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 pt-6 sm:pt-10 pb-24 sm:pb-32 md:px-6 md:py-20 safe-area-pb cursor-grab active:cursor-grabbing"}
-          on:touchstart={handleTouchStart}
-          on:touchend={handleTouchEnd}
-          on:wheel={handleWheel}
-          role="main"
-        >
           <div
-            bind:this={container}
-            class="{theme && theme.id === 'ide-dark'
+            class={theme && theme.id === "ide-dark"
+              ? "fixed inset-0 flex flex-col justify-center items-center overflow-hidden"
+              : "min-h-screen flex flex-col justify-center items-center px-4 pt-5 pb-32 sm:px-6 sm:pt-8 md:px-6 md:py-20 safe-area-pb"}
+            role="main"
+          >
+            <div
+              bind:this={container}
+              class="{theme && theme.id === 'ide-dark'
               ? 'max-w-3xl md:p-12'
               : 'max-w-3xl w-full md:p-12'} transition-all duration-300"
-            style="background: transparent; border: none;"
-          >
-            {#if currentElement}
+              style="background: transparent; border: none;"
+            >
+              {#if currentQuestion && !isBlockElement(currentElement)}
+                <div class="mb-4 flex items-center justify-between md:hidden">
+                  <span class="rounded-full border px-2.5 py-1 text-[11px] font-medium" style="background: rgba(var(--form-text-primary-rgb), 0.08); border-color: rgba(var(--form-text-primary-rgb), 0.12); color: var(--form-text-secondary);">
+                    {currentQuestionNumber} of {questionList.length}
+                  </span>
+                  <span class="text-[11px] font-medium" style="color: var(--form-text-secondary);">
+                    {Math.round(progress)}% complete
+                  </span>
+                </div>
+              {/if}
+
+              {#if currentElement}
               <div>
                 {#if !isBlockElement(currentElement)}
                   <div class="mb-4 sm:mb-6 md:mb-10">
@@ -2547,15 +2602,25 @@
                       {#if currentQuestion.type === "text"}
                         <div>
                           <input
-                            bind:value={answers[currentQuestion.id]}
+                            type={getTextInputType(currentQuestion)}
+                            value={answers[currentQuestion.id] || ""}
+                            inputmode={getInputMode(currentQuestion)}
+                            autocomplete={getAutoComplete(currentQuestion)}
+                            enterkeyhint={getEnterKeyHint(currentQuestion)}
+                            autocapitalize="sentences"
                             placeholder={currentQuestion.placeholder ||
                               "Type your answer here..."}
-                            class="w-full max-w-full text-2xl md:text-3xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            class="w-full max-w-full min-h-[52px] text-[1.625rem] md:text-3xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 bg-transparent transition-all duration-200"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
+                            on:input={(e) =>
+                              handleAnswerInput(
+                                currentQuestion.id,
+                                (e.currentTarget as HTMLInputElement).value,
+                              )}
                             on:keydown={(e) =>
                               handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
@@ -2570,7 +2635,7 @@
                             </p>
                           {:else}
                             <p
-                              class="text-xs mt-3"
+                              class="hidden text-xs mt-3 md:block"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
                               <i class="fas fa-keyboard mr-1"></i>Press Enter or
@@ -2581,16 +2646,23 @@
                       {:else if currentQuestion.type === "long-text"}
                         <div>
                           <textarea
-                            bind:value={answers[currentQuestion.id]}
+                            value={answers[currentQuestion.id] || ""}
                             placeholder={currentQuestion.placeholder ||
                               "Type your answer here..."}
                             rows="5"
-                            class="w-full max-w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            enterkeyhint={getEnterKeyHint(currentQuestion)}
+                            autocapitalize="sentences"
+                            class="w-full max-w-full min-h-[144px] text-base sm:text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 resize-none bg-transparent break-words"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
+                            on:input={(e) =>
+                              handleAnswerInput(
+                                currentQuestion.id,
+                                (e.currentTarget as HTMLTextAreaElement).value,
+                              )}
                             on:keydown={(e) =>
                               handleLongTextKeyboard(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
@@ -2605,6 +2677,7 @@
                             </p>
                           {:else}
                             <p
+                              class="hidden md:block"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
                               <i class="fas fa-keyboard mr-1"></i>Press Enter or
@@ -2616,18 +2689,25 @@
                       {:else if currentQuestion.type === "number"}
                         <div>
                           <input
-                            type="number"
-                            bind:value={answers[currentQuestion.id]}
+                            type={getTextInputType(currentQuestion)}
+                            value={answers[currentQuestion.id] || ""}
+                            inputmode={getInputMode(currentQuestion)}
+                            enterkeyhint={getEnterKeyHint(currentQuestion)}
                             min={currentQuestion.min}
                             max={currentQuestion.max}
                             placeholder={currentQuestion.placeholder ||
                               "Enter a number..."}
-                            class="w-full max-w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            class="w-full max-w-full min-h-[52px] text-xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
+                            on:input={(e) =>
+                              handleAnswerInput(
+                                currentQuestion.id,
+                                (e.currentTarget as HTMLInputElement).value,
+                              )}
                             on:keydown={(e) =>
                               handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
@@ -2642,6 +2722,7 @@
                             </p>
                           {:else}
                             <p
+                              class="hidden md:block"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
                               <i class="fas fa-keyboard mr-1"></i>Press Enter or
@@ -2652,16 +2733,25 @@
                       {:else if currentQuestion.type === "email"}
                         <div>
                           <input
-                            type="email"
-                            bind:value={answers[currentQuestion.id]}
+                            type={getTextInputType(currentQuestion)}
+                            value={answers[currentQuestion.id] || ""}
+                            inputmode={getInputMode(currentQuestion)}
+                            autocomplete={getAutoComplete(currentQuestion)}
+                            enterkeyhint={getEnterKeyHint(currentQuestion)}
+                            autocapitalize="off"
                             placeholder={currentQuestion.placeholder ||
                               "Enter your email..."}
-                            class="w-full max-w-full text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            class="w-full max-w-full min-h-[52px] text-xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: {currentQuestion?.textColor ||
                               globalTextColor ||
                               'var(--form-text-primary)'};"
+                            on:input={(e) =>
+                              handleAnswerInput(
+                                currentQuestion.id,
+                                (e.currentTarget as HTMLInputElement).value,
+                              )}
                             on:keydown={(e) =>
                               handleKeyboardFlow(e, currentQuestion.id)}
                             on:blur={validateCurrentQuestion}
@@ -2676,6 +2766,7 @@
                             </p>
                           {:else}
                             <p
+                              class="hidden md:block"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
                               <i class="fas fa-keyboard mr-1"></i>Press Enter or
@@ -2820,15 +2911,23 @@
                             <div class="flex-1">
                               <input
                                 type="tel"
-                                bind:value={answers[currentQuestion.id]}
+                                value={answers[currentQuestion.id] || ""}
+                                inputmode="tel"
+                                autocomplete={getAutoComplete(currentQuestion)}
+                                enterkeyhint={getEnterKeyHint(currentQuestion)}
                                 placeholder={currentQuestion.placeholder ||
                                   "Enter your phone number..."}
-                                class="w-full max-w-full min-w-0 text-lg placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                                class="w-full max-w-full min-w-0 min-h-[52px] text-xl placeholder-slate-300/50 border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                                   ? 'border-orange-400'
                                   : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                                 style="color: {currentQuestion?.textColor ||
                                   globalTextColor ||
                                   'var(--form-text-primary)'};"
+                                on:input={(e) =>
+                                  handleAnswerInput(
+                                    currentQuestion.id,
+                                    (e.currentTarget as HTMLInputElement).value,
+                                  )}
                                 on:keydown={(e) =>
                                   handleKeyboardFlow(e, currentQuestion.id)}
                                 on:blur={validateCurrentQuestion}
@@ -2845,6 +2944,7 @@
                             </p>
                           {:else}
                             <p
+                              class="hidden md:block"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
                               <i class="fas fa-keyboard mr-1"></i>Press Enter to
@@ -2856,14 +2956,21 @@
                       {:else if currentQuestion.type === "date"}
                         <div>
                           <input
-                            type="date"
-                            bind:value={answers[currentQuestion.id]}
-                            class="w-full text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            type={getTextInputType(currentQuestion)}
+                            value={answers[currentQuestion.id] || ""}
+                            enterkeyhint={getEnterKeyHint(currentQuestion)}
+                            class="w-full min-h-[52px] text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 px-0 transition-all duration-200 bg-transparent"
                             style="color: var(--form-text-primary);"
+                            on:input={(e) =>
+                              handleAnswerInput(
+                                currentQuestion.id,
+                                (e.currentTarget as HTMLInputElement).value,
+                              )}
                             on:keydown={(e) =>
                               handleDateKeyboard(e, currentQuestion.id)}
+                            on:blur={validateCurrentQuestion}
                           />
                           {#if validationError}
                             <p
@@ -2875,6 +2982,7 @@
                             </p>
                           {:else}
                             <p
+                              class="hidden md:block"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
                               <i class="fas fa-keyboard mr-1"></i>Press Enter to
@@ -2884,13 +2992,13 @@
                         </div>
                       {:else if currentQuestion.type === "multiple-choice"}
                         <fieldset
-                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 focus:outline-none"
+                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-1 focus:outline-none"
                           on:keydown={handleSelectionKeyboard}
-                          aria-label="Select multiple options"
+                          aria-label="Select one option"
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex items-center px-4 py-3 md:px-6 md:py-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm shadow-sm hover:shadow-md"
+                              class="flex min-h-[52px] items-center px-4 py-3 md:px-6 md:py-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group shadow-sm hover:shadow-md"
                               style="background: {answers[
                                 currentQuestion.id
                               ] === option
@@ -2912,11 +3020,14 @@
                               >
                                 <input
                                   type="radio"
-                                  bind:group={answers[currentQuestion.id]}
-                                  value={option}
+                                  checked={answers[currentQuestion.id] === option}
                                   class="w-5 h-5 cursor-pointer opacity-0 absolute"
                                   style="accent-color: var(--form-accent);"
-                                  on:change={validateCurrentQuestion}
+                                  on:change={() =>
+                                    handleSingleSelect(
+                                      currentQuestion.id,
+                                      option,
+                                    )}
                                 />
                                 <div
                                   class="w-5 h-5 border-2 rounded-full transition-colors"
@@ -2949,7 +3060,7 @@
                           {/each}
                           <p
                             style="color: var(--form-text-secondary); opacity: 0.6;"
-                            class="text-xs mt-4"
+                            class="hidden text-xs mt-4 md:block"
                           >
                             <i class="fas fa-keyboard mr-1"></i>A, B, C... or ↑↓
                             to select • Enter to continue
@@ -2958,8 +3069,8 @@
                       {:else if currentQuestion.type === "dropdown"}
                         <div>
                           <select
-                            bind:value={answers[currentQuestion.id]}
-                            class="w-full appearance-none text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
+                            value={answers[currentQuestion.id] || ""}
+                            class="w-full min-h-[52px] appearance-none text-lg border-b-2 border-t-0 border-l-0 border-r-0 {validationError
                               ? 'border-orange-400'
                               : 'border-slate-300 focus:border-[var(--form-accent)]'} focus:outline-none focus:ring-0 py-4 pl-0 pr-10 transition-all duration-200 bg-transparent placeholder-slate-300/50"
                             style="color: {theme && theme.id === 'ide-dark'
@@ -2971,7 +3082,12 @@
                             theme.id === 'ide-dark'
                               ? '%23a0a0a0'
                               : '%236b7280'}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E&quot;); background-position: right 0 center; background-repeat: no-repeat; background-size: 1.5em 1.5em;"
-                            on:change={validateCurrentQuestion}
+                            on:change={(e) => {
+                              handleSingleSelect(
+                                currentQuestion.id,
+                                (e.currentTarget as HTMLSelectElement).value,
+                              );
+                            }}
                             on:keydown={handleSelectionKeyboard}
                           >
                             <option
@@ -3007,6 +3123,7 @@
                             </p>
                           {:else}
                             <p
+                              class="hidden md:block"
                               style="color: var(--form-text-secondary); opacity: 0.6;"
                             >
                               <i class="fas fa-keyboard mr-1"></i>Type or use ↑↓
@@ -3022,7 +3139,7 @@
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex items-center px-4 py-3 md:p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
+                              class="flex min-h-[52px] items-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
                               style="background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1);"
                             >
                               <div
@@ -3062,7 +3179,7 @@
                           {/each}
                           <p
                             style="color: var(--form-text-secondary); opacity: 0.6;"
-                            class="text-xs mt-4"
+                            class="hidden text-xs mt-4 md:block"
                           >
                             <i class="fas fa-keyboard mr-1"></i>A, B, C... to
                             toggle • Space to check • Enter to continue
@@ -3076,7 +3193,7 @@
                         >
                           {#each ["Yes", "No"] as option}
                             <label
-                              class="flex items-center justify-center px-4 py-3 md:p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 group backdrop-blur-sm"
+                              class="flex min-h-[56px] items-center justify-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
                               style="background: {answers[
                                 currentQuestion.id
                               ] === option
@@ -3089,10 +3206,13 @@
                             >
                               <input
                                 type="radio"
-                                bind:group={answers[currentQuestion.id]}
-                                value={option}
+                                checked={answers[currentQuestion.id] === option}
                                 class="w-5 h-5 cursor-pointer opacity-0 absolute"
-                                on:change={validateCurrentQuestion}
+                                on:change={() =>
+                                  handleSingleSelect(
+                                    currentQuestion.id,
+                                    option,
+                                  )}
                               />
                               <span
                                 class="text-lg font-bold transition-colors"
@@ -3110,7 +3230,7 @@
                         </fieldset>
                         <p
                           style="color: var(--form-text-secondary); opacity: 0.6;"
-                          class="text-xs mt-4 text-center"
+                          class="hidden text-xs mt-4 text-center md:block"
                         >
                           <i class="fas fa-keyboard mr-1"></i>Press Y or N to
                           select • Enter to continue
@@ -3118,7 +3238,7 @@
                       {:else if currentQuestion.type === "rating"}
                         <div class="flex flex-col gap-6">
                           <fieldset
-                            class="flex gap-6 justify-center py-6 focus:outline-none"
+                            class="grid grid-cols-5 gap-3 py-2 focus:outline-none"
                             on:keydown={handleSelectionKeyboard}
                             aria-label="Rate your experience"
                           >
@@ -3126,21 +3246,31 @@
                               <button
                                 type="button"
                                 aria-label="Rate {rating} out of 5 stars"
-                                on:click={() => {
-                                  answers[currentQuestion.id] = rating;
-                                  validateCurrentQuestion();
-                                }}
-                                class="transition-all duration-200 cursor-pointer text-2xl md:text-5xl {answers[
+                                aria-pressed={answers[currentQuestion.id] === rating}
+                                on:click={() =>
+                                  handleRatingSelect(
+                                    currentQuestion.id,
+                                    rating,
+                                  )}
+                                class="min-h-[56px] rounded-xl border transition-all duration-200 cursor-pointer text-2xl md:text-5xl {answers[
                                   currentQuestion.id
                                 ] >= rating
-                                  ? 'scale-110 md:scale-125 drop-shadow-lg'
-                                  : 'opacity-40 hover:opacity-100 scale-100 hover:scale-110'}"
+                                  ? 'scale-[1.02] shadow-md'
+                                  : 'opacity-70 hover:opacity-100'}"
                                 style="color: {answers[currentQuestion.id] >=
                                 rating
                                   ? 'var(--form-accent)'
                                   : currentQuestion?.textColor ||
                                     globalTextColor ||
-                                    'var(--form-text-primary)'};"
+                                    'var(--form-text-primary)'}; border-color: {answers[
+                                  currentQuestion.id
+                                ] >= rating
+                                  ? 'rgba(var(--form-accent-rgb), 0.25)'
+                                  : 'rgba(var(--form-text-primary-rgb), 0.12)'}; background: {answers[
+                                  currentQuestion.id
+                                ] >= rating
+                                  ? 'rgba(var(--form-accent-rgb), 0.12)'
+                                  : 'rgba(var(--form-text-primary-rgb), 0.04)'};"
                               >
                                 <i class="fas fa-star"></i>
                               </button>
@@ -3148,7 +3278,7 @@
                           </fieldset>
                           <p
                             style="color: var(--form-text-secondary); opacity: 0.6;"
-                            class="text-xs text-center"
+                            class="hidden text-xs text-center md:block"
                           >
                             <i class="fas fa-keyboard mr-1"></i>Press 1-5 or ↑↓
                             to rate • Enter to continue
@@ -3305,66 +3435,73 @@
         </div>
 
         <!-- Mobile Navigation Bar -->
-        <!-- Mobile Navigation Bar -->
         <div
-          class="md:hidden fixed bottom-0 left-0 right-0 py-4 px-6 z-50 flex items-center justify-between backdrop-blur-xl border-t border-white/5 safe-area-pb bg-white/80 dark:bg-black/80"
+          class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t safe-area-pb"
+          style="background: color-mix(in srgb, var(--form-card-bg-solid) 92%, transparent); border-color: rgba(var(--form-text-primary-rgb), 0.08); backdrop-filter: blur(14px);"
         >
-          <!-- Navigation Arrows -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-3 px-4 py-3">
             <button
               on:click={prevQuestion}
               disabled={currentQuestionIndex === 0}
               aria-label="Previous question"
-              class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 text-slate-700 dark:text-slate-200"
+              class="h-11 w-11 shrink-0 rounded-xl border flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95"
+              style="background: rgba(var(--form-text-primary-rgb), 0.04); color: var(--form-text-primary); border-color: rgba(var(--form-text-primary-rgb), 0.08);"
             >
-              <i class="fas fa-chevron-up text-lg"></i>
+              <i class="fas fa-arrow-left"></i>
             </button>
-            <button
-              on:click={nextQuestion}
-              disabled={!canAdvanceValue || !hasNextVisibleQuestion}
-              aria-label="Next question"
-              class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95 text-slate-700 dark:text-slate-200"
-            >
-              <i class="fas fa-chevron-down text-lg"></i>
-            </button>
-          </div>
 
-          <!-- Progress Bar (Center) -->
-          <div class="flex-1 px-4 flex items-center">
-            <div
-              class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
-            >
+            <div class="min-w-0 flex-1">
+              <div class="mb-1 flex items-center justify-between gap-3">
+                <span
+                  class="truncate text-[11px] font-semibold uppercase tracking-[0.08em]"
+                  style="color: var(--form-text-secondary);"
+                >
+                  {#if currentQuestion && !isBlockElement(currentElement)}
+                    Question {currentQuestionNumber} of {questionList.length}
+                  {:else}
+                    Form progress
+                  {/if}
+                </span>
+                <span class="text-[11px] font-medium" style="color: var(--form-text-secondary);">
+                  {Math.round(progress)}%
+                </span>
+              </div>
               <div
-                class="h-full bg-[var(--form-accent)] transition-all duration-300 rounded-full"
-                style="width: {progress}%"
-              ></div>
+                class="h-1.5 overflow-hidden rounded-full"
+                style="background: rgba(var(--form-text-primary-rgb), 0.08);"
+              >
+                <div
+                  class="h-full rounded-full transition-all duration-300"
+                  style="width: {progress}%; background: var(--form-accent);"
+                ></div>
+              </div>
             </div>
-          </div>
 
-          <!-- Main Action Button -->
-          {#if hasNextVisibleQuestion}
-            <button
-              on:click={nextQuestion}
-              disabled={!canAdvanceValue}
-              class="px-6 h-12 rounded-xl font-bold text-base shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none text-white"
-              style="background: var(--form-button-bg);"
-            >
-              NEXT <i class="fas fa-arrow-right"></i>
-            </button>
-          {:else}
-            <button
-              on:click={submitForm}
-              disabled={!canAdvanceValue || isSubmitting}
-              class="px-6 h-12 rounded-xl font-bold text-base shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none text-white"
-              style="background: var(--form-button-bg);"
-            >
-              {#if isSubmitting}
-                <i class="fas fa-spinner fa-spin"></i>
-              {:else}
-                SUBMIT <i class="fas fa-check"></i>
-              {/if}
-            </button>
-          {/if}
+            {#if hasNextVisibleQuestion}
+              <button
+                on:click={nextQuestion}
+                disabled={!canAdvanceValue}
+                class="h-12 min-w-[132px] rounded-xl px-5 font-semibold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
+                style="background: var(--form-button-bg); color: var(--form-button-text);"
+              >
+                Continue <i class="fas fa-arrow-right text-xs"></i>
+              </button>
+            {:else}
+              <button
+                on:click={submitForm}
+                disabled={!canAdvanceValue || isSubmitting}
+                class="h-12 min-w-[132px] rounded-xl px-5 font-semibold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
+                style="background: var(--form-button-bg); color: var(--form-button-text);"
+              >
+                {#if isSubmitting}
+                  <i class="fas fa-spinner fa-spin"></i>
+                  Sending
+                {:else}
+                  Submit <i class="fas fa-check text-xs"></i>
+                {/if}
+              </button>
+            {/if}
+          </div>
 
           <!-- Honeypot field: CSS-hidden, catches bots that auto-fill all fields -->
           <input
@@ -3376,11 +3513,6 @@
             aria-hidden="true"
             style="position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; overflow: hidden;"
           />
-
-          <!-- Mobile Navigation Hint -->
-          <p class="text-center md:hidden text-xs mt-6" style="color: var(--form-text-secondary); opacity: 0.6;">
-            <i class="fas fa-hand-paper mr-1"></i>Swipe or scroll to navigate
-          </p>
         </div>
       {:else}
         <div class="text-center py-12">

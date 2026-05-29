@@ -1,572 +1,108 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { onMount } from "svelte";
-  import { fade, fly } from "svelte/transition";
   import favicon from "$lib/assets/favicon.svg";
-  import quillScreenshot from "$lib/assets/demo/quill.png";
   import heroImage from "$lib/assets/demo/hero.png";
-  import { Button } from "bits-ui";
-  import { browser } from "$app/environment";
-  import { gsap } from "gsap";
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
-  import { SplitText } from "gsap/SplitText";
+  import quillScreenshot from "$lib/assets/demo/quill.png";
+  import Surface from "$lib/components/ui/Surface.svelte";
 
-  let user: any = null;
+  const user = $derived($page.data.user);
 
-  onMount(async () => {
-    if (browser) {
-      gsap.registerPlugin(ScrollTrigger, SplitText);
-    }
-    user = $page.data.user;
-
-    // Hero Text Animation
-    // Hero Text Animation
-    const heroLine = document.querySelector(".hero-line-rotate");
-    const heroTypewriter = document.querySelector(".hero-typewriter");
-
-    if (heroLine && heroTypewriter) {
-      const tl = gsap.timeline();
-
-      const splitLine = new SplitText(heroLine, { type: "lines" });
-      const splitTypewriter = new SplitText(heroTypewriter, { type: "chars" });
-
-      // Ensure specific perspective on parent
-      gsap.set(heroLine.parentElement, { perspective: 400 });
-
-      tl.from(splitLine.lines, {
-        duration: 0.8,
-        opacity: 0,
-        rotationX: -100,
-        force3D: true,
-        transformOrigin: "50% 50% -160px",
-        stagger: 0.25,
-        ease: "power3.out",
-      }).from(
-        splitTypewriter.chars,
-        {
-          duration: 0.05,
-          opacity: 0,
-          stagger: 0.05,
-          ease: "none",
-        },
-        "+=0.2",
-      ); // Small delay after first part
-    }
-
-    // Animate elements on scroll
-    gsap.utils.toArray(".animate-on-scroll").forEach((element: any) => {
-      gsap.from(element, {
-        scrollTrigger: {
-          trigger: element,
-          start: "top 80%",
-        },
-        opacity: 0,
-        y: 30,
-        duration: 0.8,
-      });
-    });
-
-    // Subtle floating animation for hero image
-    const heroGif = document.querySelector(".hero-gif");
-    if (heroGif) {
-      gsap.to(heroGif, {
-        y: -8,
-        duration: 4,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }
-
-    // Stagger animation for feature items
-    gsap.to(".feature-item", {
-      scrollTrigger: {
-        trigger: ".features-grid",
-        start: "top 70%",
-      },
-      opacity: 1,
-      x: 0,
-      duration: 0.6,
-      stagger: 0.1,
-    });
-  });
+  const features = [
+    {
+      title: "Focused builder",
+      description: "Draft forms with questions, content blocks, themes, and sharing controls in one editing flow.",
+    },
+    {
+      title: "Response operations",
+      description: "Review submissions, export CSV, manage check-in, and keep form metadata close at hand.",
+    },
+    {
+      title: "Team ready",
+      description: "Share forms with collaborators, publish public links, and route people into polished thank-you pages.",
+    },
+  ];
 </script>
 
 <svelte:head>
-  <title>Quill - Beautiful Form Builder | No Code Required</title>
+  <title>Quill</title>
   <meta
     name="description"
-    content="Create beautiful, customizable forms without coding. Collect responses, analyze data, and share instantly with Quill."
+    content="Quill is a form platform for building, publishing, and reviewing forms with a calmer, more deliberate workflow."
   />
-  <meta
-    name="keywords"
-    content="form builder, survey creator, questionnaire, form creation, data collection, form responses, no-code"
-  />
-  <meta property="og:title" content="Quill - Beautiful Form Builder" />
-  <meta
-    property="og:description"
-    content="Create beautiful forms without coding. Collect responses and analyze data instantly."
-  />
-  <meta property="og:type" content="website" />
 </svelte:head>
 
-<div
-  class="min-h-screen bg-white dark:bg-gray-950 overflow-hidden text-black dark:text-white font-sans transition-colors"
->
-  <!-- Nav -->
-  <nav
-    class="fixed top-0 w-full z-50 bg-white dark:bg-gray-950 border-b border-black/10 dark:border-white/10 transition-colors"
-  >
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <img src={favicon} alt="Quill" class="w-6 h-6" />
-        <span class="text-lg font-bold tracking-tight">Quill</span>
-      </div>
-
-      <div class="flex items-center gap-4">
-        <a
-          href="/certificate-generator"
-          class="text-sm font-medium text-black dark:text-gray-300 hover:text-black/70 dark:hover:text-white transition-colors"
-          >Certificates</a
-        >
-        {#if user}
-          <a
-            href="/dashboard"
-            class="text-sm font-medium text-black dark:text-gray-300 hover:text-black/70 dark:hover:text-white transition-colors"
-            >Dashboard</a
-          >
-        {:else}
-          <a
-            href="/login"
-            class="text-sm font-medium text-black dark:text-gray-300 hover:text-black/70 dark:hover:text-white transition-colors"
-            >Log in</a
-          >
-          <Button.Root
-            href="/login"
-            class="rounded-lg bg-black dark:bg-white text-white dark:text-black shadow-sm hover:bg-black/90 dark:hover:bg-gray-100 inline-flex
-	h-9 items-center justify-center px-5 text-sm
-	font-medium active:scale-[0.98] active:transition-all transition-colors"
-          >
-            Create a form
-          </Button.Root>
-        {/if}
-      </div>
-    </div>
-  </nav>
-
-  <!-- Hero Section -->
-  <section class="relative pt-32 pb-20">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="grid lg:grid-cols-2 gap-12 items-center">
+<div class="app-shell">
+  <header class="app-topbar">
+    <div class="page-container flex h-16 items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <img src={favicon} alt="Quill" class="h-7 w-7 rounded-[8px]" />
         <div>
-          <h1
-            class="text-5xl md:text-6xl font-black tracking-tight mb-6 leading-[1.1] perspective-[500px]"
-          >
-            <div class="hero-line-rotate">Google Forms works.</div>
-            <div class="hero-typewriter text-black/60 dark:text-gray-400 mt-2">
-              It just doesn't feel <br class="hidden md:inline" /> good.
-            </div>
+          <p class="text-sm font-semibold tracking-tight text-[color:var(--text)]">Quill</p>
+          <p class="hidden text-xs muted sm:block">Forms with structure, not noise</p>
+        </div>
+      </div>
+
+      <nav class="flex items-center gap-2">
+        <a href="/certificate-generator" class="btn btn-ghost">Certificates</a>
+        {#if user}
+          <a href="/dashboard" class="btn btn-secondary">Open workspace</a>
+        {:else}
+          <a href="/login" class="btn btn-secondary">Log in</a>
+          <a href="/login" class="btn btn-primary">Start a form</a>
+        {/if}
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-container page-stack section-stack">
+    <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(420px,560px)] lg:items-center">
+      <div class="space-y-6">
+        <p class="eyebrow">Form platform</p>
+        <div class="space-y-4">
+          <h1 class="max-w-3xl text-[34px] font-semibold leading-tight tracking-tight text-[color:var(--text)] sm:text-[48px]">
+            Build forms that feel deliberate from first draft to final response.
           </h1>
-
-          <p
-            in:fly={{ y: 20, duration: 800, delay: 150 }}
-            class="max-w-xl text-lg md:text-xl text-black/70 dark:text-gray-300 mb-8 leading-relaxed font-medium"
-          >
-            Quill makes forms that feel <span class="font-bold">fast</span>,
-            <span class="font-bold">intentional</span>, and
-            <span class="font-bold">actually enjoyable</span> to fill.
-          </p>
-
-          <div
-            in:fly={{ y: 20, duration: 800, delay: 300 }}
-            class="flex flex-col sm:flex-row items-start gap-3"
-          >
-            <Button.Root
-              href={user ? "/dashboard" : "/login"}
-              class="rounded-lg bg-black dark:bg-white text-white dark:text-black shadow-sm hover:bg-black/90 dark:hover:bg-gray-100 inline-flex
-	h-11 items-center justify-center px-6 text-sm
-	font-semibold active:scale-[0.98] active:transition-all transition-colors"
-            >
-              Try a live demo
-            </Button.Root>
-            <Button.Root
-              href={user ? "/dashboard" : "/login"}
-              class="rounded-lg border border-black dark:border-white text-black dark:text-white bg-white dark:bg-gray-950 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black inline-flex
-	h-11 items-center justify-center px-6 text-sm
-	font-semibold active:scale-[0.98] active:transition-all transition-colors"
-            >
-              Create a form
-            </Button.Root>
-          </div>
-        </div>
-
-        <!-- Motion Preview GIF Placeholder -->
-        <div
-          in:fly={{ y: 40, duration: 1000, delay: 400 }}
-          class="relative hero-gif"
-        >
-          <img
-            src={heroImage}
-            alt="Form preview animation"
-            class="w-full rounded-lg shadow-2xl border border-black/10 dark:border-white/10 dark:opacity-80 transition-opacity"
-          />
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- The Problem Section -->
-  <section
-    class="border-t border-black/10 dark:border-white/10 py-20 transition-colors"
-  >
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="mb-16 animate-on-scroll">
-        <h2 class="text-4xl md:text-5xl font-black tracking-tight mb-4">
-          Most forms feel like paperwork.
-        </h2>
-        <p class="text-lg text-black/60 dark:text-gray-400">
-          Here's the difference.
-        </p>
-      </div>
-
-      <div class="grid lg:grid-cols-2 gap-12">
-        <!-- Google Forms style (cluttered) -->
-        <div class="space-y-4 animate-on-scroll">
-          <h3 class="text-lg font-bold text-black/70 dark:text-gray-300">
-            The typical form
-          </h3>
-          <div
-            class="bg-gray-50 dark:bg-gray-900 border border-black/10 dark:border-white/10 rounded-lg p-8 space-y-4 transition-colors"
-          >
-            <div class="space-y-2">
-              <label class="text-sm font-medium">What's your name?</label>
-              <input
-                type="text"
-                placeholder="Name"
-                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm transition-colors"
-                disabled
-              />
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium">Email address</label>
-              <input
-                type="email"
-                placeholder="Email"
-                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm transition-colors"
-                disabled
-              />
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium">Company</label>
-              <input
-                type="text"
-                placeholder="Company"
-                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm transition-colors"
-                disabled
-              />
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium">Message</label>
-              <textarea
-                placeholder="Type your message..."
-                class="w-full border border-black/10 dark:border-white/10 dark:bg-gray-800 rounded px-3 py-2 text-sm h-20 transition-colors"
-                disabled
-              ></textarea>
-            </div>
-            <div class="flex gap-2">
-              <button
-                class="bg-black/20 dark:bg-white/20 text-black/50 dark:text-white/50 px-4 py-2 rounded text-sm font-medium transition-colors"
-                disabled>Cancel</button
-              >
-              <button
-                class="bg-blue-500 dark:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
-                disabled>Submit</button
-              >
-            </div>
-          </div>
-          <ul class="space-y-2 text-sm text-black/60 dark:text-gray-400">
-            <li>• Everything visible at once</li>
-            <li>• Scanning fatigue</li>
-            <li>• Looks like work</li>
-          </ul>
-        </div>
-
-        <!-- Quill (focused) - Image placeholder -->
-        <div class="space-y-4 animate-on-scroll">
-          <h3 class="text-lg font-bold">With Quill</h3>
-          <img
-            src={quillScreenshot}
-            alt="Quill form experience"
-            class="w-full rounded-lg shadow-lg border border-black/10 dark:border-white/10 dark:opacity-90 transition-opacity"
-          />
-          <ul class="space-y-2 text-sm text-black/60 dark:text-gray-400">
-            <li>• One thing at a time</li>
-            <li>• Focused conversation</li>
-            <li>• Feels intentional</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Experience Section -->
-  <section class="py-20 bg-white dark:bg-gray-950 transition-colors">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="mb-16 animate-on-scroll">
-        <h2 class="text-4xl md:text-5xl font-black tracking-tight">
-          Built for the way you actually work.
-        </h2>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-12 features-grid">
-        <!-- Username URLs -->
-        <div
-          class="space-y-4 feature-item opacity-0"
-          style="--tw-translate-x: 30px;"
-        >
-          <div class="text-5xl font-black text-black/10 dark:text-white/10">
-            →
-          </div>
-          <h3 class="text-2xl font-bold">Username-based URLs</h3>
-          <p class="text-black/70 dark:text-gray-300">
-            No random IDs. Just your name and the form slug. Share it anywhere.
-          </p>
-          <code
-            class="block bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded px-4 py-3 text-sm font-mono text-black/70 dark:text-gray-400 transition-colors"
-          >
-            quill.geekroom-srmist.co.in/user/feedback
-          </code>
-        </div>
-
-        <!-- Keyboard first -->
-        <div
-          class="space-y-4 feature-item opacity-0"
-          style="--tw-translate-x: 30px;"
-        >
-          <div class="text-5xl font-black text-black/10 dark:text-white/10">
-            ⌨
-          </div>
-          <h3 class="text-2xl font-bold">Keyboard-first navigation</h3>
-          <p class="text-black/70 dark:text-gray-300">
-            Tab through. Hit enter. No mouse needed. Fast and intentional.
-          </p>
-          <div
-            class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded px-4 py-3 text-sm text-black/60 dark:text-gray-400 transition-colors"
-          >
-            Tab ↹ Next • Enter ↵ Submit • Esc Back
-          </div>
-        </div>
-
-        <!-- Clean transitions -->
-        <div
-          class="space-y-4 feature-item opacity-0"
-          style="--tw-translate-x: 30px;"
-        >
-          <div class="text-5xl font-black text-black/10 dark:text-white/10">
-            ✨
-          </div>
-          <h3 class="text-2xl font-bold">Smooth question transitions</h3>
-          <p class="text-black/70 dark:text-gray-300">
-            Each question flows naturally. No jarring page reloads or jumps.
+          <p class="max-w-2xl text-[15px] leading-7 muted sm:text-base">
+            Quill combines form editing, response review, publishing, check-in, and post-submit flows in one workspace designed to stay clear under real use.
           </p>
         </div>
-
-        <!-- Anonymous friendly -->
-        <div
-          class="space-y-4 feature-item opacity-0"
-          style="--tw-translate-x: 30px;"
-        >
-          <div class="text-5xl font-black text-black/10 dark:text-white/10">
-            🔗
-          </div>
-          <h3 class="text-2xl font-bold">Share a link, collect responses</h3>
-          <p class="text-black/70 dark:text-gray-300">
-            No signups. No accounts. Just a link. That's it.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Built For Section -->
-  <section
-    class="py-20 border-t border-black/10 dark:border-white/10 transition-colors"
-  >
-    <div class="max-w-7xl mx-auto px-6">
-      <h2
-        class="text-4xl md:text-5xl font-black tracking-tight mb-12 animate-on-scroll"
-      >
-        Built for.
-      </h2>
-
-      <div class="grid md:grid-cols-2 gap-8">
-        <div
-          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
-        >
-          <h3 class="text-xl font-bold mb-2">College clubs</h3>
-          <p class="text-black/60 dark:text-gray-400">
-            Sign-ups, feedback, event RSVPs.
-          </p>
-        </div>
-        <div
-          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
-        >
-          <h3 class="text-xl font-bold mb-2">Hackathons</h3>
-          <p class="text-black/60 dark:text-gray-400">
-            Registration, idea voting, feedback.
-          </p>
-        </div>
-        <div
-          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
-        >
-          <h3 class="text-xl font-bold mb-2">Recruiter pipelines</h3>
-          <p class="text-black/60 dark:text-gray-400">
-            Applications, referrals, surveys.
-          </p>
-        </div>
-        <div
-          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
-        >
-          <h3 class="text-xl font-bold mb-2">Internal tools</h3>
-          <p class="text-black/60 dark:text-gray-400">
-            Feedback, requests, quick data collection.
-          </p>
-        </div>
-        <div
-          class="border border-black/10 dark:border-white/10 rounded-lg p-6 animate-on-scroll hover:border-black/30 dark:hover:border-white/30 transition-colors cursor-default"
-        >
-          <h3 class="text-xl font-bold mb-2">Certificates & Awards</h3>
-          <p class="text-black/60 dark:text-gray-400">
-            Generate certificates for attendees, participants, or winners.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Certificate Generator Section -->
-  <section
-    class="py-20 bg-white dark:bg-gray-950 border-t border-black/10 dark:border-white/10 transition-colors"
-  >
-    <div class="max-w-4xl mx-auto px-6 animate-on-scroll">
-      <h2 class="text-4xl md:text-5xl font-black mb-6">
-        Design certificates in seconds.
-      </h2>
-      <p class="text-xl text-black/60 dark:text-gray-400 mb-8">
-        Create beautiful certificates for your attendees, participants, or
-        winners. No design skills needed. Works instantly—no login required.
-      </p>
-      <Button.Root
-        href="/certificate-generator"
-        class="rounded-lg bg-black dark:bg-white text-white dark:text-black shadow-sm hover:bg-black/90 dark:hover:bg-gray-100 inline-flex
-	h-12 items-center justify-center px-8 text-base
-	font-semibold active:scale-[0.98] active:transition-all transition-colors"
-      >
-        Try certificate builder
-      </Button.Root>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="py-20 bg-black text-white">
-    <div class="max-w-4xl mx-auto px-6 animate-on-scroll">
-      <h2 class="text-4xl md:text-5xl font-black mb-6">
-        Ready to build better forms?
-      </h2>
-      <p class="text-xl text-white/70 mb-8">
-        No credit card required. No features locked behind a paywall.
-      </p>
-      <Button.Root
-        href={user ? "/dashboard" : "/login"}
-        class="rounded-lg bg-white dark:bg-gray-100 text-black shadow-sm hover:bg-white/90 inline-flex
-	h-12 items-center justify-center px-8 text-base
-	font-semibold active:scale-[0.98] active:transition-all transition-colors"
-      >
-        Create a form now
-      </Button.Root>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="bg-black text-white py-16">
-    <div class="max-w-7xl mx-auto px-6">
-      <div
-        class="flex flex-col md:flex-row justify-between items-start gap-12 mb-16"
-      >
-        <div class="max-w-xs">
-          <div class="flex items-center gap-2 mb-4">
-            <img src={favicon} alt="Quill" class="w-6 h-6" />
-            <span class="text-lg font-bold tracking-tight">Quill</span>
-          </div>
-          <p class="text-white/60 text-sm">
-            Forms that feel good. Made by someone who cares.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-3 gap-8 text-sm">
-          <div class="space-y-3">
-            <h4 class="font-bold text-white">Product</h4>
-            <ul class="space-y-2 text-white/60">
-              <li>
-                <a href="/" class="hover:text-white transition-colors"
-                  >Features</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/certificate-generator"
-                  class="hover:text-white transition-colors">Certificates</a
-                >
-              </li>
-              <li>
-                <a href="/" class="hover:text-white transition-colors"
-                  >Resources</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div class="space-y-3">
-            <h4 class="font-bold text-white">Company</h4>
-            <ul class="space-y-2 text-white/60">
-              <li>
-                <a href="/" class="hover:text-white transition-colors">About</a>
-              </li>
-              <li>
-                <a href="/" class="hover:text-white transition-colors"
-                  >Twitter</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div class="space-y-3">
-            <h4 class="font-bold text-white">Legal</h4>
-            <ul class="space-y-2 text-white/60">
-              <li>
-                <a
-                  href="/terms?tab=privacy"
-                  class="hover:text-white transition-colors">Privacy</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/terms?tab=terms"
-                  class="hover:text-white transition-colors">Terms</a
-                >
-              </li>
-            </ul>
-          </div>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href={user ? "/dashboard" : "/login"} class="btn btn-primary">
+            {user ? "Open workspace" : "Create a form"}
+          </a>
+          <a href="/certificate-generator" class="btn btn-secondary">Try certificate generator</a>
         </div>
       </div>
 
-      <div class="pt-8 border-t border-white/10 text-sm text-white/50">
-        <p>© 2026 Quill. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
+      <Surface className="overflow-hidden">
+        <img src={heroImage} alt="Quill form experience" class="h-full w-full object-cover" />
+      </Surface>
+    </section>
+
+    <section class="grid gap-4 lg:grid-cols-3">
+      {#each features as feature}
+        <Surface className="panel-section">
+          <h2 class="section-title">{feature.title}</h2>
+          <p class="mt-2 text-sm leading-6 muted">{feature.description}</p>
+        </Surface>
+      {/each}
+    </section>
+
+    <section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <Surface className="overflow-hidden">
+        <img src={quillScreenshot} alt="Quill builder workspace" class="h-full w-full object-cover" />
+      </Surface>
+      <Surface className="panel-section section-stack">
+        <div>
+          <p class="eyebrow">Why it feels different</p>
+          <h2 class="mt-2 text-2xl font-semibold tracking-tight text-[color:var(--text)]">Less marketing surface, more working surface.</h2>
+        </div>
+        <div class="space-y-4 text-sm leading-7 muted">
+          <p>The builder keeps form structure, appearance, and sharing controls within reach instead of scattering them across disconnected screens.</p>
+          <p>Public forms stay focused on completion, while response and check-in tools stay operational and dense enough for repeated work.</p>
+          <p>The result is a product that feels calmer to use over time, not just impressive on first glance.</p>
+        </div>
+      </Surface>
+    </section>
+  </main>
 </div>
-
-<style>
-  :global(html) {
-    scroll-behavior: smooth;
-  }
-</style>

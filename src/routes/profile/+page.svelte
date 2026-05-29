@@ -1,645 +1,318 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { authClient } from "$lib/authClient";
-    import { goto } from "$app/navigation";
-    import { fade } from "svelte/transition";
-    import { Button } from "bits-ui";
+  import { onMount } from "svelte";
+  import { fade } from "svelte/transition";
+  import { authClient } from "$lib/authClient";
+  import { goto } from "$app/navigation";
+  import DashboardHeader from "$lib/components/DashboardHeader.svelte";
+  import EmptyState from "$lib/components/ui/EmptyState.svelte";
+  import PageHeader from "$lib/components/ui/PageHeader.svelte";
+  import Surface from "$lib/components/ui/Surface.svelte";
+  import { themePreference as themeStore, applyTheme } from "$lib/stores/theme";
 
-    let loading = true;
-    let saving = false;
-    let username = "";
-    let displayName = "";
-    let bio = "";
-    let location = "";
-    let website = "";
-    let avatarUrl = "";
-    let twitterUrl = "";
-    let linkedinUrl = "";
-    let githubUrl = "";
-    let themePreference = "light";
-    let message = "";
-    let error = "";
-    let user: any = null;
-    let avatarFile: File | null = null;
-    let avatarPreview = "";
+  let loading = true;
+  let saving = false;
+  let username = "";
+  let displayName = "";
+  let bio = "";
+  let location = "";
+  let website = "";
+  let avatarUrl = "";
+  let twitterUrl = "";
+  let linkedinUrl = "";
+  let githubUrl = "";
+  let themePreference = "light";
+  let message = "";
+  let error = "";
+  let user: any = null;
+  let avatarFile: File | null = null;
+  let avatarPreview = "";
 
-    import {
-        themePreference as themeStore,
-        applyTheme,
-    } from "$lib/stores/theme";
+  $: themePreference = $themeStore;
 
-    // Subscribe to theme store and reflect changes
-    $: themePreference = $themeStore;
+  function handleThemeChange() {
+    themeStore.set(themePreference as "light" | "dark" | "auto");
+    applyTheme(themePreference as "light" | "dark" | "auto");
+  }
 
-    function handleThemeChange() {
-        themeStore.set(themePreference as "light" | "dark" | "auto");
-        applyTheme(themePreference as "light" | "dark" | "auto");
+  onMount(async () => {
+    const { data: session } = await authClient.getSession();
+    if (!session?.user) {
+      goto("/login");
+      return;
     }
+    user = session.user;
+    await loadProfile();
+  });
 
-    onMount(async () => {
-        const { data: session } = await authClient.getSession();
-        if (!session?.user) {
-            goto("/login");
-            return;
-        }
-        user = session.user;
-        await loadProfile();
-    });
+  async function loadProfile() {
+    try {
+      loading = true;
+      error = "";
+      const res = await fetch("/api/profile");
+      if (!res.ok) throw new Error("Failed to load profile");
+      const { profile } = await res.json();
 
-    async function loadProfile() {
-        try {
-            loading = true;
-            const res = await fetch("/api/profile");
-            if (!res.ok) throw new Error("Failed to load profile");
-            const { profile } = await res.json();
-
-            if (profile) {
-                username = profile.username || "";
-                displayName = profile.display_name || profile.name || "";
-                bio = profile.bio || "";
-                location = profile.location || "";
-                website = profile.website || "";
-                twitterUrl = profile.twitter_url || "";
-                linkedinUrl = profile.linkedin_url || "";
-                githubUrl = profile.github_url || "";
-                themePreference = profile.theme_preference || "light";
-                avatarUrl = profile.image || "";
-                avatarPreview = avatarUrl;
-            }
-        } catch (e: any) {
-            console.error("Error loading profile:", e);
-            error = e.message;
-        } finally {
-            loading = false;
-        }
+      if (profile) {
+        username = profile.username || "";
+        displayName = profile.display_name || profile.name || "";
+        bio = profile.bio || "";
+        location = profile.location || "";
+        website = profile.website || "";
+        twitterUrl = profile.twitter_url || "";
+        linkedinUrl = profile.linkedin_url || "";
+        githubUrl = profile.github_url || "";
+        themePreference = profile.theme_preference || "light";
+        avatarUrl = profile.image || "";
+        avatarPreview = avatarUrl;
+      }
+    } catch (e: any) {
+      console.error("Error loading profile:", e);
+      error = e.message;
+    } finally {
+      loading = false;
     }
+  }
 
-    function handleAvatarChange(e: Event) {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-            avatarFile = file;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                avatarPreview = event.target?.result as string;
-            };
-            reader.readAsDataURL(file);
+  function handleAvatarChange(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    avatarFile = file;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      avatarPreview = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function updateProfile() {
+    try {
+      saving = true;
+      message = "";
+      error = "";
+
+      let newAvatarUrl = avatarUrl;
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append("file", avatarFile);
+        formData.append(
+          "path",
+          `avatar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        );
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const data = await uploadRes.json();
+          throw new Error(data.error || "Failed to upload avatar");
         }
+
+        const { url } = await uploadRes.json();
+        newAvatarUrl = url;
+      }
+
+      const updates = {
+        username,
+        display_name: displayName,
+        bio,
+        location,
+        website,
+        avatar_url: newAvatarUrl,
+        twitter_url: twitterUrl,
+        linkedin_url: linkedinUrl,
+        github_url: githubUrl,
+        theme_preference: themePreference,
+      };
+
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update profile");
+      }
+
+      avatarUrl = newAvatarUrl;
+      avatarFile = null;
+      message = "Profile updated successfully.";
+      setTimeout(() => (message = ""), 3000);
+    } catch (e: any) {
+      console.error("Error updating profile:", e);
+      error = e.message;
+    } finally {
+      saving = false;
     }
-
-    async function updateProfile() {
-        try {
-            saving = true;
-            message = "";
-            error = "";
-
-            let newAvatarUrl = avatarUrl;
-
-            // Upload avatar to Cloudinary if a new file is selected
-            if (avatarFile) {
-                const formData = new FormData();
-                formData.append("file", avatarFile);
-                formData.append(
-                    "path",
-                    `avatar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                );
-
-                const uploadRes = await fetch("/api/upload", {
-                    method: "POST",
-                    body: formData,
-                });
-
-                if (!uploadRes.ok) {
-                    const data = await uploadRes.json();
-                    throw new Error(data.error || "Failed to upload avatar");
-                }
-
-                const { url } = await uploadRes.json();
-                newAvatarUrl = url;
-            }
-
-            const updates = {
-                username,
-                display_name: displayName,
-                bio,
-                location,
-                website,
-                avatar_url: newAvatarUrl,
-                twitter_url: twitterUrl,
-                linkedin_url: linkedinUrl,
-                github_url: githubUrl,
-                theme_preference: themePreference,
-            };
-
-            const res = await fetch("/api/profile", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updates),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || "Failed to update profile");
-            }
-
-            avatarUrl = newAvatarUrl;
-            avatarFile = null;
-            message = "Profile updated successfully!";
-            setTimeout(() => (message = ""), 3000);
-        } catch (e: any) {
-            console.error("Error updating profile:", e);
-            error = e.message;
-        } finally {
-            saving = false;
-        }
-    }
+  }
 </script>
 
-<div
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 transition-colors"
->
-    <!-- Header -->
-    <header
-        class="border-b border-slate-200 dark:border-gray-800 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50 shadow-sm transition-colors"
-    >
-        <div
-            class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"
-        >
-            <div class="flex items-center gap-4">
-                <button
-                    onclick={() => goto("/dashboard")}
-                    class="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg"
-                    title="Back to Dashboard"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-arrow-left"
-                        ><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg
-                    >
-                </button>
-                <div>
-                    <h1
-                        class="text-2xl font-bold text-slate-900 dark:text-white"
-                    >
-                        Your Profile
-                    </h1>
-                    <p class="text-sm text-slate-500 dark:text-gray-400">
-                        Manage your account and settings
-                    </p>
-                </div>
-            </div>
+<div class="app-shell">
+  <DashboardHeader />
+
+  <main class="page-container page-stack section-stack">
+    <PageHeader
+      eyebrow="Account"
+      title="Profile"
+      description="Manage your public details, links, and interface preferences."
+    />
+
+    {#if loading}
+      <Surface className="panel-section">
+        <div class="flex flex-col items-center justify-center py-20">
+          <div class="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--border)] border-t-[color:var(--accent)]"></div>
+          <p class="mt-3 text-sm muted">Loading profile…</p>
         </div>
-    </header>
-
-    <div class="max-w-4xl mx-auto px-6 py-12">
-        {#if loading}
-            <div class="flex flex-col items-center justify-center py-24">
-                <div
-                    class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-slate-900 mb-4"
-                ></div>
-                <p class="text-slate-600">Loading your profile...</p>
+      </Surface>
+    {:else if !user}
+      <EmptyState icon="fa-user" title="No session found" description="Sign in again to view your profile." />
+    {:else}
+      <div class="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <Surface className="panel-section h-fit">
+          <div class="flex flex-col items-start gap-5">
+            <div class="relative">
+              <div class="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[14px] border bg-[color:var(--surface-muted)] text-3xl font-semibold text-[color:var(--text)]">
+                {#if avatarPreview}
+                  <img src={avatarPreview} alt="Avatar preview" class="h-full w-full object-cover" />
+                {:else}
+                  {displayName ? displayName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || "U"}
+                {/if}
+              </div>
+              <label for="avatar-input" class="btn btn-secondary btn-sm absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                Change
+              </label>
+              <input
+                id="avatar-input"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                on:change={handleAvatarChange}
+              />
             </div>
-        {:else}
-            <div class="space-y-8">
-                <!-- Avatar & Basic Info Section -->
-                <div
-                    class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden transition-colors"
-                >
-                    <div
-                        class="bg-gradient-to-r from-blue-500 to-blue-600 h-32"
-                    ></div>
-                    <div class="px-8 pb-8">
-                        <div
-                            class="flex flex-col sm:flex-row gap-6 items-start"
-                        >
-                            <!-- Avatar -->
-                            <div class="mt-0 sm:mt-0 relative -mt-16">
-                                <div
-                                    class="w-32 h-32 rounded-xl border-4 border-white bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-4xl font-bold text-white shadow-lg overflow-hidden"
-                                >
-                                    {#if avatarPreview}
-                                        <img
-                                            src={avatarPreview}
-                                            alt="Avatar"
-                                            class="w-full h-full object-cover"
-                                        />
-                                    {:else}
-                                        {displayName
-                                            ? displayName
-                                                  .charAt(0)
-                                                  .toUpperCase()
-                                            : user?.email
-                                                  ?.charAt(0)
-                                                  .toUpperCase() || "U"}
-                                    {/if}
-                                </div>
-                                <label
-                                    for="avatar-input"
-                                    class="absolute bottom-2 right-2 bg-slate-900 dark:bg-gray-800 hover:bg-slate-800 dark:hover:bg-gray-700 border border-transparent dark:border-gray-600 text-white p-2 rounded-lg cursor-pointer transition-colors shadow-lg"
-                                    title="Change avatar"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        ><path
-                                            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-                                        /></svg
-                                    >
-                                </label>
-                                <input
-                                    type="file"
-                                    id="avatar-input"
-                                    accept="image/*"
-                                    onchange={handleAvatarChange}
-                                    class="hidden"
-                                />
-                            </div>
 
-                            <!-- Name Info -->
-                            <div class="flex-1 pt-4">
-                                <h2
-                                    class="text-3xl font-bold text-slate-900 dark:text-white"
-                                >
-                                    {displayName ||
-                                        user?.email?.split("@")[0] ||
-                                        "Welcome"}
-                                </h2>
-                                <p
-                                    class="text-slate-600 dark:text-gray-400 mt-1"
-                                >
-                                    {username
-                                        ? `quill.geekroom-srmist.co.in/form/${username}`
-                                        : "Set a username to get started"}
-                                </p>
-                                {#if user?.email}
-                                    <p
-                                        class="text-sm text-slate-500 dark:text-gray-500 mt-2"
-                                    >
-                                        {user.email}
-                                    </p>
-                                {/if}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Form -->
-                <form
-                    onsubmit={(e) => {
-                        e.preventDefault();
-                        updateProfile();
-                    }}
-                    class="space-y-6"
-                >
-                    <!-- Basic Information -->
-                    <div
-                        class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm p-8 transition-colors"
-                    >
-                        <h3
-                            class="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><path
-                                    d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-                                /><circle cx="12" cy="7" r="4" /></svg
-                            >
-                            Basic Information
-                        </h3>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label
-                                    for="displayName"
-                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
-                                    >Display Name</label
-                                >
-                                <input
-                                    type="text"
-                                    id="displayName"
-                                    bind:value={displayName}
-                                    placeholder="Your full name"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
-                                />
-                                <p
-                                    class="text-xs text-slate-500 dark:text-gray-400 mt-1"
-                                >
-                                    How your name appears to others
-                                </p>
-                            </div>
-
-                            <div>
-                                <label
-                                    for="username"
-                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
-                                    >Username</label
-                                >
-                                <input
-                                    type="text"
-                                    id="username"
-                                    bind:value={username}
-                                    placeholder="Choose a username"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
-                                />
-                                {#if username}
-                                    <p
-                                        class="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium"
-                                    >
-                                        ✓ quill.geekroom-srmist.co.in/form/<span
-                                            class="font-semibold"
-                                            >{username}</span
-                                        >
-                                    </p>
-                                {/if}
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <label
-                                    for="bio"
-                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
-                                    >Bio</label
-                                >
-                                <textarea
-                                    id="bio"
-                                    bind:value={bio}
-                                    placeholder="Tell us about yourself..."
-                                    rows="3"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none dark:placeholder:text-gray-500"
-                                ></textarea>
-                                <p
-                                    class="text-xs text-slate-500 dark:text-gray-400 mt-1"
-                                >
-                                    {bio.length} / 500 characters
-                                </p>
-                            </div>
-
-                            <div>
-                                <label
-                                    for="location"
-                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
-                                    >Location</label
-                                >
-                                <input
-                                    type="text"
-                                    id="location"
-                                    bind:value={location}
-                                    placeholder="City, Country"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label
-                                    for="website"
-                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
-                                    >Website</label
-                                >
-                                <input
-                                    type="url"
-                                    id="website"
-                                    bind:value={website}
-                                    placeholder="https://example.com"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Social Links -->
-                    <div
-                        class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm p-8 transition-colors"
-                    >
-                        <h3
-                            class="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><circle cx="12" cy="12" r="1" /><circle
-                                    cx="19"
-                                    cy="12"
-                                    r="1"
-                                /><circle cx="5" cy="12" r="1" /></svg
-                            >
-                            Social Links
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <div>
-                                <label
-                                    for="github"
-                                    class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
-                                    ><i class="fab fa-github text-base"></i> GitHub</label
-                                >
-                                <input
-                                    type="url"
-                                    id="github"
-                                    bind:value={githubUrl}
-                                    placeholder="https://github.com/username"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    for="twitter"
-                                    class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
-                                    ><i class="fab fa-x-twitter text-base"></i> X</label
-                                >
-                                <input
-                                    type="url"
-                                    id="twitter"
-                                    bind:value={twitterUrl}
-                                    placeholder="https://x.com/username"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    for="linkedin"
-                                    class="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"
-                                    ><i class="fab fa-linkedin text-base"></i> LinkedIn</label
-                                >
-                                <input
-                                    type="url"
-                                    id="linkedin"
-                                    bind:value={linkedinUrl}
-                                    placeholder="https://linkedin.com/in/username"
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:placeholder:text-gray-500"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Preferences -->
-                    <div
-                        class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 shadow-sm p-8 transition-colors"
-                    >
-                        <h3
-                            class="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><circle cx="12" cy="12" r="3" /><path
-                                    d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 0l4.24-4.24M1 12h6m6 0h6m-1.78 7.78l-4.24-4.24m-3.08 0l-4.24 4.24"
-                                /></svg
-                            >
-                            Preferences
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div>
-                                <label
-                                    for="theme"
-                                    class="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2"
-                                    >Theme Preference</label
-                                >
-                                <select
-                                    id="theme"
-                                    bind:value={themePreference}
-                                    onchange={handleThemeChange}
-                                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                >
-                                    <option value="light">Light</option>
-                                    <option value="dark">Dark</option>
-                                    <option value="auto">Auto</option>
-                                </select>
-                                <p
-                                    class="text-xs text-slate-500 dark:text-gray-400 mt-1"
-                                >
-                                    Choose your preferred interface theme
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4 items-start">
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed shadow-md inline-flex items-center justify-center gap-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><path
-                                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-                                /></svg
-                            >
-                            {saving ? "Saving..." : "Save Changes"}
-                        </button>
-                        <button
-                            type="button"
-                            onclick={() => loadProfile()}
-                            disabled={saving}
-                            class="w-full sm:w-auto px-6 py-3 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-slate-50 dark:hover:bg-gray-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><polyline points="23 4 23 10 17 10" /><path
-                                    d="M20.49 15a9 9 0 1 1-2-8.83"
-                                /></svg
-                            >
-                            Reset
-                        </button>
-                    </div>
-
-                    <!-- Messages -->
-                    {#if message}
-                        <div
-                            transition:fade
-                            class="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-200 dark:border-emerald-900/50 text-sm flex items-center gap-3"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><polyline points="20 6 9 17 4 12" /></svg
-                            >
-                            {message}
-                        </div>
-                    {/if}
-
-                    {#if error}
-                        <div
-                            transition:fade
-                            class="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-900/50 text-sm flex items-center gap-3"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                ><circle cx="12" cy="12" r="10" /><path
-                                    d="M12 8v4M12 16h.01"
-                                /></svg
-                            >
-                            {error}
-                        </div>
-                    {/if}
-                </form>
+            <div class="space-y-1">
+              <h2 class="text-xl font-semibold tracking-tight text-[color:var(--text)]">
+                {displayName || user?.email?.split("@")[0] || "Welcome"}
+              </h2>
+              <p class="text-sm muted">{user.email}</p>
+              <p class="text-sm muted-soft">
+                {username ? `quill.geekroom-srmist.co.in/form/${username}` : "Set a username for a public form path"}
+              </p>
             </div>
-        {/if}
-    </div>
+          </div>
+        </Surface>
+
+        <form
+          class="section-stack"
+          on:submit={(e) => {
+            e.preventDefault();
+            updateProfile();
+          }}
+        >
+          <Surface className="panel-section section-stack">
+            <div>
+              <h3 class="section-title">Basic information</h3>
+              <p class="mt-1 text-sm muted">How your identity appears inside the app and on public links.</p>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2">
+              <div>
+                <label class="label" for="displayName">Display name</label>
+                <input id="displayName" bind:value={displayName} type="text" class="field" placeholder="Your full name" />
+                <p class="mt-1 text-xs muted-soft">Shown across your workspace.</p>
+              </div>
+
+              <div>
+                <label class="label" for="username">Username</label>
+                <input id="username" bind:value={username} type="text" class="field" placeholder="Choose a username" />
+                {#if username}
+                  <p class="mt-1 text-xs text-[color:var(--accent)]">quill.geekroom-srmist.co.in/form/{username}</p>
+                {/if}
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="label" for="bio">Bio</label>
+                <textarea id="bio" bind:value={bio} rows="4" class="textarea" placeholder="Tell people a little about yourself"></textarea>
+                <p class="mt-1 text-xs muted-soft">{bio.length} / 500 characters</p>
+              </div>
+
+              <div>
+                <label class="label" for="location">Location</label>
+                <input id="location" bind:value={location} type="text" class="field" placeholder="City, country" />
+              </div>
+
+              <div>
+                <label class="label" for="website">Website</label>
+                <input id="website" bind:value={website} type="url" class="field" placeholder="https://example.com" />
+              </div>
+            </div>
+          </Surface>
+
+          <Surface className="panel-section section-stack">
+            <div>
+              <h3 class="section-title">Links</h3>
+              <p class="mt-1 text-sm muted">Optional social and portfolio links.</p>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-3">
+              <div>
+                <label class="label" for="github">GitHub</label>
+                <input id="github" bind:value={githubUrl} type="url" class="field" placeholder="https://github.com/username" />
+              </div>
+              <div>
+                <label class="label" for="twitter">X</label>
+                <input id="twitter" bind:value={twitterUrl} type="url" class="field" placeholder="https://x.com/username" />
+              </div>
+              <div>
+                <label class="label" for="linkedin">LinkedIn</label>
+                <input id="linkedin" bind:value={linkedinUrl} type="url" class="field" placeholder="https://linkedin.com/in/username" />
+              </div>
+            </div>
+          </Surface>
+
+          <Surface className="panel-section section-stack">
+            <div>
+              <h3 class="section-title">Preferences</h3>
+              <p class="mt-1 text-sm muted">Choose how the workspace behaves on your device.</p>
+            </div>
+
+            <div class="max-w-sm">
+              <label class="label" for="theme">Theme preference</label>
+              <select id="theme" bind:value={themePreference} class="select" on:change={handleThemeChange}>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="auto">Auto</option>
+              </select>
+              <p class="mt-1 text-xs muted-soft">Auto follows your operating system setting.</p>
+            </div>
+          </Surface>
+
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button type="submit" class="btn btn-primary" disabled={saving}>
+              <i class="fas fa-save text-xs"></i>
+              <span>{saving ? "Saving…" : "Save changes"}</span>
+            </button>
+            <button type="button" class="btn btn-secondary" disabled={saving} on:click={loadProfile}>
+              Reset
+            </button>
+          </div>
+
+          {#if message}
+            <div transition:fade class="rounded-[10px] border px-4 py-3 text-sm" style="background: color-mix(in srgb, var(--success) 10%, var(--surface-strong)); border-color: color-mix(in srgb, var(--success) 20%, var(--border)); color: var(--success);">
+              {message}
+            </div>
+          {/if}
+
+          {#if error}
+            <div transition:fade class="rounded-[10px] border px-4 py-3 text-sm" style="background: color-mix(in srgb, var(--danger) 10%, var(--surface-strong)); border-color: color-mix(in srgb, var(--danger) 20%, var(--border)); color: var(--danger);">
+              {error}
+            </div>
+          {/if}
+        </form>
+      </div>
+    {/if}
+  </main>
 </div>

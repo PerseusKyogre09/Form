@@ -1,96 +1,72 @@
 <script lang="ts">
-    import { authClient } from "$lib/authClient";
-    import { goto } from "$app/navigation";
+  import { authClient } from "$lib/authClient";
+  import { goto } from "$app/navigation";
+  import PageHeader from "$lib/components/ui/PageHeader.svelte";
+  import Surface from "$lib/components/ui/Surface.svelte";
 
-    let loading = false;
-    let errorMsg = "";
-    let email = "";
-    let password = "";
+  let loading = false;
+  let errorMsg = "";
+  let email = "";
+  let password = "";
 
-    async function handleLogin() {
-        try {
-            loading = true;
-            errorMsg = "";
+  async function handleLogin() {
+    try {
+      loading = true;
+      errorMsg = "";
 
-            const { error } = await authClient.signIn.email({
-                email,
-                password,
-            });
-
-            if (error) throw error;
-            goto("/dashboard");
-        } catch (error: any) {
-            errorMsg = error.message || "Failed to sign in";
-        } finally {
-            loading = false;
-        }
+      const { error } = await authClient.signIn.email({ email, password });
+      if (error) throw error;
+      goto("/dashboard");
+    } catch (error: any) {
+      errorMsg = error.message || "Failed to sign in";
+    } finally {
+      loading = false;
     }
+  }
 </script>
 
-<div
-    class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors"
->
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <h2
-                class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white"
-            >
-                Sign into your account
-            </h2>
-        </div>
-        <form class="mt-8 space-y-6" on:submit|preventDefault={handleLogin}>
+<div class="app-shell">
+  <main class="page-container flex min-h-screen items-center justify-center py-10">
+    <div class="grid w-full max-w-5xl gap-6 lg:grid-cols-[minmax(0,1.1fr)_420px]">
+      <div class="hidden lg:flex lg:flex-col lg:justify-center">
+        <PageHeader
+          eyebrow="Quill"
+          title="A quieter way to build forms"
+          description="Design, publish, and review forms in one place, with collaboration and response handling built in."
+        />
+      </div>
+
+      <Surface className="panel-section surface-strong">
+        <div class="space-y-6">
+          <PageHeader
+            eyebrow="Sign in"
+            title="Welcome back"
+            description="Use your account to access forms, responses, and workspace settings."
+          />
+
+          <form class="space-y-5" on:submit|preventDefault={handleLogin}>
             {#if errorMsg}
-                <div
-                    class="text-red-500 dark:text-red-400 text-sm text-center bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 rounded-lg p-3"
-                >
-                    {errorMsg}
-                </div>
+              <div class="rounded-[10px] border px-4 py-3 text-sm" style="background: color-mix(in srgb, var(--danger) 10%, var(--surface-strong)); border-color: color-mix(in srgb, var(--danger) 20%, var(--border)); color: var(--danger);">
+                {errorMsg}
+              </div>
             {/if}
 
-            <div class="space-y-4">
-                <div>
-                    <label
-                        for="email"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >Email</label
-                    >
-                    <input
-                        type="email"
-                        id="email"
-                        bind:value={email}
-                        required
-                        placeholder="you@example.com"
-                        class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 focus:border-black dark:focus:border-gray-500 transition-all text-sm dark:text-white dark:placeholder:text-gray-500"
-                    />
-                </div>
-                <div>
-                    <label
-                        for="password"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >Password</label
-                    >
-                    <input
-                        type="password"
-                        id="password"
-                        bind:value={password}
-                        required
-                        placeholder="••••••••"
-                        class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 focus:border-black dark:focus:border-gray-500 transition-all text-sm dark:text-white dark:placeholder:text-gray-500"
-                    />
-                </div>
+            <div>
+              <label for="email" class="label">Email</label>
+              <input id="email" bind:value={email} type="email" required placeholder="you@example.com" class="field" />
             </div>
 
             <div>
-                <button
-                    type="submit"
-                    disabled={loading}
-                    class="w-full flex justify-center py-3 px-4 rounded-xl bg-black dark:bg-white text-white dark:text-black shadow-sm hover:bg-black/90 dark:hover:bg-gray-100
-	h-12 items-center justify-center text-[15px]
-	font-semibold active:scale-[0.98] active:transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black dark:focus:ring-white dark:focus:ring-offset-gray-950 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-                >
-                    {loading ? "Signing in..." : "Sign In"}
-                </button>
+              <label for="password" class="label">Password</label>
+              <input id="password" bind:value={password} type="password" required placeholder="••••••••" class="field" />
             </div>
-        </form>
+
+            <button type="submit" disabled={loading} class="btn btn-primary w-full">
+              {loading ? "Signing in…" : "Sign in"}
+            </button>
+          </form>
+        </div>
+      </Surface>
     </div>
+  </main>
 </div>
