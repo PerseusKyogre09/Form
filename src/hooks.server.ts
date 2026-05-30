@@ -5,12 +5,23 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { user as userTable } from '$lib/server/schema';
 import { eq } from 'drizzle-orm';
+import { building } from '$app/environment';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
     // Better Auth SvelteKit handler handles /api/auth/* routes
     if (event.url.pathname.startsWith('/api/auth')) {
-        return svelteKitHandler({ event, resolve, auth });
+        return svelteKitHandler({ event, resolve, auth, building });
+    }
+
+    const pathname = event.url.pathname;
+    const isPublicForm = pathname.startsWith('/form/');
+    const isResponseSubmit = pathname === '/api/responses' && event.request.method === 'POST';
+
+    if (isPublicForm || isResponseSubmit) {
+        event.locals.user = null;
+        event.locals.session = null;
+        return resolve(event);
     }
 
     // First, fetch the session and populate locals

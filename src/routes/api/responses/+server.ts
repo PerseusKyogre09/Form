@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { forms, form_responses, ip_rate_log } from '$lib/server/schema';
 import { eq, and, count } from 'drizzle-orm';
-import { hashIP, getClientIP, checkRateLimit, logRequest } from '$lib/utils/rateLimit';
+import { hashIP, getClientIP, checkRateLimit, checkBallotStuffing, logBallotSubmission } from '$lib/utils/rateLimit';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
@@ -75,17 +75,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       }
 
       // 2. IP Submission Count check (protect against automated script spoofing of device_id)
-      const [ipSubmissionCount] = await db
-        .select({ value: count() })
-        .from(ip_rate_log)
-        .where(
-          and(
-            eq(ip_rate_log.ip_hash, ipHash),
-            eq(ip_rate_log.form_id, formId)
-          )
-        );
+      const isDuplicate = await checkBallotStuffing(ipHash, formId);
 
-      if ((ipSubmissionCount.value ?? 0) >= 3) {
+      if (isDuplicate) {
         console.warn('Ballot stuffing blocked: IP has exceeded maximum anonymous submissions for form:', formId);
         return json(
           { error: "Submission limit exceeded for this network. To ensure fairness, we restrict duplicate entries." },
@@ -121,8 +113,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         .values(insertData)
         .returning({ id: form_responses.id });
 
-      // Log the request for rate limiting (after successful insert)
-      await logRequest(ipHash, formId);
+      // Log the ballot in Redis to prevent ballot stuffing (after successful insert)
+      if (requiresDeviceTracking) {
+        await logBallotSubmission(ipHash, formId);
+      }
 
       // Set a secure, long-lived HTTP-only cookie to prevent subsequent browser-based attempts
       if (requiresDeviceTracking) {

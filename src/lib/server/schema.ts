@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, integer, jsonb, unique } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean, integer, jsonb, unique, index } from 'drizzle-orm/pg-core';
 
 // Better Auth tables
 export const user = pgTable('user', {
@@ -84,7 +84,10 @@ export const forms = pgTable('forms', {
     checkin_name_field_id: text('checkin_name_field_id'),
     enable_device_tracking: boolean('enable_device_tracking').default(false),
     anonymous_voting: boolean('anonymous_voting').default(false),
-});
+    enable_review: boolean('enable_review').default(false),
+}, (t) => ({
+    user_slug_published_idx: index('forms_user_slug_published_idx').on(t.user_id, t.slug, t.published),
+}));
 
 export const questions = pgTable('questions', {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -95,7 +98,9 @@ export const questions = pgTable('questions', {
     order_index: integer('order_index').default(0).notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (t) => ({
+    form_order_idx: index('questions_form_order_idx').on(t.form_id, t.order_index),
+}));
 
 export const form_responses = pgTable('form_responses', {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -107,7 +112,8 @@ export const form_responses = pgTable('form_responses', {
     checked_in: boolean('checked_in').default(false),
     device_id: text('device_id'),
 }, (t) => ({
-    unq: unique().on(t.form_id, t.device_id)
+    unq: unique().on(t.form_id, t.device_id),
+    form_id_created_at_idx: index('form_responses_form_id_created_at_idx').on(t.form_id, t.created_at),
 }));
 
 export const ip_rate_log = pgTable('ip_rate_log', {
@@ -115,7 +121,10 @@ export const ip_rate_log = pgTable('ip_rate_log', {
     ip_hash: text('ip_hash').notNull(),
     form_id: uuid('form_id').notNull(),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (t) => ({
+    ip_hash_created_idx: index('ip_rate_log_ip_hash_created_idx').on(t.ip_hash, t.created_at),
+    ip_hash_form_id_idx: index('ip_rate_log_ip_hash_form_id_idx').on(t.ip_hash, t.form_id),
+}));
 
 export const form_collaborators = pgTable('form_collaborators', {
     id: uuid('id').primaryKey().defaultRandom(),
