@@ -15,6 +15,13 @@
       "when": 1780075363517,
       "tag": "0001_fearless_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780217319186,
+      "tag": "0002_stiff_spiral",
+      "breakpoints": true
     }
   ]
 }

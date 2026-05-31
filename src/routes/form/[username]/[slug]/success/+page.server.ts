@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { forms, user as userTable } from '$lib/server/schema';
+import { forms, user as userTable, user_themes } from '$lib/server/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function load({ params }) {
@@ -41,8 +41,35 @@ export async function load({ params }) {
     });
 
     if (formData) {
+      // Dynamically resolve the absolute latest custom theme layout from master user_themes table
+      let activeTheme = formData.theme || null;
+      if (activeTheme && typeof activeTheme === 'object' && (activeTheme as any).id) {
+        try {
+          const masterTheme = await db.query.user_themes.findFirst({
+            where: eq(user_themes.id, (activeTheme as any).id)
+          });
+          if (masterTheme) {
+            activeTheme = {
+              id: masterTheme.id,
+              name: masterTheme.name,
+              description: masterTheme.description || "",
+              fontUrl: masterTheme.font_url || "",
+              colors: masterTheme.colors || {},
+              border_radius: masterTheme.border_radius ?? 16,
+              input_radius: masterTheme.input_radius ?? 8,
+              customCss: masterTheme.custom_css || "",
+              customJs: masterTheme.custom_js || "",
+              customHtmlHeader: masterTheme.custom_html_header || "",
+              customHtmlFooter: masterTheme.custom_html_footer || "",
+            } as any;
+          }
+        } catch (themeErr) {
+          console.warn('Failed to load master theme for success page, using snapshot:', themeErr);
+        }
+      }
+
       return {
-        theme: formData.theme || null,
+        theme: activeTheme,
         backgroundColor: formData.background_color || '#ffffff',
         thankYouPage: formData.thank_you_page || null,
         enableCheckin: formData.enable_checkin || false,

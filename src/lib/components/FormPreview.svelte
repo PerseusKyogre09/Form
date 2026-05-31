@@ -472,6 +472,27 @@
   // Theme-related elements that need cleanup
   let themeElements: HTMLElement[] = [];
 
+  const defaultFallbackTheme = {
+    id: "default",
+    border_radius: 16,
+    input_radius: 8,
+    fontUrl: "Outfit",
+    colors: {
+      primary: "#8b5cf6",
+      background: "#ffffff",
+      text: "#1e293b",
+      accent: "#8b5cf6",
+      cardBg: "#ffffff",
+      cardBorder: "#e2e8f0",
+      inputBg: "#ffffff",
+      buttonBg: "#8b5cf6",
+      buttonText: "#ffffff"
+    },
+    cssUrl: "",
+    customCss: "",
+    customJs: ""
+  };
+
   function applyFormTheme() {
     // Skip on server-side rendering
     if (typeof document === "undefined") return;
@@ -479,35 +500,150 @@
     // Remove any previously injected theme elements for this form
     cleanupTheme();
 
-    if (!theme) return;
+    const activeTheme = theme || defaultFallbackTheme;
+
+    let dynamicStyles = "";
 
     // Apply external font if available
-    if (theme.fontUrl) {
+    if (activeTheme.fontUrl) {
+      const isUrl = activeTheme.fontUrl.includes("://") || activeTheme.fontUrl.startsWith("data:");
+      const fontUrlPath = isUrl
+        ? activeTheme.fontUrl
+        : `https://fonts.googleapis.com/css2?family=${activeTheme.fontUrl.replace(/\s+/g, "+")}:wght@400;500;600;700&display=swap`;
+
       const fontLink = document.createElement("link");
       fontLink.rel = "stylesheet";
-      fontLink.href = theme.fontUrl;
+      fontLink.href = fontUrlPath;
       fontLink.setAttribute("data-form-theme", formId);
       document.head.appendChild(fontLink);
       themeElements.push(fontLink);
+
+      // Set global font-family overriding Tailwind's default sans
+      const fontName = isUrl ? "sans-serif" : `'${activeTheme.fontUrl}', sans-serif`;
+      dynamicStyles += `
+        body, html, div, p, span, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
+          font-family: ${fontName} !important;
+        }
+      `;
     }
 
     // Apply external CSS if available
-    if (theme.cssUrl) {
+    if (activeTheme.cssUrl) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = theme.cssUrl;
+      link.href = activeTheme.cssUrl;
       link.setAttribute("data-form-theme", formId);
       document.head.appendChild(link);
       themeElements.push(link);
     }
 
-    // Apply custom CSS if available
-    if (theme.customCss) {
+    // Bind custom theme properties like border radii and custom colors
+    const borderRad = activeTheme.border_radius !== undefined ? activeTheme.border_radius : 16;
+    const inputRad = activeTheme.input_radius !== undefined ? activeTheme.input_radius : 8;
+
+    let variablesCss = `
+      :root, [data-form-theme] {
+        --form-border-radius: ${borderRad}px !important;
+        --form-input-radius: ${inputRad}px !important;
+    `;
+
+    if (activeTheme.colors) {
+      if (activeTheme.colors.background) {
+        variablesCss += `        --form-bg-canvas: ${activeTheme.colors.background} !important;\n`;
+      }
+      if (activeTheme.colors.cardBg) {
+        variablesCss += `        --form-card-bg: ${activeTheme.colors.cardBg} !important;\n`;
+        variablesCss += `        --form-card-bg-solid: ${activeTheme.colors.cardBg} !important;\n`;
+      }
+      if (activeTheme.colors.text) {
+        variablesCss += `        --form-text-primary: ${activeTheme.colors.text} !important;\n`;
+      }
+      if (activeTheme.colors.accent) {
+        variablesCss += `        --form-accent: ${activeTheme.colors.accent} !important;\n`;
+      }
+      if (activeTheme.colors.buttonBg) {
+        variablesCss += `        --form-button-bg: ${activeTheme.colors.buttonBg} !important;\n`;
+      }
+      if (activeTheme.colors.buttonText) {
+        variablesCss += `        --form-button-text: ${activeTheme.colors.buttonText} !important;\n`;
+      }
+    }
+
+    variablesCss += `      }\n`;
+    dynamicStyles += variablesCss;
+
+    dynamicStyles += `
+      /* Apply custom card roundness override */
+      .rounded-2xl, .rounded-3xl {
+        border-radius: var(--form-border-radius) !important;
+      }
+      
+      /* Apply custom input element roundness override */
+      .rounded-xl, button.rounded-full, select, input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="date"], textarea {
+        border-radius: var(--form-input-radius) !important;
+      }
+    `;
+
+    if (activeTheme.colors) {
+      if (activeTheme.colors.cardBg) {
+        dynamicStyles += `
+          [style*="background: var(--form-card-bg)"], [style*="backdrop-blur"] {
+            background: ${activeTheme.colors.cardBg} !important;
+          }
+        `;
+      }
+      if (activeTheme.colors.buttonBg) {
+        dynamicStyles += `
+          button[style*="background: var(--form-button-bg)"], button[style*="var(--form-button-bg)"], a[style*="background: var(--form-accent)"] {
+            background: ${activeTheme.colors.buttonBg} !important;
+          }
+        `;
+      }
+      if (activeTheme.colors.buttonText) {
+        dynamicStyles += `
+          button[style*="background: var(--form-button-bg)"], button[style*="var(--form-button-bg)"], a[style*="background: var(--form-accent)"] {
+            color: ${activeTheme.colors.buttonText} !important;
+          }
+        `;
+      }
+      if (activeTheme.colors.cardBorder) {
+        dynamicStyles += `
+          .border, .border-2 {
+            border-color: ${activeTheme.colors.cardBorder} !important;
+          }
+        `;
+      }
+    }
+
+    // Append user's custom CSS
+    if (activeTheme.customCss) {
+      dynamicStyles += "\n" + activeTheme.customCss;
+    }
+
+    // Inject styles
+    if (dynamicStyles.trim()) {
       const style = document.createElement("style");
       style.setAttribute("data-form-theme", formId);
-      style.textContent = theme.customCss;
+      style.textContent = dynamicStyles;
       document.head.appendChild(style);
       themeElements.push(style);
+    }
+
+    // Execute user's custom JavaScript on load safely scoped inside a self-invoking function
+    if (activeTheme.customJs) {
+      const script = document.createElement("script");
+      script.setAttribute("data-form-theme", formId);
+      script.textContent = `
+        try {
+          (function() {
+            ${activeTheme.customJs}
+          })();
+        } catch (err) {
+          console.error("Theme custom script error:", err);
+        }
+      `;
+      document.body.appendChild(script);
+      themeElements.push(script);
     }
   }
 
@@ -2179,11 +2315,13 @@
   } else if (currentQuestionIndex >= questions.length) {
     currentQuestionIndex = questions.length - 1;
   }
-  $: if (draftRestored) {
+  $: if (draftRestored && !isClosed) {
     void answers;
     void phoneCountries;
     void currentQuestionIndex;
     persistDraft();
+  } else if (isClosed) {
+    clearDraft();
   }
   $: currentElement = questions[currentQuestionIndex];
   $: currentQuestion =
@@ -2268,9 +2406,7 @@
   </div>
 {:else}
   <div
-    class={theme && theme.id === "ide-dark"
-      ? "min-h-screen px-4 relative overflow-hidden transition-opacity duration-500"
-      : "min-h-screen py-12 px-4 relative overflow-hidden transition-opacity duration-500"}
+    class="min-h-screen px-4 relative overflow-hidden transition-opacity duration-500 mock-viewport"
     style="background-color: {theme?.colors?.background ||
       (backgroundType === 'color' ? backgroundColor : '#ffffff')};
       --form-text-primary: {theme?.id === 'ide-dark' ? '#e0e0e0' : (colorPalette?.textPrimary || '#1e293b')};
@@ -2286,6 +2422,29 @@
       --form-button-text: {colorPalette?.buttonText || '#ffffff'};
       opacity: {formReady ? 1 : 0};"
   >
+    {#if theme && theme.colors && theme.colors.floatingAssets}
+      {#each theme.colors.floatingAssets as asset}
+        <img
+          src={asset.url}
+          alt="Floating Decal"
+          class="floating-decal pointer-events-none select-none z-0"
+          style="
+            --x: {asset.x}%;
+            --y: {asset.y}%;
+            --w: {typeof asset.width === 'number' && asset.width <= 100 ? `calc(${asset.width} * var(--sticker-scale-base, 8px))` : asset.width};
+            --mob-x: {asset.mobileX !== undefined ? asset.mobileX : asset.x}%;
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+        />
+      {/each}
+    {/if}
+    {#if theme && theme.colors && theme.colors.footerImageUrl}
+      <div
+        class="absolute bottom-0 left-0 right-0 pointer-events-none select-none z-0"
+        style="background-image: url('{theme.colors.footerImageUrl}'); background-repeat: repeat-x; background-position: bottom; background-size: auto 100%; height: {theme.colors.footerImageHeight || 80}px;"
+      ></div>
+    {/if}
     {#if backgroundType === "image" && backgroundImage}
       <div
         class="absolute inset-0"
@@ -2293,6 +2452,11 @@
       ></div>
     {/if}
     <div class="relative z-10 mx-auto max-w-2xl">
+      {#if theme && theme.customHtmlHeader}
+        <div class="theme-custom-header mb-6">
+          {@html theme.customHtmlHeader}
+        </div>
+      {/if}
       {#if isClosed}
         <div class="min-h-screen flex items-center justify-center">
           <div
@@ -2372,9 +2536,7 @@
 
         <!-- Question Container -->
           <div
-            class={theme && theme.id === "ide-dark"
-              ? "fixed inset-0 flex flex-col justify-center items-center overflow-hidden"
-              : "min-h-screen flex flex-col justify-center items-center px-4 pt-5 pb-32 sm:px-6 sm:pt-8 md:px-6 md:py-20 safe-area-pb"}
+            class="fixed inset-0 flex flex-col justify-center items-center overflow-hidden"
             role="main"
           >
             <div
@@ -2419,9 +2581,9 @@
                         ? getTextSizeClass(currentQuestion.fontSize || '4xl').replace('text-4xl', 'text-2xl sm:text-3xl md:text-4xl')
                         : 'text-2xl sm:text-3xl md:text-4xl'} {currentQuestion
                         ? getFontFamilyClass(
-                            currentQuestion.fontFamily || 'serif',
+                            currentQuestion.fontFamily || 'sans',
                           )
-                        : 'font-serif'} {currentQuestion
+                        : 'font-sans'} {currentQuestion
                         ? getTextAlignClass(currentQuestion.textAlign)
                         : 'text-left'} font-medium leading-tight"
                       style="color: {currentElement?.textColor ||
@@ -2998,7 +3160,7 @@
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex min-h-[52px] items-center px-4 py-3 md:px-6 md:py-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group shadow-sm hover:shadow-md"
+                              class="mock-card flex min-h-[52px] items-center px-4 py-3 md:px-6 md:py-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group shadow-sm hover:shadow-md"
                               style="background: {answers[
                                 currentQuestion.id
                               ] === option
@@ -3139,7 +3301,7 @@
                         >
                           {#each currentQuestion.options || [] as option}
                             <label
-                              class="flex min-h-[52px] items-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
+                              class="mock-card flex min-h-[52px] items-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
                               style="background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1);"
                             >
                               <div
@@ -3193,7 +3355,7 @@
                         >
                           {#each ["Yes", "No"] as option}
                             <label
-                              class="flex min-h-[56px] items-center justify-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
+                              class="mock-card flex min-h-[56px] items-center justify-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
                               style="background: {answers[
                                 currentQuestion.id
                               ] === option
@@ -3386,7 +3548,7 @@
               on:click={prevQuestion}
               disabled={currentQuestionIndex === 0}
               aria-label="Previous question"
-              class="w-12 h-12 rounded-full border-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg"
+              class="mock-btn w-12 h-12 rounded-full border-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg"
               style="background: var(--form-card-bg-solid); color: var(--form-text-primary); border-color: {colorPalette?.isDark
                 ? 'rgba(255,255,255,0.2)'
                 : 'rgba(0,0,0,0.1)'};"
@@ -3398,7 +3560,7 @@
                 on:click={nextQuestion}
                 disabled={!canAdvanceValue}
                 aria-label="Next question"
-                class="w-12 h-12 rounded-full border-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg"
+                class="mock-btn w-12 h-12 rounded-full border-2 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg"
                 style="background: var(--form-card-bg-solid); color: var(--form-text-primary); border-color: {colorPalette?.isDark
                   ? 'rgba(255,255,255,0.2)'
                   : 'rgba(0,0,0,0.1)'};"
@@ -3413,7 +3575,7 @@
             <button
               on:click={nextQuestion}
               disabled={!canAdvanceValue}
-              class="px-8 py-4 rounded-full font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl flex items-center gap-3 disabled:shadow-none hover:opacity-90"
+              class="mock-btn px-8 py-4 rounded-full font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl flex items-center gap-3 disabled:shadow-none hover:opacity-90"
               style="background: var(--form-button-bg); color: var(--form-button-text);"
             >
               NEXT <i class="fas fa-arrow-right"></i>
@@ -3422,7 +3584,7 @@
             <button
               on:click={submitForm}
               disabled={!canAdvanceValue || isSubmitting}
-              class="px-8 py-4 rounded-full font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl flex items-center gap-3 disabled:shadow-none hover:opacity-90"
+              class="mock-btn px-8 py-4 rounded-full font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl flex items-center gap-3 disabled:shadow-none hover:opacity-90"
               style="background: var(--form-button-bg); color: var(--form-button-text);"
             >
               {#if isSubmitting}
@@ -3444,7 +3606,7 @@
               on:click={prevQuestion}
               disabled={currentQuestionIndex === 0}
               aria-label="Previous question"
-              class="h-11 w-11 shrink-0 rounded-xl border flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95"
+              class="mock-btn h-11 w-11 shrink-0 rounded-full border flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95"
               style="background: rgba(var(--form-text-primary-rgb), 0.04); color: var(--form-text-primary); border-color: rgba(var(--form-text-primary-rgb), 0.08);"
             >
               <i class="fas fa-arrow-left"></i>
@@ -3481,7 +3643,7 @@
               <button
                 on:click={nextQuestion}
                 disabled={!canAdvanceValue}
-                class="h-12 min-w-[132px] rounded-xl px-5 font-semibold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
+                class="mock-btn h-12 min-w-[132px] rounded-full px-5 font-semibold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
                 style="background: var(--form-button-bg); color: var(--form-button-text);"
               >
                 Continue <i class="fas fa-arrow-right text-xs"></i>
@@ -3490,7 +3652,7 @@
               <button
                 on:click={submitForm}
                 disabled={!canAdvanceValue || isSubmitting}
-                class="h-12 min-w-[132px] rounded-xl px-5 font-semibold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
+                class="mock-btn h-12 min-w-[132px] rounded-full px-5 font-semibold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
                 style="background: var(--form-button-bg); color: var(--form-button-text);"
               >
                 {#if isSubmitting}
@@ -3519,6 +3681,11 @@
           <p class="text-slate-400">Add questions to preview your form</p>
         </div>
       {/if}
+      {#if theme && theme.customHtmlFooter}
+        <div class="theme-custom-footer mt-10">
+          {@html theme.customHtmlFooter}
+        </div>
+      {/if}
     </div>
 
     <!-- Beta notice -->
@@ -3531,6 +3698,38 @@
 {/if}
 
 <style>
+  :global(:root) {
+    --sticker-scale-base: 8px;
+  }
+  @media (max-width: 1023px) {
+    :global(:root) {
+      --sticker-scale-base: 6.5px;
+    }
+  }
+  @media (max-width: 767px) {
+    :global(:root) {
+      --sticker-scale-base: 5px;
+    }
+  }
+
+  .floating-decal {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    transform: translate(-50%, -50%);
+  }
+  @media (max-width: 767px) {
+    .floating-decal {
+      left: var(--mob-x);
+      top: var(--mob-y);
+      width: var(--mob-w);
+    }
+  }
+
   .animation-stage {
     min-height: 280px;
     border-radius: 2rem;

@@ -4,6 +4,7 @@
     import type { Form, Question } from "../types";
     import { isQuestionElement } from "../types";
     import { currentForm } from "../stores";
+    import { notifications } from "../stores/notifications";
 
     let {
         currentFormData,
@@ -22,10 +23,143 @@
     );
     let isSharingModalOpen = $state(false);
 
+    // Custom Visual & Code Theme Builder states
+    let isCustomBuilderOpen = $state(false);
+    let customTab = $state<"hand" | "code">("hand");
+    let themeName = $state("");
+    let themeDesc = $state("");
+
+    const googleFontsPresets = [
+        "Outfit",
+        "Inter",
+        "Sora",
+        "JetBrains Mono",
+        "Syne",
+        "Press Start 2P",
+        "Playfair Display",
+        "Outfit",
+        "sans-serif"
+    ];
+
     function updateSlug(newSlug: string) {
         if (currentFormData) {
             currentFormData.slug = newSlug;
             saveForm();
+        }
+    }
+
+    function ensureThemeObject() {
+        if (!currentFormData) return;
+        const form = currentFormData as any;
+        if (!form.theme) {
+            form.theme = {
+                id: "custom-draft-" + Date.now(),
+                name: "Custom Theme Draft",
+                colors: {
+                    primary: "#8b5cf6",
+                    background: "#ffffff",
+                    text: "#1e293b",
+                    accent: "#8b5cf6",
+                    cardBg: "rgba(255, 255, 255, 0.95)",
+                    cardBorder: "transparent",
+                    inputBg: "transparent",
+                    buttonBg: "#8b5cf6",
+                    buttonText: "#ffffff"
+                },
+                border_radius: 16,
+                input_radius: 8,
+                customCss: "",
+                customJs: "",
+                customHtmlHeader: "",
+                customHtmlFooter: "",
+                fontUrl: "Outfit"
+            };
+        }
+    }
+
+    function updateThemeColor(key: string, val: string) {
+        ensureThemeObject();
+        const form = currentFormData as any;
+        if (form && form.theme) {
+            if (!form.theme.colors) {
+                form.theme.colors = {};
+            }
+            form.theme.colors[key] = val;
+            
+            // Sync with old format background values for backwards compatibility
+            if (key === 'background') {
+                form.backgroundColor = val;
+                form.backgroundType = 'color';
+            }
+            if (key === 'text') {
+                form.globalTextColor = val;
+            }
+            
+            saveForm();
+        }
+    }
+
+    function updateThemeStyle(key: string, val: any) {
+        ensureThemeObject();
+        const form = currentFormData as any;
+        if (form && form.theme) {
+            form.theme[key] = val;
+            saveForm();
+        }
+    }
+
+    async function saveCustomTheme() {
+        if (!themeName.trim()) {
+            notifications.add("Please provide a name for your custom theme", "error");
+            return;
+        }
+
+        ensureThemeObject();
+        const theme = currentFormData.theme;
+        if (!theme) return;
+
+        try {
+            const payload = {
+                name: themeName,
+                description: themeDesc,
+                font_url: theme.fontUrl,
+                css_url: theme.cssUrl,
+                custom_css: theme.customCss,
+                custom_js: theme.customJs,
+                custom_html_header: theme.customHtmlHeader,
+                custom_html_footer: theme.customHtmlFooter,
+                colors: theme.colors,
+                border_radius: theme.border_radius,
+                input_radius: theme.input_radius,
+            };
+
+            const res = await fetch("/api/themes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                notifications.add("Theme saved as reusable template!", "success");
+                themeName = "";
+                themeDesc = "";
+                
+                // Set the saved theme ID onto the form
+                if (currentFormData && currentFormData.theme) {
+                    currentFormData.theme.id = result.themeId;
+                    currentFormData.theme.name = payload.name;
+                    saveForm();
+                }
+            } else {
+                const errText = await res.text();
+                notifications.add("Failed to save theme: " + errText, "error");
+            }
+        } catch (err) {
+            console.error("Error saving reusable theme:", err);
+            notifications.add("Failed to save theme", "error");
         }
     }
 </script>
@@ -165,10 +299,38 @@
                             Themes
                         </h3>
                         <p class="text-xs muted">
-                            Select a predefined style for your form.
+                            Select a predefined style or build your own custom theme below.
                         </p>
                     </header>
+                    
                     <ThemesModal inline={true} />
+
+                    <div class="border-t app-divider my-6"></div>
+
+                    <!-- Link to Standalone Custom Theme Builder Workspace -->
+                    <div class="space-y-4">
+                        <a
+                            href="/theme-builder?formId={currentFormData?.id}"
+                            class="flex w-full items-center justify-between rounded-xl border border-purple-200 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-950/10 px-4 py-3 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all group"
+                        >
+                            <div class="flex items-center gap-3 text-left">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-magic text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-800 dark:text-gray-200">
+                                        Custom Theme Builder
+                                    </h4>
+                                    <p class="text-[10px] text-purple-600 dark:text-purple-400 font-semibold mt-0.5 flex items-center gap-1">
+                                        To make custom theme Open <i class="fas fa-arrow-right text-[8px] transition-transform group-hover:translate-x-0.5"></i>
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-purple-500 flex items-center gap-0.5">
+                                Open <i class="fas fa-external-link-alt text-[9px] ml-0.5"></i>
+                            </span>
+                        </a>
+                    </div>
                 </div>
             {:else if activeTab === "background"}
                 <div class="space-y-8">

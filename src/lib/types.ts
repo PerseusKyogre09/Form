@@ -66,12 +66,23 @@ export interface Theme {
   cssUrl?: string; // External CSS URL (e.g., for NES.css)
   fontUrl?: string; // External font URL (e.g., Google Fonts)
   customCss?: string; // Custom CSS as string
+  customJs?: string; // Custom JS as string
+  customHtmlHeader?: string; // Custom HTML at the top
+  customHtmlFooter?: string; // Custom HTML at the bottom
+  border_radius?: number; // rounded corners for cards (px)
+  input_radius?: number; // rounded corners for input elements (px)
+  is_public?: boolean;
   colors?: {
     primary?: string;
     secondary?: string;
     accent?: string;
     background?: string;
     text?: string;
+    cardBg?: string;
+    cardBorder?: string;
+    inputBg?: string;
+    buttonBg?: string;
+    buttonText?: string;
   };
   thankYouTemplate?: Partial<ThankYouPage>; // Template for thank you page customization
 }

@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { forms, questions, form_collaborators, user as userTable } from '$lib/server/schema';
+import { forms, questions, form_collaborators, user as userTable, user_themes } from '$lib/server/schema';
 import { eq, and, or, inArray, desc } from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
@@ -197,6 +197,34 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     const slug = url.searchParams.get('slug');
     const username = url.searchParams.get('username');
 
+    const resolveTheme = async (themeObj: any) => {
+      if (themeObj && typeof themeObj === 'object' && themeObj.id) {
+        try {
+          const masterTheme = await db.query.user_themes.findFirst({
+            where: eq(user_themes.id, themeObj.id)
+          });
+          if (masterTheme) {
+            return {
+              id: masterTheme.id,
+              name: masterTheme.name,
+              description: masterTheme.description || "",
+              fontUrl: masterTheme.font_url || "",
+              colors: masterTheme.colors || {},
+              border_radius: masterTheme.border_radius ?? 16,
+              input_radius: masterTheme.input_radius ?? 8,
+              customCss: masterTheme.custom_css || "",
+              customJs: masterTheme.custom_js || "",
+              customHtmlHeader: masterTheme.custom_html_header || "",
+              customHtmlFooter: masterTheme.custom_html_footer || "",
+            };
+          }
+        } catch (err) {
+          console.warn('Failed resolving theme preset:', err);
+        }
+      }
+      return themeObj;
+    };
+
     if (username && slug) {
       // Look up by username + slug
       const result = await db.select({
@@ -221,6 +249,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
       return json({
         ...result[0].form,
+        theme: await resolveTheme(result[0].form.theme),
         questions: questionsData.map(q => q.data)
       });
     } else if (slug) {
@@ -239,6 +268,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
       return json({
         ...form,
+        theme: await resolveTheme(form.theme),
         questions: questionsData.map(q => q.data)
       });
     } else if (formId) {
@@ -257,6 +287,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
       return json({
         ...form,
+        theme: await resolveTheme(form.theme),
         questions: questionsData.map(q => q.data)
       });
     }

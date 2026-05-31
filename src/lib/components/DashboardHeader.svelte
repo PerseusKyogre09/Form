@@ -64,10 +64,10 @@
           Certificates
         </a>
         <a
-          href="/terms"
-          class={`segmented-item ${isCurrent("/terms") ? "surface-strong shadow-sm text-[color:var(--text)]" : ""}`.trim()}
+          href="/theme-builder"
+          class={`segmented-item ${isCurrent("/theme-builder") ? "surface-strong shadow-sm text-[color:var(--text)]" : ""}`.trim()}
         >
-          Policies
+          Theme Builder
         </a>
       </nav>
     </div>
@@ -145,10 +145,10 @@
           Certificates
         </a>
         <a
-          href="/terms"
-          class={`segmented-item whitespace-nowrap ${isCurrent("/terms") ? "surface-strong shadow-sm text-[color:var(--text)]" : ""}`.trim()}
+          href="/theme-builder"
+          class={`segmented-item whitespace-nowrap ${isCurrent("/theme-builder") ? "surface-strong shadow-sm text-[color:var(--text)]" : ""}`.trim()}
         >
-          Policies
+          Theme Builder
         </a>
       </nav>
     </div>

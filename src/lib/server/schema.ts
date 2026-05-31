@@ -152,3 +152,24 @@ export const templates = pgTable('templates', {
     use_count: integer('use_count').default(0),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const user_themes = pgTable('user_themes', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    user_id: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description'),
+    font_url: text('font_url'),
+    css_url: text('css_url'),
+    custom_css: text('custom_css'),
+    custom_js: text('custom_js'),
+    custom_html_header: text('custom_html_header'),
+    custom_html_footer: text('custom_html_footer'),
+    colors: jsonb('colors'), // JSON object containing primary, secondary, accent, background, text, cardBg, inputBg, buttonBg, buttonText
+    border_radius: integer('border_radius').default(16),
+    input_radius: integer('input_radius').default(8),
+    is_public: boolean('is_public').default(false).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
