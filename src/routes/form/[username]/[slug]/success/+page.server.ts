@@ -55,6 +55,7 @@ export async function load({ params }) {
               description: masterTheme.description || "",
               fontUrl: masterTheme.font_url || "",
               colors: masterTheme.colors || {},
+              layout: (masterTheme.colors as any)?.layout || undefined,
               border_radius: masterTheme.border_radius ?? 16,
               input_radius: masterTheme.input_radius ?? 8,
               customCss: masterTheme.custom_css || "",

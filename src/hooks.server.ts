@@ -5,7 +5,7 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { user as userTable } from '$lib/server/schema';
 import { eq } from 'drizzle-orm';
-import { building } from '$app/environment';
+import { building, dev } from '$app/environment';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
@@ -32,6 +32,34 @@ export async function handle({ event, resolve }) {
     if (session) {
         event.locals.user = session.user;
         event.locals.session = session.session;
+    } else if (dev) {
+        // Mock session in dev mode to bypass login
+        event.locals.user = {
+            id: 'dev-user-id',
+            email: 'dev@example.com',
+            name: 'Pradeepto Pal',
+            emailVerified: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            username: 'pradeepto',
+            display_name: 'Pradeepto Pal',
+            bio: '',
+            location: '',
+            website: '',
+            twitter_url: '',
+            linkedin_url: '',
+            github_url: '',
+            theme_preference: 'light',
+            is_admin: true,
+        } as any;
+        event.locals.session = {
+            id: 'dev-session-id',
+            userId: 'dev-user-id',
+            token: 'dev-token',
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
     } else {
         event.locals.user = null;
         event.locals.session = null;

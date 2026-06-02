@@ -71,34 +71,96 @@ export interface Theme {
   border_radius?: number; // rounded corners for cards (px)
   input_radius?: number; // rounded corners for input elements (px)
   is_public?: boolean;
-  colors?: {
-    primary?: string;
-    secondary?: string;
-    accent?: string;
-    background?: string;
-    text?: string;
-    cardBg?: string;
-    cardBorder?: string;
-    inputBg?: string;
-    buttonBg?: string;
-    buttonText?: string;
-    floatingAssets?: Array<{
-      url: string;
-      x?: number;
-      y?: number;
-      width?: number;
-      height?: number;
-      opacity?: number;
-      rotate?: number;
-      mobileX?: number;
-      mobileY?: number;
-      mobileWidth?: number;
-      mobileHeight?: number;
-    }>;
-    footerImageUrl?: string;
-    footerImageHeight?: number;
-  };
+  colors?: ThemeColors;
+  layout?: ThemeLayoutConfig;
   thankYouTemplate?: Partial<ThankYouPage>; // Template for thank you page customization
+}
+
+export type ThemeZone =
+  | "header"
+  | "content"
+  | "decoration"
+  | "footer"
+  | "navigation";
+
+export type ThemeAnchor =
+  | "screen-edge"
+  | "safe-area"
+  | "header"
+  | "content"
+  | "question-area"
+  | "footer"
+  | "bottom-navigation";
+
+export interface ThemeDecoration {
+  id: string;
+  name: string;
+  url: string;
+  zone?: ThemeZone;
+  anchor?: ThemeAnchor;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  mobileX?: number;
+  mobileY?: number;
+  mobileWidth?: number;
+  mobileHeight?: number;
+  offsetX?: number;
+  offsetY?: number;
+  mobileOffsetX?: number;
+  mobileOffsetY?: number;
+  scale?: number;
+  mobileScale?: number;
+  alignX?: "left" | "center" | "right";
+  alignY?: "top" | "middle" | "bottom";
+  opacity?: number;
+  rotate?: number;
+  stickyToFooter?: boolean;
+}
+
+export interface ThemeFooterConfig {
+  imageUrl?: string;
+  height?: number;
+  align?: "bottom" | "top";
+}
+
+export interface ThemeLayoutConfig {
+  version: 2;
+  decorations?: ThemeDecoration[];
+  footer?: ThemeFooterConfig;
+}
+
+export interface ThemeColors {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  background?: string;
+  text?: string;
+  cardBg?: string;
+  cardBorder?: string;
+  inputBg?: string;
+  buttonBg?: string;
+  buttonText?: string;
+  floatingAssets?: Array<{
+    id?: string;
+    name?: string;
+    url: string;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    opacity?: number;
+    rotate?: number;
+    mobileX?: number;
+    mobileY?: number;
+    mobileWidth?: number;
+    mobileHeight?: number;
+    stickyToFooter?: boolean;
+  }>;
+  footerImageUrl?: string;
+  footerImageHeight?: number;
+  layout?: ThemeLayoutConfig;
 }
 
 export interface ThankYouButton {

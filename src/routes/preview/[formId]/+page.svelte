@@ -1,37 +1,40 @@
 <!-- src/routes/preview/[formId]/+page.svelte -->
 <!-- Lightweight preview route used by the form builder's iframe preview.
      Receives form data via postMessage from the parent window. -->
-<script lang="ts">
-    import FormPreview from "$lib/components/FormPreview.svelte";
-    import type { Form } from "$lib/types";
-    import { onMount } from "svelte";
-    import { browser } from "$app/environment";
-    import { goto } from "$app/navigation";
+	<script lang="ts">
+	    import FormPreview from "$lib/components/FormPreview.svelte";
+	    import type { Form } from "$lib/types";
+	    import { onMount } from "svelte";
+	    import { goto } from "$app/navigation";
 
-    let formData: Form | undefined;
-    let ready = false;
+	    let formData: Form | undefined;
+	    let ready = false;
 
-    onMount(() => {
+	    onMount(() => {
         // Block direct access — only allow loading inside an iframe
         if (window.self === window.top) {
             goto("/");
             return;
         }
 
-        // Listen for form data from the parent window (form builder)
-        window.addEventListener("message", (event) => {
-            if (event.data && event.data.type === "UPDATE_FORM_PREVIEW") {
-                formData = event.data.data;
-                ready = true;
-            }
-        });
+	        const handleMessage = (event: MessageEvent) => {
+	            if (event.data && event.data.type === "UPDATE_FORM_PREVIEW") {
+	                formData = event.data.data;
+	                ready = true;
+	            }
+	        };
+	        window.addEventListener("message", handleMessage);
 
-        // Signal to the parent that we are ready to receive data
-        if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: "PREVIEW_IFRAME_READY" }, "*");
-        }
-    });
-</script>
+	        // Signal to the parent that we are ready to receive data
+	        if (window.parent && window.parent !== window) {
+	            window.parent.postMessage({ type: "PREVIEW_IFRAME_READY" }, "*");
+	        }
+
+	        return () => {
+	            window.removeEventListener("message", handleMessage);
+	        };
+	    });
+	</script>
 
 <svelte:head>
     <title>Preview</title>

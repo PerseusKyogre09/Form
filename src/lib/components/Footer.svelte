@@ -13,7 +13,11 @@
     { label: "Home", href: "/" },
     { label: "Workspace", href: "/dashboard" },
     { label: "Certificate Generator", href: "/certificate-generator" },
-    { label: "Open Source", href: "https://github.com/PerseusKyogre09/Form", external: true },
+    {
+      label: "Open Source",
+      href: "https://github.com/PerseusKyogre09/Form",
+      external: true,
+    },
   ];
 
   const legalLinks = [
@@ -23,14 +27,32 @@
   ];
 
   const communityLinks = [
-    { label: "geekroom-srmist.co.in", href: "https://www.geekroom-srmist.co.in", external: true },
-    { label: "Geek Room SRMIST on LinkedIn", href: "https://www.linkedin.com/company/geek-room-srmist", external: true },
-    { label: "GitHub", href: "https://github.com/geekroomtechnical", external: true },
-    { label: "X / Twitter", href: "https://x.com/GeekroomSRMIST", external: true },
+    {
+      label: "geekroom-srmist.co.in",
+      href: "https://www.geekroom-srmist.co.in",
+      external: true,
+    },
+    {
+      label: "Geek Room SRMIST on LinkedIn",
+      href: "https://www.linkedin.com/company/geek-room-srmist",
+      external: true,
+    },
+    {
+      label: "GitHub",
+      href: "https://github.com/geekroomtechnical",
+      external: true,
+    },
+    {
+      label: "X / Twitter",
+      href: "https://x.com/GeekroomSRMIST",
+      external: true,
+    },
   ];
 </script>
 
-<footer class="border-t border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--text)]">
+<footer
+  class="border-t border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--text)]"
+>
   <div class="page-container py-10 sm:py-12">
     <div class="grid gap-8 lg:grid-cols-[1.2fr_0.9fr_0.9fr]">
       <div class="space-y-4">
@@ -43,7 +65,8 @@
         </div>
 
         <p class="max-w-md text-sm leading-6 muted">
-          A deliberate forms platform for building, sharing, and reviewing responses with less friction and more clarity.
+          A deliberate forms platform for building, sharing, and reviewing
+          responses with less friction and more clarity.
         </p>
 
         <div class="flex flex-wrap gap-2 text-xs">
@@ -52,8 +75,14 @@
           <span class="status-badge badge-muted">Privacy-aware</span>
         </div>
 
-        <div class="surface-elevated rounded-[12px] border border-[color:var(--border)] p-4 text-sm">
-          <p class="text-xs font-semibold uppercase tracking-[0.08em] muted-soft">Maintained by</p>
+        <div
+          class="surface-elevated rounded-[12px] border border-[color:var(--border)] p-4 text-sm"
+        >
+          <p
+            class="text-xs font-semibold uppercase tracking-[0.08em] muted-soft"
+          >
+            Maintained by
+          </p>
           <p class="mt-2 leading-6 muted">
             Developed and maintained by
             <a
@@ -119,9 +148,11 @@
       </nav>
     </div>
 
-    <div class="mt-8 flex flex-col gap-3 border-t border-[color:var(--border)] pt-5 text-xs muted-soft sm:flex-row sm:items-center sm:justify-between">
+    <div
+      class="mt-8 flex flex-col gap-3 border-t border-[color:var(--border)] pt-5 text-xs muted-soft sm:flex-row sm:items-center sm:justify-between"
+    >
       <p>&copy; {currentYear} Quill. All rights reserved.</p>
-      <p>Built with a muted surface system and careful dark mode contrast.</p>
+      <p>Built with love by PerseusKyogre09</p>
     </div>
   </div>
 </footer>

@@ -25,6 +25,13 @@
     calculateLuminance,
     type ColorPalette,
   } from "../utils/colorExtractor";
+  import ThemeScene from "./theme/ThemeScene.svelte";
+  import {
+    createThemeSceneMetrics,
+    normalizeThemeScene,
+    type ThemeSceneMetrics,
+    type ThemeViewportMode,
+  } from "../utils/themeLayout";
   import {
     slideQuestion,
     animateProgress,
@@ -63,6 +70,10 @@
   let answers: Record<string, any> = {};
   let phoneCountries: Record<string, string> = {};
   let container: HTMLElement;
+  let viewportElement: HTMLElement;
+  let questionContentElement: HTMLElement;
+  let mobileNavigationElement: HTMLElement;
+  let desktopNavigationElement: HTMLElement;
   let progressBar: HTMLElement;
   let questionContainer: HTMLElement;
   let validationError = "";
@@ -129,6 +140,8 @@
   let isLoadingColors = true;
   let colorPalette: ColorPalette | null = null;
   let formReady = false;
+  let themeLayoutMetrics: ThemeSceneMetrics | null = null;
+  let themeLayoutObserver: ResizeObserver | null = null;
 
   // Country code to country name mapping
   const countryOptions = [
@@ -183,6 +196,42 @@
 
   function isMobileDevice() {
     return typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT;
+  }
+
+  function getViewportMode(): ThemeViewportMode {
+    return isMobileDevice() ? "mobile" : "desktop";
+  }
+
+  function toRelativeRect(node: HTMLElement | undefined, rootRect: DOMRect) {
+    if (!node) return undefined;
+
+    const rect = node.getBoundingClientRect();
+    return {
+      top: rect.top - rootRect.top,
+      left: rect.left - rootRect.left,
+      width: rect.width,
+      height: rect.height,
+    };
+  }
+
+  function updateThemeLayoutMetrics() {
+    if (!browser || !viewportElement) return;
+
+    const rootRect = viewportElement.getBoundingClientRect();
+    const scene = normalizeThemeScene(theme);
+    const navigationElement = isMobileDevice()
+      ? mobileNavigationElement
+      : desktopNavigationElement;
+
+    themeLayoutMetrics = createThemeSceneMetrics({
+      width: rootRect.width,
+      height: rootRect.height,
+      mode: getViewportMode(),
+      footerHeight: scene.footer.height,
+      questionRect: toRelativeRect(container, rootRect),
+      contentRect: toRelativeRect(questionContentElement, rootRect),
+      navigationRect: toRelativeRect(navigationElement, rootRect),
+    });
   }
 
   function persistDraft() {
@@ -724,13 +773,31 @@
 
     // Small delay to ensure DOM is ready before animating
     await tick();
+    updateThemeLayoutMetrics();
     animateIn();
+
+    const observed = [
+      viewportElement,
+      container,
+      questionContentElement,
+      mobileNavigationElement,
+      desktopNavigationElement,
+    ].filter(Boolean) as HTMLElement[];
+
+    themeLayoutObserver = new ResizeObserver(() => {
+      updateThemeLayoutMetrics();
+    });
+
+    observed.forEach((element) => themeLayoutObserver?.observe(element));
+    window.addEventListener("resize", updateThemeLayoutMetrics);
   });
 
   onDestroy(() => {
     if (animationTimer) clearTimeout(animationTimer);
     cleanupTheme();
     if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+    themeLayoutObserver?.disconnect();
+    window.removeEventListener("resize", updateThemeLayoutMetrics);
   });
 
   // Re-apply theme when it changes (for preview mode)
@@ -738,7 +805,14 @@
     // Only apply if we're mounted (themeElements array exists)
     if (typeof document !== "undefined") {
       applyFormTheme();
+      tick().then(() => updateThemeLayoutMetrics());
     }
+  }
+  $: if (browser && formReady) {
+    void currentQuestionIndex;
+    void validationError;
+    void currentElement;
+    tick().then(() => updateThemeLayoutMetrics());
   }
 
   function validateCurrentQuestion() {
@@ -2406,6 +2480,7 @@
   </div>
 {:else}
   <div
+    bind:this={viewportElement}
     class="min-h-screen px-4 relative overflow-hidden transition-opacity duration-500 mock-viewport"
     style="background-color: {theme?.colors?.background ||
       (backgroundType === 'color' ? backgroundColor : '#ffffff')};
@@ -2422,32 +2497,15 @@
       --form-button-text: {colorPalette?.buttonText || '#ffffff'};
       opacity: {formReady ? 1 : 0};"
   >
-    {#if theme && theme.colors && theme.colors.floatingAssets}
-      {#each theme.colors.floatingAssets as asset}
-        {@const mobX = asset.mobileX !== undefined ? asset.mobileX : asset.x}
-        {@const mobY = asset.mobileY !== undefined ? asset.mobileY : asset.y}
-        {@const mobW = asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width}
-        <img
-          src={asset.url}
-          alt="Floating Decal"
-          class="floating-decal pointer-events-none select-none z-0"
-          style="
-            --x: {asset.x}%;
-            --y: {asset.y}%;
-            --w: {typeof asset.width === 'number' && asset.width <= 100 ? `calc(${asset.width} * var(--sticker-scale-base, 8px))` : asset.width};
-            --mob-x: {mobX}%;
-            --mob-y: {mobY}%;
-            --mob-w: {typeof mobW === 'number' && mobW <= 100 ? `calc(${mobW} * var(--sticker-scale-base, 8px))` : mobW};
-          "
-        />
-      {/each}
-    {/if}
-    {#if theme && theme.colors && theme.colors.footerImageUrl}
-      <div
-        class="absolute bottom-0 left-0 right-0 pointer-events-none select-none z-0"
-        style="background-image: url('{theme.colors.footerImageUrl}'); background-repeat: repeat-x; background-position: bottom; background-size: auto 100%; height: {theme.colors.footerImageHeight || 80}px;"
-      ></div>
-    {/if}
+    <ThemeScene
+      {theme}
+      {backgroundType}
+      {backgroundImage}
+      mockupMode={getViewportMode()}
+      layoutMetrics={themeLayoutMetrics}
+      viewportWidth={themeLayoutMetrics?.width || 1440}
+      viewportHeight={themeLayoutMetrics?.height || 900}
+    />
     {#if backgroundType === "image" && backgroundImage}
       <div
         class="absolute inset-0"
@@ -2561,7 +2619,7 @@
               {/if}
 
               {#if currentElement}
-              <div>
+              <div bind:this={questionContentElement}>
                 {#if !isBlockElement(currentElement)}
                   <div class="mb-4 sm:mb-6 md:mb-10">
                     <!-- Question Label (e.g., "QUESTION 01 — 05") -->
@@ -3517,6 +3575,7 @@
 
         <!-- Desktop Navigation -->
         <div
+          bind:this={desktopNavigationElement}
           class="hidden md:flex fixed bottom-8 right-8 items-center gap-4 z-40"
         >
           <!-- Up/Down Navigation Arrows -->
@@ -3575,6 +3634,7 @@
 
         <!-- Mobile Navigation Bar -->
         <div
+          bind:this={mobileNavigationElement}
           class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t safe-area-pb"
           style="background: color-mix(in srgb, var(--form-card-bg-solid) 92%, transparent); border-color: rgba(var(--form-text-primary-rgb), 0.08); backdrop-filter: blur(14px);"
         >
