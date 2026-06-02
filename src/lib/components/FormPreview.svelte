@@ -797,7 +797,9 @@
     cleanupTheme();
     if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
     themeLayoutObserver?.disconnect();
-    window.removeEventListener("resize", updateThemeLayoutMetrics);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("resize", updateThemeLayoutMetrics);
+    }
   });
 
   // Re-apply theme when it changes (for preview mode)
