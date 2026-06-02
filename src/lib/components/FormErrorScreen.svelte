@@ -73,9 +73,9 @@
   }
 </script>
 
-<div class="min-h-screen bg-slate-50 dark:bg-gray-950 flex items-center justify-center p-4">
+<div class="min-h-screen bg-[color:var(--bg-canvas)] flex items-center justify-center p-4">
   <div class="w-full max-w-lg animate-fade-in">
-    <section class="rounded-[16px] border border-slate-200/80 bg-white/96 p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8 dark:border-gray-800 dark:bg-gray-900/96">
+    <section class="rounded-[16px] border border-[color:var(--border)] bg-[color:var(--surface)]/96 p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8">
       <div class="mb-6 flex items-start gap-4">
         <div
           class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border {iconColor === 'amber'
@@ -90,30 +90,30 @@
         </div>
 
         <div class="min-w-0">
-          <p class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-gray-400">
+          <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[color:var(--text-soft)]">
             Error {errorCode}
           </p>
-          <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          <h1 class="mt-1 text-2xl font-semibold tracking-tight text-[color:var(--text)] sm:text-3xl">
             {errorTitle}
           </h1>
-          <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-gray-300 sm:text-base">
+          <p class="mt-3 text-sm leading-6 text-[color:var(--text-soft)] sm:text-base">
             {errorDescription}
           </p>
         </div>
       </div>
 
       {#if showGame && errorCode === 404}
-        <div class="mb-6 rounded-[14px] border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-950/40">
+        <div class="mb-6 rounded-[14px] border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-4">
           <div class="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p class="text-sm font-medium text-slate-900 dark:text-white">
+              <p class="text-sm font-medium text-[color:var(--text)]">
                 Quick tap test
               </p>
-              <p class="text-xs text-slate-500 dark:text-gray-400">
+              <p class="text-xs text-[color:var(--text-soft)]">
                 Optional. Five seconds, thumb-friendly.
               </p>
             </div>
-            <div class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+            <div class="rounded-full border border-[color:var(--border)] bg-[color:var(--surface-strong)] px-3 py-1 text-xs font-medium text-[color:var(--text-soft)]">
               {gameActive ? `${gameTime}s` : `${gameScore} taps`}
             </div>
           </div>
@@ -121,15 +121,15 @@
           {#if !gameActive}
             <button
               on:click={startGame}
-              class="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-100"
+              class="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[color:var(--text)] px-4 py-3 text-sm font-semibold text-[color:var(--surface)] transition-colors hover:opacity-90"
             >
               {gameScore > 0 ? `Try again (${gameScore})` : "Start tap test"}
             </button>
           {:else}
             <div class="space-y-3">
-              <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
+              <div class="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-strong)] px-3 py-2 text-sm text-[color:var(--text-soft)]">
                 <span>Time left</span>
-                <span class="font-semibold text-slate-900 dark:text-white">{gameTime}s</span>
+                <span class="font-semibold text-[color:var(--text)]">{gameTime}s</span>
               </div>
               <button
                 on:click={handleGameClick}
@@ -145,14 +145,14 @@
       <div class="flex flex-col gap-3 sm:flex-row">
         <button
           on:click={handleGoHome}
-          class="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-100"
+          class="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[color:var(--text)] px-4 py-3 text-sm font-semibold text-[color:var(--surface)] transition-colors hover:opacity-90"
         >
           <span>{suggestedAction}</span>
           <i class="fas fa-arrow-right text-xs"></i>
         </button>
       </div>
 
-      <p class="mt-5 text-xs leading-5 text-slate-500 dark:text-gray-400">
+      <p class="mt-5 text-xs leading-5 text-[color:var(--text-soft)]">
         {#if errorCode === 410}
           Please contact the form owner if you think this form should still be accepting responses.
         {:else if errorCode === 404}
@@ -330,6 +330,6 @@
   }
 
   :global(body) {
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    background: var(--bg-canvas);
   }
 </style>

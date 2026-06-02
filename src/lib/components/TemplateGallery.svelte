@@ -69,7 +69,7 @@
         class="flex min-h-[220px] flex-col items-start justify-between rounded-[12px] border border-dashed p-5 text-left transition-colors surface-muted hover:border-[color:var(--accent)]"
       >
         <div class="space-y-3">
-          <div class="flex h-11 w-11 items-center justify-center rounded-[10px] border surface-strong">
+          <div class="flex h-11 w-11 items-center justify-center rounded-[10px] border surface-elevated">
             <i class="fas fa-file-lines text-sm text-[color:var(--accent)]"></i>
           </div>
           <div>
@@ -84,17 +84,17 @@
         <button
           type="button"
           on:click={() => handleSelectTemplate(template)}
-          class="overflow-hidden rounded-[12px] border text-left shadow-sm transition-transform duration-150 hover:-translate-y-0.5"
-          style={`background: linear-gradient(160deg, ${template.background_color || "#f5f1e8"} 0%, color-mix(in srgb, ${template.background_color || "#f5f1e8"} 72%, white) 100%); border-color: var(--border);`}
+          class="overflow-hidden rounded-[12px] border text-left shadow-sm transition-transform duration-150 hover:-translate-y-0.5 surface"
+          style={`border-color: var(--border);`}
         >
           <div class="flex min-h-[220px] flex-col justify-between p-5">
             <div class="space-y-4">
               <div class="flex items-start justify-between gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-[10px] border border-white/55 bg-white/65 text-sm text-[color:var(--text)]">
+                <div class="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[color:var(--border)] surface-elevated text-sm text-[color:var(--text)]">
                   <i class={`fas ${template.icon}`}></i>
                 </div>
                 {#if template.preview_text}
-                  <span class="rounded-full border border-white/55 bg-white/65 px-2.5 py-1 text-[11px] font-medium text-[color:var(--text)]">
+                  <span class="rounded-full border border-[color:var(--border)] surface-elevated px-2.5 py-1 text-[11px] font-medium text-[color:var(--text)]">
                     {template.preview_text}
                   </span>
                 {/if}

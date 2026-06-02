@@ -2399,9 +2399,9 @@
     ></div>
     <div class="relative z-10 text-center">
       <div
-        class="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"
+        class="w-12 h-12 border-4 border-[color:var(--border)] border-t-[color:var(--accent)] rounded-full animate-spin mx-auto mb-4"
       ></div>
-      <p class="text-white/70 text-sm">Loading...</p>
+      <p class="text-[color:var(--text-muted)] text-sm">Loading...</p>
     </div>
   </div>
 {:else}
@@ -2424,6 +2424,9 @@
   >
     {#if theme && theme.colors && theme.colors.floatingAssets}
       {#each theme.colors.floatingAssets as asset}
+        {@const mobX = asset.mobileX !== undefined ? asset.mobileX : asset.x}
+        {@const mobY = asset.mobileY !== undefined ? asset.mobileY : asset.y}
+        {@const mobW = asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width}
         <img
           src={asset.url}
           alt="Floating Decal"
@@ -2432,9 +2435,9 @@
             --x: {asset.x}%;
             --y: {asset.y}%;
             --w: {typeof asset.width === 'number' && asset.width <= 100 ? `calc(${asset.width} * var(--sticker-scale-base, 8px))` : asset.width};
-            --mob-x: {asset.mobileX !== undefined ? asset.mobileX : asset.x}%;
-            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
-            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+            --mob-x: {mobX}%;
+            --mob-y: {mobY}%;
+            --mob-w: {typeof mobW === 'number' && mobW <= 100 ? `calc(${mobW} * var(--sticker-scale-base, 8px))` : mobW};
           "
         />
       {/each}
@@ -2460,7 +2463,7 @@
       {#if isClosed}
         <div class="min-h-screen flex items-center justify-center">
           <div
-            class="text-center space-y-6 px-6 backdrop-blur-xl rounded-3xl p-8 border border-white/20"
+            class="text-center space-y-6 px-6 rounded-3xl p-8 border border-[color:var(--border)] surface-elevated"
             style="background: var(--form-card-bg);"
           >
             <div class="text-8xl mb-4">
@@ -2487,7 +2490,7 @@
       {:else if alreadySubmitted}
         <div class="min-h-screen flex items-center justify-center">
           <div
-            class="text-center space-y-6 px-6 backdrop-blur-xl rounded-3xl p-8 border border-white/20"
+            class="text-center space-y-6 px-6 rounded-3xl p-8 border border-[color:var(--border)] surface-elevated"
             style="background: var(--form-card-bg);"
           >
             <div class="text-8xl mb-4">
@@ -2628,25 +2631,22 @@
                   {:else if theme && theme.id === "ide-dark" && currentElement.showCard === true}
                     <!-- IDE Dark Theme Block - Card Styled (with borders) -->
                     <div
-                      class="rounded-2xl overflow-hidden border border-[rgba(20,184,166,0.2)]"
-                      style="background-color: #252526;"
+                      class="rounded-2xl overflow-hidden border border-[color:var(--border)] surface-strong"
                     >
                       <!-- Header -->
                       {#if currentElement.headerText}
-                        <div
-                          class="p-4 border-b border-[rgba(20,184,166,0.15)] font-mono"
-                        >
-                          <h4
-                            class="text-lg font-semibold"
-                            style="color: #14b8a6;"
-                          >
+                          <div class="p-4 border-b border-[color:var(--border)] font-mono">
+                            <h4
+                              class="text-lg font-semibold"
+                              style="color: var(--accent);"
+                            >
                             {currentElement.headerText}
                           </h4>
                         </div>
                       {/if}
 
                       <!-- Content -->
-                      <div class="p-6 space-y-4">
+                        <div class="p-6 space-y-4">
                         <!-- Image -->
                         {#if currentElement.imageUrl}
                           <div class="flex justify-center opacity-40">
@@ -2660,10 +2660,7 @@
 
                         <!-- Text Content -->
                         {#if currentElement.text}
-                          <p
-                            class="text-base leading-relaxed font-mono"
-                            style="color: #e0e0e0;"
-                          >
+                          <p class="text-base leading-relaxed font-mono" style="color: var(--text);">
                             {currentElement.text}
                           </p>
                         {/if}
@@ -2671,10 +2668,8 @@
 
                       <!-- Footer -->
                       {#if currentElement.footerText}
-                        <div
-                          class="p-4 border-t border-[rgba(20,184,166,0.15)] font-mono"
-                        >
-                          <p class="text-sm" style="color: #808080;">
+                        <div class="p-4 border-t border-[color:var(--border)] font-mono">
+                          <p class="text-sm" style="color: var(--text-soft);">
                             // {currentElement.footerText}
                           </p>
                         </div>
@@ -2683,15 +2678,13 @@
                   {:else}
                     <!-- Standard Card-Based Block (Non-IDE Theme) -->
                     <div
-                      class="rounded-2xl overflow-hidden"
+                      class="rounded-2xl overflow-hidden border border-[color:var(--border)] surface-elevated"
                       style="background-color: {currentElement.backgroundColor ||
-                        '#ffffff'};"
+                        'var(--surface-elevated)'};"
                     >
                       <!-- Header -->
                       {#if currentElement.headerText}
-                        <div
-                          class="p-4 border-b border-[rgba(var(--form-text-primary-rgb),0.2)]"
-                        >
+                        <div class="p-4 border-b border-[color:var(--border)]">
                           <h4
                             class="text-lg font-semibold"
                             style="color: {currentElement.textColor ||
@@ -2720,14 +2713,7 @@
                             class="text-base leading-relaxed"
                             style="color: {currentElement.textColor ||
                               globalTextColor ||
-                              (currentElement.backgroundColor ===
-                                'transparent' || !currentElement.backgroundColor
-                                ? 'var(--form-text-primary)'
-                                : calculateLuminance(
-                                      currentElement.backgroundColor,
-                                    ) > 0.5
-                                  ? '#111827'
-                                  : '#ffffff')};"
+                              'var(--text)'};"
                           >
                             {currentElement.text}
                           </p>
@@ -2736,21 +2722,12 @@
 
                       <!-- Footer -->
                       {#if currentElement.footerText}
-                        <div
-                          class="p-4 border-t border-[rgba(var(--form-text-primary-rgb),0.2)]"
-                        >
+                        <div class="p-4 border-t border-[color:var(--border)]">
                           <p
                             class="text-sm opacity-70"
                             style="color: {currentElement.textColor ||
                               globalTextColor ||
-                              (currentElement.backgroundColor ===
-                                'transparent' || !currentElement.backgroundColor
-                                ? 'var(--form-text-secondary)'
-                                : calculateLuminance(
-                                      currentElement.backgroundColor,
-                                    ) > 0.5
-                                  ? '#374151'
-                                  : '#e5e7eb')};"
+                              'var(--text-soft)'};"
                           >
                             {currentElement.footerText}
                           </p>

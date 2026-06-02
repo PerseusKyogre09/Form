@@ -330,17 +330,17 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr
-              class="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800"
+              class="bg-[color:var(--surface-muted)] border-b border-[color:var(--border)]"
             >
               <th
-                class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[140px]"
+                class="px-3 py-2 text-xs font-semibold text-[color:var(--text-soft)] uppercase tracking-wider min-w-[140px]"
               >
                 <div class="flex items-center justify-between group">
                   <span class="flex items-center gap-2">
                     Timestamp
                     {#if sortConfig.column === "created_at"}
                       <span
-                        class={`fas fa-sort-${sortConfig.direction === "asc" ? "up" : "down"} text-gray-800 dark:text-gray-200`}
+                        class="fas fa-sort-{sortConfig.direction === "asc" ? "up" : "down"} text-[color:var(--text)]"
                       ></span>
                     {/if}
                   </span>
@@ -348,7 +348,7 @@
                     <button
                       on:click={() => handleSort("created_at", "meta")}
                       aria-label="Sort by timestamp"
-                      class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                      class="p-1 hover:bg-[color:var(--surface-strong)] rounded text-[color:var(--text-soft)] hover:text-[color:var(--text)] transition-colors"
                     >
                       <span class="fas fa-sort"></span>
                     </button>
@@ -358,7 +358,7 @@
 
               {#each questionList as question}
                 <th
-                  class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[150px]"
+                  class="px-3 py-2 text-xs font-semibold text-[color:var(--text-soft)] uppercase tracking-wider min-w-[150px]"
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span class="truncate" title={question.title}
@@ -371,7 +371,7 @@
                         class={`p-1.5 rounded transition-colors ${
                           filters[question.id]
                             ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-                            : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                            : "hover:bg-[color:var(--surface-strong)] text-[color:var(--text-soft)] hover:text-[color:var(--text)]"
                         }`}
                       >
                         <span class="fas fa-filter text-xs"></span>
@@ -379,13 +379,13 @@
 
                       {#if openPopoverId === question.id}
                         <div
-                          class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 p-4"
+                          class="absolute right-0 top-full mt-2 w-64 bg-[color:var(--surface-strong)] rounded-lg shadow-lg border border-[color:var(--border)] z-20 p-4"
                         >
                           <div class="space-y-4">
                             <div>
                               <label
                                 for={`filter-${question.id}`}
-                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+                                class="block text-xs font-medium text-[color:var(--text)] mb-1"
                                 >Filter</label
                               >
                               <div class="relative">
@@ -393,7 +393,7 @@
                                   id={`filter-${question.id}`}
                                   type="text"
                                   placeholder="Search..."
-                                  class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent outline-none"
+                                  class="w-full px-3 py-2 bg-[color:var(--surface)] border border-[color:var(--border)] text-[color:var(--text)] rounded-md text-sm focus:ring-2 focus:ring-[color:var(--accent)] focus:border-transparent outline-none"
                                   value={filters[question.id] || ""}
                                   on:input={(e) =>
                                     handleFilterChange(
@@ -406,7 +406,7 @@
                                     on:click={() =>
                                       handleFilterChange(question.id, "")}
                                     aria-label="Clear filter"
-                                    class="absolute right-2 top-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                                    class="absolute right-2 top-1.5 text-[color:var(--text-soft)] hover:text-[color:var(--text)]"
                                   >
                                     <span class="fas fa-times text-xs"></span>
                                   </button>
@@ -416,7 +416,7 @@
                           </div>
                           <button
                             aria-label="Close filter"
-                            class="absolute top-2 right-2 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400"
+                            class="absolute top-2 right-2 text-[color:var(--text-soft)] hover:text-[color:var(--text)]"
                             on:click={() => (openPopoverId = null)}
                           >
                             <span class="fas fa-times"></span>
@@ -442,7 +442,7 @@
               {/each}
               {#if enableDeviceTracking || anonymousVoting}
                 <th
-                  class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[130px]"
+                  class="px-3 py-2 text-xs font-semibold text-[color:var(--text-soft)] uppercase tracking-wider min-w-[130px]"
                 >
                   <div class="flex items-center gap-2">
                     <span class="fas fa-fingerprint text-xs text-indigo-500 dark:text-indigo-400"></span>
@@ -452,7 +452,7 @@
               {/if}
               {#if enableCheckin}
                 <th
-                  class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[120px]"
+                  class="px-3 py-2 text-xs font-semibold text-[color:var(--text-soft)] uppercase tracking-wider min-w-[120px]"
                 >
                   <div class="flex items-center justify-between group">
                     <span class="flex items-center gap-2"> Checked In </span>
@@ -461,23 +461,23 @@
               {/if}
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+          <tbody class="divide-y divide-[color:var(--border)]">
             {#each responses as response}
               <tr
-                class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors bg-white dark:bg-gray-900"
+                class="hover:bg-[color:var(--surface-muted)] transition-colors bg-[color:var(--surface)]"
               >
                 <td class="px-3 py-2 whitespace-nowrap">
                   <span
-                    class="text-xs font-medium text-gray-900 dark:text-white"
+                    class="text-xs font-medium text-[color:var(--text)]"
                     >{formatDate(response.timestamp)}</span
                   >
                 </td>
                 {#each questionList as question}
                   <td
-                    class="px-3 py-2 text-xs text-gray-700 dark:text-gray-300"
+                    class="px-3 py-2 text-xs text-[color:var(--text)]"
                   >
                     {#if response.answers[question.id] === undefined || response.answers[question.id] === null || response.answers[question.id] === ""}
-                      <span class="text-gray-300 dark:text-gray-600">—</span>
+                      <span class="text-[color:var(--text-soft)] opacity-40">—</span>
                     {:else if question.type === "image-upload"}
                       {@const imageUrl = response.answers[question.id] as string}
                       <a
@@ -494,7 +494,7 @@
                       <div class="flex flex-wrap gap-0.5">
                         {#each items as item}
                           <span
-                            class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                            class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[color:var(--surface-strong)] text-[color:var(--text)]"
                           >
                             {item}
                           </span>
@@ -549,9 +549,9 @@
 
       <!-- Pagination -->
       <div
-        class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        class="bg-[color:var(--surface)] border-t border-[color:var(--border)] px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div class="text-xs text-gray-500 dark:text-gray-400">
+        <div class="text-xs text-[color:var(--text-soft)]">
           Showing <span class="font-medium"
             >{(currentPage - 1) * PAGE_SIZE + 1}</span
           >
@@ -565,14 +565,14 @@
           <button
             on:click={prevPage}
             disabled={currentPage === 1}
-            class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="px-3 py-1.5 border border-[color:var(--border)] rounded-lg text-xs font-medium text-[color:var(--text)] bg-[color:var(--surface-strong)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
           <button
             on:click={nextPage}
             disabled={currentPage === totalPages}
-            class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="px-3 py-1.5 border border-[color:var(--border)] rounded-lg text-xs font-medium text-[color:var(--text)] bg-[color:var(--surface-strong)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>

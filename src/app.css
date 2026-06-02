@@ -14,9 +14,10 @@
 
     --bg-canvas: #f4f1ea;
     --bg-subtle: #eeebe4;
-    --surface: rgba(252, 251, 248, 0.92);
-    --surface-strong: #ffffff;
-    --surface-muted: #f7f4ed;
+    --surface: rgba(252, 251, 248, 0.96);
+    --surface-strong: #fbfaf7;
+    --surface-elevated: #ffffff;
+    --surface-muted: #f3efe7;
     --border: #d9d3c8;
     --border-strong: #c9c1b2;
     --text: #1f2328;
@@ -50,9 +51,10 @@
     color-scheme: dark;
     --bg-canvas: #181713;
     --bg-subtle: #1f1d19;
-    --surface: rgba(31, 29, 25, 0.92);
-    --surface-strong: #23211c;
-    --surface-muted: #1d1b17;
+    --surface: rgba(30, 28, 24, 0.96);
+    --surface-strong: #26231e;
+    --surface-elevated: #2c2822;
+    --surface-muted: #201d18;
     --border: #38332a;
     --border-strong: #4a4438;
     --text: #ece6dc;
@@ -130,7 +132,8 @@
   .app-shell {
     @apply min-h-screen text-[color:var(--text)];
     background:
-      radial-gradient(circle at top, rgba(255, 255, 255, 0.24), transparent 32%),
+      radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(79, 97, 186, 0.04), transparent 28%),
       var(--bg-canvas);
   }
 
@@ -150,11 +153,20 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    box-shadow:
+      0 1px 1px rgba(15, 23, 42, 0.02),
+      0 10px 24px rgba(15, 23, 42, 0.04);
   }
 
   .surface-strong {
     background: var(--surface-strong);
+  }
+
+  .surface-elevated {
+    background: var(--surface-elevated);
+    box-shadow:
+      0 1px 1px rgba(15, 23, 42, 0.03),
+      0 16px 36px rgba(15, 23, 42, 0.08);
   }
 
   .surface-muted {
@@ -329,7 +341,8 @@
 
   .modal-backdrop {
     @apply fixed inset-0 z-50 flex items-center justify-center p-4;
-    background: rgba(17, 18, 20, 0.34);
+    background: rgba(15, 16, 18, 0.42);
+    backdrop-filter: blur(8px);
   }
 
   .modal-panel {
@@ -339,7 +352,7 @@
     background: var(--surface-strong);
     border: 1px solid var(--border);
     border-radius: 14px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
   }
 
   .empty-state {

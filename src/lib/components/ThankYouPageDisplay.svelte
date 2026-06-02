@@ -29,16 +29,16 @@
 {#if isCustomized && config}
   <div
     class="flex min-h-screen w-full items-center justify-center p-4"
-    style={`background-color:${config.backgroundType === "color" ? config.backgroundColor : "#ffffff"}; background-image:${config.backgroundType === "image" && config.backgroundImage ? `url('${config.backgroundImage}')` : "none"}; background-size:cover; background-position:center;`}
+    style={`background-color:${config.backgroundType === "color" ? config.backgroundColor : "var(--bg-canvas)"}; background-image:${config.backgroundType === "image" && config.backgroundImage ? `url('${config.backgroundImage}')` : "none"}; background-size:cover; background-position:center;`}
   >
     <div
-      class="w-full max-w-2xl rounded-[14px] border px-6 py-10 text-center shadow-sm sm:px-10"
-      style={`background:${alphaColor(config.backgroundColor, 0.88) || "rgba(255,255,255,0.88)"}; border-color:${alphaColor(config.textColor || config.titleColor, 0.18) || "rgba(0,0,0,0.08)"}; color:${config.textColor || "#1f2328"}; backdrop-filter: blur(8px);`}
+      class="w-full max-w-2xl rounded-[14px] border px-6 py-10 text-center shadow-sm sm:px-10 surface-elevated"
+      style={`background:${alphaColor(config.backgroundColor, 0.82) || "var(--surface-elevated)"}; border-color:${alphaColor(config.textColor || config.titleColor, 0.14) || "var(--border)"}; color:${config.textColor || "var(--text)"}; backdrop-filter: blur(8px);`}
     >
       {#if config.showSuccessIcon}
         <div
-          class="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full"
-          style={`background:${alphaColor(config.successIconColor || config.titleColor, 0.16) || "rgba(47,122,85,0.12)"}; color:${config.successIconColor || config.titleColor || "#2f7a55"};`}
+          class="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full border"
+          style={`background:${alphaColor(config.successIconColor || config.titleColor, 0.14) || "color-mix(in srgb, var(--success) 12%, var(--surface-elevated))"}; color:${config.successIconColor || config.titleColor || "var(--success)"}; border-color:${alphaColor(config.successIconColor || config.titleColor, 0.14) || "var(--border)"};`}
         >
           <svg class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -51,13 +51,13 @@
       {/if}
 
       {#if config.title}
-        <h1 class="text-[32px] font-semibold tracking-tight" style={`color:${config.titleColor || config.textColor || "#1f2328"};`}>
+        <h1 class="text-[32px] font-semibold tracking-tight" style={`color:${config.titleColor || config.textColor || "var(--text)"};`}>
           {config.title}
         </h1>
       {/if}
 
       {#if config.subtitle}
-        <p class="mx-auto mt-3 max-w-xl text-base leading-7" style={`color:${config.subtitleColor || config.textColor || "#5f6872"};`}>
+        <p class="mx-auto mt-3 max-w-xl text-base leading-7" style={`color:${config.subtitleColor || config.textColor || "var(--text-muted)"};`}>
           {config.subtitle}
         </p>
       {/if}
@@ -71,8 +71,8 @@
               rel="noopener noreferrer"
               class="block rounded-[10px] border px-5 py-3 text-sm font-medium transition-colors"
               style={button.variant === "primary"
-                ? `background:${config.titleColor || "#1f2328"}; border-color:${config.titleColor || "#1f2328"}; color:white;`
-                : `background:${alphaColor(config.titleColor, 0.1) || "rgba(255,255,255,0.82)"}; border-color:${alphaColor(config.titleColor, 0.18) || "rgba(0,0,0,0.08)"}; color:${config.titleColor || config.textColor || "#1f2328"};`}
+                ? `background:${config.titleColor || "var(--text)"}; border-color:${config.titleColor || "var(--text)"}; color:var(--surface-strong);`
+                : `background:${alphaColor(config.titleColor, 0.08) || "var(--surface-muted)"}; border-color:${alphaColor(config.titleColor, 0.14) || "var(--border)"}; color:${config.titleColor || config.textColor || "var(--text)"};`}
             >
               {button.label}
             </a>
@@ -89,7 +89,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex h-10 w-10 items-center justify-center rounded-full border"
-                style={`background:${alphaColor(config.titleColor, 0.1) || "rgba(255,255,255,0.82)"}; border-color:${alphaColor(config.titleColor, 0.18) || "rgba(0,0,0,0.08)"}; color:${config.titleColor || config.textColor || "#1f2328"};`}
+                style={`background:${alphaColor(config.titleColor, 0.08) || "var(--surface-muted)"}; border-color:${alphaColor(config.titleColor, 0.14) || "var(--border)"}; color:${config.titleColor || config.textColor || "var(--text)"};`}
                 title={socialPlatforms[link.platform]?.name}
               >
                 <i class={socialPlatforms[link.platform]?.icon}></i>
@@ -100,7 +100,7 @@
       {/if}
 
       {#if config.showFormInfo && formInfo}
-        <p class="mt-8 text-sm" style={`color:${config.textColor || config.subtitleColor || "#7d8690"};`}>
+        <p class="mt-8 text-sm" style={`color:${config.textColor || config.subtitleColor || "var(--text-soft)"};`}>
           {formInfo}
         </p>
       {/if}

@@ -196,24 +196,24 @@
   >
     <!-- Modal Content -->
     <div
-      class="bg-white dark:bg-gray-900 w-full max-w-lg max-h-[88dvh] sm:max-h-[90vh] flex flex-col rounded-t-[18px] sm:rounded-[16px] shadow-2xl"
+      class="bg-[color:var(--surface)] w-full max-w-lg max-h-[88dvh] sm:max-h-[90vh] flex flex-col rounded-t-[18px] sm:rounded-[16px] shadow-2xl"
       onclick={(e) => e.stopPropagation()}
       role="dialog"
     >
       <!-- Header -->
-      <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-gray-800">
+      <div class="p-5 sm:p-6 border-b border-[color:var(--border)]">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+          <h2 class="text-lg font-bold text-[color:var(--text)]">
             Share Form
           </h2>
           <button
             onclick={closeModal}
-            class="text-slate-400 hover:text-slate-600 transition-colors"
+            class="text-[color:var(--text-soft)] hover:text-[color:var(--text)] transition-colors"
           >
             <i class="fas fa-times text-lg"></i>
           </button>
         </div>
-        <p class="text-xs text-slate-500 mt-1">
+        <p class="text-xs text-[color:var(--text-soft)] mt-1">
           Grant access to other registered users
         </p>
       </div>
@@ -233,24 +233,24 @@
 
         <!-- Search Section -->
         <div class="space-y-3">
-          <label class="text-xs font-bold text-slate-600 uppercase"
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
             >Find & Add Users</label
           >
           <div class="space-y-2">
             <div class="relative">
               <i
-                class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+                class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--text-soft)] text-xs"
               ></i>
               <input
                 type="text"
                 placeholder="Search by username or email..."
                 bind:value={searchQuery}
                 oninput={searchUsers}
-                class="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:bg-gray-900 focus:border-transparent transition-all"
+                class="w-full pl-9 pr-4 py-2.5 bg-[color:var(--surface-strong)] border border-[color:var(--border)] text-[color:var(--text)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:bg-gray-900 focus:border-transparent transition-all"
               />
               {#if loading}
                 <div
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-soft)]"
                 >
                   <i class="fas fa-spinner animate-spin"></i>
                 </div>
@@ -261,7 +261,7 @@
             <div class="flex gap-2">
               <select
                 bind:value={selectedRole}
-                class="flex-1 min-h-[44px] px-3 py-2 bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                class="flex-1 min-h-[44px] px-3 py-2 bg-[color:var(--surface-muted)] border border-[color:var(--border)] text-[color:var(--text)] rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="viewer">Viewer (Read-only)</option>
                 <option value="editor">Editor (Can edit)</option>
@@ -274,7 +274,7 @@
             <div class="space-y-2">
               {#each searchResults as user (user.id)}
                 <div
-                  class="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-gray-800 rounded-xl hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors"
+                  class="flex items-center justify-between gap-3 p-3 bg-[color:var(--surface-muted)] rounded-xl hover:bg-[color:var(--surface-strong)] transition-colors"
                 >
                   <div class="flex items-center gap-3 min-w-0">
                     <div
@@ -284,11 +284,11 @@
                     </div>
                     <div class="min-w-0">
                       <p
-                        class="text-xs font-semibold text-slate-900 dark:text-white truncate"
+                        class="text-xs font-semibold text-[color:var(--text)] truncate"
                       >
                         {user.username}
                       </p>
-                      <p class="text-[10px] text-slate-500 truncate">
+                      <p class="text-[10px] text-[color:var(--text-soft)] truncate">
                         {user.email}
                       </p>
                     </div>
@@ -309,12 +309,12 @@
             </div>
           {:else if searchQuery.length >= 2 && loading}
             <div class="p-4 text-center">
-              <i class="fas fa-spinner animate-spin text-slate-400 text-lg"></i>
-              <p class="text-xs text-slate-500 mt-2">Searching...</p>
+              <i class="fas fa-spinner animate-spin text-[color:var(--text-soft)] text-lg"></i>
+              <p class="text-xs text-[color:var(--text-soft)] mt-2">Searching...</p>
             </div>
           {:else if searchQuery.length >= 2 && !loading}
             <div class="p-4 text-center">
-              <p class="text-xs text-slate-500">
+              <p class="text-xs text-[color:var(--text-soft)]">
                 No users found. Try searching by username or email.
               </p>
             </div>
@@ -323,25 +323,25 @@
 
         <!-- Collaborators List -->
         <div
-          class="space-y-3 border-t border-slate-100 dark:border-gray-800 pt-6"
+          class="space-y-3 border-t border-[color:var(--border)] pt-6"
         >
-          <label class="text-xs font-bold text-slate-600 uppercase"
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
             >Collaborators ({collaborators.length})</label
           >
 
           {#if collaborators.length === 0}
-            <p class="text-xs text-slate-500 py-4 text-center">
+            <p class="text-xs text-[color:var(--text-soft)] py-4 text-center">
               No collaborators yet. Start by adding a user above.
             </p>
           {:else}
             <div class="space-y-2">
               {#each collaborators as collab (collab.id)}
                 <div
-                  class="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-gray-800 rounded-xl"
+                  class="flex items-center justify-between gap-3 p-3 bg-[color:var(--surface-muted)] rounded-xl"
                 >
                   <div class="flex items-center gap-3 min-w-0">
                     <div
-                      class="w-8 h-8 rounded-full bg-slate-300 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                      class="w-8 h-8 rounded-full bg-[color:var(--surface-strong)] flex items-center justify-center text-xs font-bold text-[color:var(--text)] border border-[color:var(--border)] flex-shrink-0"
                     >
                       {collab.user?.user_metadata?.username
                         ?.charAt(0)
@@ -351,13 +351,13 @@
                     </div>
                     <div class="min-w-0">
                       <p
-                        class="text-xs font-semibold text-slate-900 dark:text-white truncate"
+                        class="text-xs font-semibold text-[color:var(--text)] truncate"
                       >
                         {collab.user?.user_metadata?.username ||
                           collab.user?.email?.split("@")[0] ||
                           "Collaborator"}
                       </p>
-                      <p class="text-[10px] text-slate-500 truncate italic">
+                      <p class="text-[10px] text-[color:var(--text-soft)] truncate italic">
                         Access: {collab.role}
                       </p>
                     </div>
@@ -370,7 +370,7 @@
                           collab.user_id,
                           e.currentTarget.value as "viewer" | "editor",
                         )}
-                      class="min-h-[40px] px-2 py-1.5 bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 text-slate-900 dark:text-white rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                      class="min-h-[40px] px-2 py-1.5 bg-[color:var(--surface-strong)] border border-[color:var(--border)] text-[color:var(--text)] rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="viewer">Viewer</option>
                       <option value="editor">Editor</option>
@@ -383,7 +383,7 @@
                             collab.user?.email?.split("@")[0] ||
                             "User",
                         )}
-                      class="h-10 w-10 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      class="h-10 w-10 p-1.5 text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10 rounded-lg transition-colors flex items-center justify-center"
                       title="Remove collaborator"
                       aria-label="Remove collaborator"
                     >
@@ -399,11 +399,11 @@
 
       <!-- Footer -->
       <div
-        class="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end bg-white dark:bg-gray-900"
+        class="p-4 border-t border-[color:var(--border)] flex justify-end bg-[color:var(--surface)]"
       >
         <button
           onclick={closeModal}
-          class="min-h-[44px] px-4 py-2 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-800 dark:text-gray-200 rounded-lg font-semibold text-sm transition-colors"
+          class="min-h-[44px] px-4 py-2 bg-[color:var(--surface-muted)] hover:bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded-lg font-semibold text-sm transition-colors"
         >
           Close
         </button>

@@ -1,5 +1,5 @@
 // src/lib/types.ts
-export type ConstraintType = 'email-type' | 'email-domain' | 'text-length' | 'phone-format' | 'number-format' | 'custom-regex' | 'selection-count' | 'date-range';
+type ConstraintType = 'email-type' | 'email-domain' | 'text-length' | 'phone-format' | 'number-format' | 'custom-regex' | 'selection-count' | 'date-range';
 
 export interface Constraint {
   id: string;
@@ -38,7 +38,6 @@ export interface Question {
 }
 
 export type AnimationType = 'fade' | 'slide' | 'slideLeft' | 'slideRight' | 'zoom';
-export type AnimationRepeatMode = 'once' | 'loop' | 'times';
 
 export interface BlockElement {
   id: string;
@@ -83,6 +82,21 @@ export interface Theme {
     inputBg?: string;
     buttonBg?: string;
     buttonText?: string;
+    floatingAssets?: Array<{
+      url: string;
+      x?: number;
+      y?: number;
+      width?: number;
+      height?: number;
+      opacity?: number;
+      rotate?: number;
+      mobileX?: number;
+      mobileY?: number;
+      mobileWidth?: number;
+      mobileHeight?: number;
+    }>;
+    footerImageUrl?: string;
+    footerImageHeight?: number;
   };
   thankYouTemplate?: Partial<ThankYouPage>; // Template for thank you page customization
 }

@@ -346,13 +346,13 @@
                     <!-- Background Image section -->
                     <section class="space-y-4">
                         <h4
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            class="text-[11px] font-bold text-[color:var(--text-soft)] uppercase tracking-wider"
                         >
                             Background Image
                         </h4>
                         <div class="relative group">
                             <div
-                                class="w-full h-32 rounded-xl border-2 border-dashed border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 flex flex-col items-center justify-center gap-2 overflow-hidden overflow-ellipsis transition-all group-hover:border-primary/50"
+                                class="w-full h-32 rounded-xl border-2 border-dashed border-[color:var(--border)] bg-[color:var(--surface-muted)] flex flex-col items-center justify-center gap-2 overflow-hidden overflow-ellipsis transition-all group-hover:border-primary/50"
                             >
                                 {#if currentFormData?.backgroundImage}
                                     <img
@@ -365,22 +365,22 @@
                                     >
                                         <button
                                             onclick={removeBackgroundImage}
-                                            class="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                            class="p-2 bg-[color:var(--surface-strong)] rounded-lg shadow-sm text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10 transition-colors"
                                             aria-label="Remove background image"
                                         >
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                         <span
-                                            class="text-[10px] font-bold text-slate-600 dark:text-gray-200 bg-white/80 dark:bg-gray-800/80 px-2 py-0.5 rounded shadow-sm"
+                                            class="text-[10px] font-bold text-[color:var(--text)] bg-[color:var(--surface-strong)]/80 px-2 py-0.5 rounded shadow-sm"
                                             >Image Uploaded</span
                                         >
                                     </div>
                                 {:else}
                                     <i
-                                        class="fas fa-cloud-upload-alt text-slate-300 dark:text-gray-600 text-2xl group-hover:text-primary transition-colors"
+                                        class="fas fa-cloud-upload-alt text-[color:var(--text-soft)] text-2xl group-hover:text-primary transition-colors"
                                     ></i>
                                     <span
-                                        class="text-[10px] font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-gray-300"
+                                        class="text-[10px] font-bold text-[color:var(--text-soft)] group-hover:text-[color:var(--text)]"
                                         >Click to upload</span
                                     >
                                 {/if}
@@ -397,12 +397,12 @@
                     <!-- Background Color section -->
                     <section class="space-y-4">
                         <h4
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            class="text-[11px] font-bold text-[color:var(--text-soft)] uppercase tracking-wider"
                         >
                             Background Color
                         </h4>
                         <div
-                            class="flex items-center gap-4 bg-slate-50 dark:bg-gray-800 p-3 rounded-xl border border-slate-100 dark:border-gray-700"
+                            class="flex items-center gap-4 bg-[color:var(--surface-muted)] p-3 rounded-xl border border-[color:var(--border)]"
                         >
                             <input
                                 type="color"
@@ -412,15 +412,15 @@
                                     updateBackgroundColor(
                                         e.currentTarget.value,
                                     )}
-                                class="w-10 h-10 p-0.5 rounded-lg border border-slate-200 dark:border-gray-600 cursor-pointer bg-white dark:bg-gray-700"
+                                class="w-10 h-10 p-0.5 rounded-lg border border-[color:var(--border)] cursor-pointer bg-[color:var(--surface-strong)]"
                             />
                             <div class="flex flex-col">
                                 <span
-                                    class="text-xs font-bold text-slate-700 dark:text-gray-200 uppercase"
+                                    class="text-xs font-bold text-[color:var(--text)] uppercase"
                                     >{currentFormData?.backgroundColor ||
                                         "#ffffff"}</span
                                 >
-                                <span class="text-[10px] text-slate-400"
+                                <span class="text-[10px] text-[color:var(--text-soft)]"
                                     >Main background</span
                                 >
                             </div>
@@ -430,12 +430,12 @@
                     <!-- Text Color section -->
                     <section class="space-y-4">
                         <h4
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            class="text-[11px] font-bold text-[color:var(--text-soft)] uppercase tracking-wider"
                         >
                             Global Text Color
                         </h4>
                         <div
-                            class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100"
+                            class="flex items-center gap-4 bg-[color:var(--surface-muted)] p-3 rounded-xl border border-[color:var(--border)]"
                         >
                             <input
                                 type="color"
@@ -447,15 +447,15 @@
                                     );
                                     saveForm();
                                 }}
-                                class="w-10 h-10 p-0.5 rounded-lg border border-slate-200 cursor-pointer bg-white"
+                                class="w-10 h-10 p-0.5 rounded-lg border border-[color:var(--border)] cursor-pointer bg-[color:var(--surface-strong)]"
                             />
                             <div class="flex flex-col">
                                 <span
-                                    class="text-xs font-bold text-slate-700 uppercase"
+                                    class="text-xs font-bold text-[color:var(--text)] uppercase"
                                     >{currentFormData?.globalTextColor ||
                                         "Default"}</span
                                 >
-                                <span class="text-[10px] text-slate-400"
+                                <span class="text-[10px] text-[color:var(--text-soft)]"
                                     >Overrides dynamic contrast</span
                                 >
                             </div>
@@ -511,9 +511,9 @@
                     </section>
 
                     <!-- Event Check-in Section -->
-                    <section class="space-y-4 pt-4 border-t border-slate-100">
+                    <section class="space-y-4 pt-4 border-t border-[color:var(--border)]">
                         <h4
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            class="text-[11px] font-bold text-[color:var(--text-soft)] uppercase tracking-wider"
                         >
                             Event Check-in
                         </h4>
@@ -527,7 +527,7 @@
                             }}
                             class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.enable_checkin
                                 ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
-                                : 'bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-gray-700'}"
+                                : 'bg-[color:var(--surface-muted)] border-[color:var(--border)] text-[color:var(--text-soft)] hover:bg-[color:var(--surface-strong)]'}"
                         >
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-qrcode text-lg"></i>
@@ -547,7 +547,7 @@
                             <div
                                 class="w-10 h-6 rounded-full transition-colors {currentFormData?.enable_checkin
                                     ? 'bg-blue-500'
-                                    : 'bg-slate-300'}"
+                                    : 'bg-[color:var(--border)]'}"
                             >
                                 <div
                                     class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
@@ -562,7 +562,7 @@
                             <div class="space-y-3">
                                 <label class="block">
                                     <span
-                                        class="text-xs font-bold text-slate-600 block mb-2"
+                                        class="text-xs font-bold text-[color:var(--text)] block mb-2"
                                         >Participant Name Field</span
                                     >
                                     <select
@@ -576,7 +576,7 @@
                                             }));
                                             saveForm();
                                         }}
-                                        class="w-full text-xs bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-gray-900 outline-none font-medium transition-all"
+                                        class="w-full text-xs bg-[color:var(--surface-strong)] border border-[color:var(--border)] rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-primary focus:bg-[color:var(--surface)] outline-none font-medium transition-all text-[color:var(--text)]"
                                     >
                                         <option value=""
                                             >Select a field...</option
@@ -588,7 +588,7 @@
                                         {/each}
                                     </select>
                                     <p
-                                        class="text-[10px] text-slate-400 px-1 mt-1 leading-relaxed"
+                                        class="text-[10px] text-[color:var(--text-soft)] px-1 mt-1 leading-relaxed"
                                     >
                                         This field will be shown when scanning
                                         QR codes and used for certificates.
@@ -610,9 +610,9 @@
                     </section>
 
                     <!-- Anonymous Voting & Fraud Prevention -->
-                    <section class="space-y-4 pt-4 border-t border-slate-100 dark:border-gray-800">
+                    <section class="space-y-4 pt-4 border-t border-[color:var(--border)]">
                         <h4
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            class="text-[11px] font-bold text-[color:var(--text-soft)] uppercase tracking-wider"
                         >
                             Anonymous & Secure Voting
                         </h4>
@@ -633,7 +633,7 @@
                             }}
                             class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.enable_device_tracking
                                 ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-100 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'
-                                : 'bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-gray-700'}"
+                                : 'bg-[color:var(--surface-muted)] border-[color:var(--border)] text-[color:var(--text-soft)] hover:bg-[color:var(--surface-strong)]'}"
                         >
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-shield-alt text-lg"></i>
@@ -653,7 +653,7 @@
                             <div
                                 class="w-10 h-6 rounded-full transition-colors {currentFormData?.enable_device_tracking
                                     ? 'bg-indigo-500'
-                                    : 'bg-slate-300'}"
+                                    : 'bg-[color:var(--border)]'}"
                             >
                                 <div
                                     class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
@@ -680,7 +680,7 @@
                             }}
                             class="w-full flex items-center justify-between p-4 rounded-xl border transition-all {currentFormData?.anonymous_voting
                                 ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:border-purple-800 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50'
-                                : 'bg-slate-50 dark:bg-gray-800 border-slate-100 dark:border-gray-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-gray-700'}"
+                                : 'bg-[color:var(--surface-muted)] border-[color:var(--border)] text-[color:var(--text-soft)] hover:bg-[color:var(--surface-strong)]'}"
                         >
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-user-secret text-lg"></i>
@@ -700,7 +700,7 @@
                             <div
                                 class="w-10 h-6 rounded-full transition-colors {currentFormData?.anonymous_voting
                                     ? 'bg-purple-500'
-                                    : 'bg-slate-300'}"
+                                    : 'bg-[color:var(--border)]'}"
                             >
                                 <div
                                     class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
@@ -714,14 +714,14 @@
 
                     <section class="space-y-4">
                         <h4
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
+                            class="text-[11px] font-bold text-[color:var(--text-soft)] uppercase tracking-wider"
                         >
                             Custom URL Slug
                         </h4>
                         <div class="space-y-2">
                             <div class="relative">
                                 <span
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--text-soft)] text-xs"
                                     >/form/</span
                                 >
                                 <input
@@ -730,11 +730,11 @@
                                     onchange={(e) =>
                                         updateSlug(e.currentTarget.value)}
                                     placeholder="my-cool-form"
-                                    class="w-full max-w-full text-xs bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-gray-900 outline-none font-medium transition-all"
+                                    class="w-full max-w-full text-xs bg-[color:var(--surface-strong)] border border-[color:var(--border)] text-[color:var(--text)] rounded-lg py-3 pl-14 pr-4 focus:ring-2 focus:ring-primary focus:bg-[color:var(--surface)] outline-none font-medium transition-all"
                                 />
                             </div>
                             <p
-                                class="text-[10px] text-slate-400 px-1 leading-relaxed"
+                                class="text-[10px] text-[color:var(--text-soft)] px-1 leading-relaxed"
                             >
                                 Changing the slug will break old links.
                             </p>
@@ -742,16 +742,16 @@
                     </section>
 
                     <section
-                        class="space-y-4 pt-4 border-t border-slate-100 dark:border-gray-800"
+                        class="space-y-4 pt-4 border-t border-[color:var(--border)]"
                     >
                         <button
-                            class="w-full flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary transition-all group"
+                            class="w-full flex flex-col items-center gap-2 p-4 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-strong)] hover:border-primary transition-all group"
                         >
                             <span
-                                class="fas fa-trash-alt text-slate-300 group-hover:text-red-500 transition-colors"
+                                class="fas fa-trash-alt text-[color:var(--text-soft)] group-hover:text-[color:var(--danger)] transition-colors"
                             ></span>
                             <span
-                                class="text-[10px] font-bold text-slate-500 group-hover:text-slate-900"
+                                class="text-[10px] font-bold text-[color:var(--text-soft)] group-hover:text-[color:var(--text)]"
                                 >Advanced Settings</span
                             >
                         </button>
@@ -761,21 +761,19 @@
                 <div class="space-y-8">
                     <header>
                         <h3
-                            class="text-sm font-bold text-slate-900 dark:text-white mb-1"
+                            class="text-sm font-bold text-[color:var(--text)] mb-1"
                         >
                             Share Form
                         </h3>
-                        <p class="text-xs text-slate-500">
+                        <p class="text-xs text-[color:var(--text-soft)]">
                             Grant access to other registered users.
                         </p>
                     </header>
 
                     <section class="space-y-4">
-                        <p class="text-xs text-slate-600 leading-relaxed">
+                        <p class="text-xs text-[color:var(--text-soft)] leading-relaxed">
                             Share this form with other registered users to
-                            collaborate. You can grant them <strong
-                                >Editor</strong
-                            >
+                            collaborate. You can grant them <strong>Editor</strong>
                             (can edit form and view responses) or
                             <strong>Viewer</strong> (read-only) access.
                         </p>
@@ -790,10 +788,10 @@
 
                     {#if currentFormData?.collaborators && currentFormData.collaborators.length > 0}
                         <section
-                            class="space-y-4 pt-4 border-t border-slate-100"
+                            class="space-y-4 pt-4 border-t border-[color:var(--border)]"
                         >
                             <h4
-                                class="text-xs font-bold text-slate-600 uppercase"
+                                class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
                             >
                                 Active Collaborators ({currentFormData
                                     .collaborators.length})
@@ -801,11 +799,11 @@
                             <div class="space-y-2">
                                 {#each currentFormData.collaborators as collab}
                                     <div
-                                        class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg"
+                                        class="flex items-center justify-between p-3 bg-[color:var(--surface-muted)] rounded-lg"
                                     >
                                         <div class="flex items-center gap-3">
                                             <div
-                                                class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-bold text-white"
+                                                class="w-8 h-8 rounded-full bg-[color:var(--border)] flex items-center justify-center text-xs font-bold text-[color:var(--text)]"
                                             >
                                                 {collab.user?.user_metadata?.username
                                                     ?.charAt(0)
@@ -817,7 +815,7 @@
                                             </div>
                                             <div>
                                                 <p
-                                                    class="text-xs font-semibold text-slate-900"
+                                                    class="text-xs font-semibold text-[color:var(--text)]"
                                                 >
                                                     {collab.user?.user_metadata
                                                         ?.username ||
@@ -827,7 +825,7 @@
                                                         "User"}
                                                 </p>
                                                 <p
-                                                    class="text-[10px] text-slate-500 capitalize"
+                                                    class="text-[10px] text-[color:var(--text-soft)] capitalize"
                                                 >
                                                     {collab.role}
                                                 </p>
@@ -855,10 +853,10 @@
         background: transparent;
     }
     .overflow-y-auto::-webkit-scrollbar-thumb {
-        background: #e2e8f0;
+        background: var(--border);
         border-radius: 10px;
     }
     .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-        background: #cbd5e1;
+        background: var(--text-soft);
     }
 </style>

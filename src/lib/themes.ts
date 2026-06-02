@@ -1,6 +1,6 @@
 import type { Theme } from './types';
 
-export const DEFAULT_THEME: Theme = {
+const DEFAULT_THEME: Theme = {
   id: 'default',
   name: 'Default',
   description: 'Clean and minimal default theme',
@@ -27,7 +27,7 @@ export const DEFAULT_THEME: Theme = {
   },
 };
 
-export const NES_THEME: Theme = {
+const NES_THEME: Theme = {
   id: 'nes',
   name: 'NES.css',
   description: 'Retro 8-bit video game aesthetic',
@@ -56,7 +56,7 @@ export const NES_THEME: Theme = {
   },
 };
 
-export const IDE_DARK_THEME: Theme = {
+const IDE_DARK_THEME: Theme = {
   id: 'ide-dark',
   name: 'IDE Dark Mode',
   description: 'A dark, code-editor inspired theme with terminal aesthetics',
@@ -461,62 +461,3 @@ export const IDE_DARK_THEME: Theme = {
 };
 
 export const THEMES: Theme[] = [DEFAULT_THEME, NES_THEME, IDE_DARK_THEME];
-
-export function getThemeById(id: string): Theme | undefined {
-  return THEMES.find((theme) => theme.id === id);
-}
-
-export function applyTheme(theme: Theme): void {
-  // Remove any previously injected theme stylesheets
-  const previousThemeLinks = document.querySelectorAll('[data-theme-id]');
-  previousThemeLinks.forEach((link) => link.remove());
-
-  // Apply external font if available
-  if (theme.fontUrl) {
-    const fontLink = document.createElement('link');
-    fontLink.rel = 'stylesheet';
-    fontLink.href = theme.fontUrl;
-    fontLink.setAttribute('data-theme-id', theme.id);
-    document.head.appendChild(fontLink);
-  }
-
-  // Apply external CSS if available
-  if (theme.cssUrl) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = theme.cssUrl;
-    link.setAttribute('data-theme-id', theme.id);
-    document.head.appendChild(link);
-  }
-
-  // Apply custom CSS if available
-  if (theme.customCss) {
-    const style = document.createElement('style');
-    style.setAttribute('data-theme-id', theme.id);
-    style.textContent = theme.customCss;
-    document.head.appendChild(style);
-  }
-
-  // Store current theme in localStorage
-  try {
-    localStorage.setItem('selectedTheme', theme.id);
-  } catch (e) {
-    console.warn('Could not save theme preference:', e);
-  }
-}
-
-export function loadSavedTheme(): Theme {
-  try {
-    const savedThemeId = localStorage.getItem('selectedTheme');
-    if (savedThemeId) {
-      const theme = getThemeById(savedThemeId);
-      if (theme) {
-        applyTheme(theme);
-        return theme;
-      }
-    }
-  } catch (e) {
-    console.warn('Could not load saved theme:', e);
-  }
-  return DEFAULT_THEME;
-}

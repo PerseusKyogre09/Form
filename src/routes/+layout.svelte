@@ -17,23 +17,9 @@
 		}
 	});
 
-	// List of paths where the footer should be hidden (builder, certificate, login, dashboard, etc.)
-	const excludedPaths = [
-		"/form-builder",
-		"/certificate-generator",
-		"/login",
-		"/signup",
-		"/form",
-		"/preview",
-		"/checkin",
-		"/dashboard"
-	];
+	const footerPaths = ["/", "/terms", "/unauthorized"];
 
-	// Derived state to determine if footer should be rendered
-	let showFooter = $derived.by(() => {
-		const path = $page.url.pathname;
-		return !excludedPaths.some(p => path === p || path.startsWith(p + "/"));
-	});
+	let showFooter = $derived.by(() => footerPaths.includes($page.url.pathname));
 </script>
 
 <svelte:head>

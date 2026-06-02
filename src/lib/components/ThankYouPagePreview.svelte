@@ -27,10 +27,10 @@
 </script>
 
 <div
-  class="min-h-screen flex items-center justify-center p-4 transition-colors dark:bg-gray-950"
+  class="min-h-screen flex items-center justify-center p-4 transition-colors bg-[color:var(--bg-canvas)]"
   style="background-color: {config.backgroundType === 'color'
     ? config.backgroundColor
-    : '#ffffff'}; background-image: {config.backgroundType === 'image' && config.backgroundImage
+    : ''}; background-image: {config.backgroundType === 'image' && config.backgroundImage
     ? `url('${config.backgroundImage}')`
     : 'none'}; background-size: cover; background-position: center;"
 >
@@ -57,7 +57,7 @@
 
       {#if config.title}
         <h1
-          class="text-4xl font-bold mb-2 text-slate-900 dark:text-white transition-colors"
+          class="text-4xl font-bold mb-2 text-[color:var(--text)] transition-colors"
         >
           {config.title}
         </h1>
@@ -65,7 +65,7 @@
 
       {#if config.subtitle}
         <p
-          class="text-lg text-slate-600 dark:text-gray-400 mb-6 transition-colors"
+          class="text-lg text-[color:var(--text-soft)] mb-6 transition-colors"
         >
           {config.subtitle}
         </p>
@@ -80,8 +80,8 @@
               rel="noopener noreferrer"
               class={`block px-6 py-3 rounded-lg font-medium transition-colors ${
                 button.variant === "primary"
-                  ? "bg-slate-900 dark:bg-white text-white dark:text-gray-900 hover:bg-slate-800 dark:hover:bg-gray-100"
-                  : "bg-slate-100 dark:bg-gray-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-gray-700"
+                  ? "bg-[color:var(--text)] text-[color:var(--surface)] hover:opacity-90"
+                  : "bg-[color:var(--surface-strong)] text-[color:var(--text)] hover:bg-[color:var(--surface-muted)]"
               }`}
             >
               {button.label}
@@ -98,7 +98,7 @@
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="w-10 h-10 rounded-full bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 flex items-center justify-center text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                class="w-10 h-10 rounded-full bg-[color:var(--surface-strong)] hover:bg-[color:var(--surface-muted)] flex items-center justify-center text-[color:var(--text-soft)] hover:text-[color:var(--text)] transition-colors"
                 title={socialPlatforms[link.platform]?.name}
               >
                 <i class={socialPlatforms[link.platform]?.icon}></i>
@@ -110,7 +110,7 @@
 
       {#if config.showFormInfo}
         <p
-          class="text-sm text-slate-500 dark:text-gray-500 mt-6 transition-colors"
+          class="text-sm text-[color:var(--text-soft)] mt-6 transition-colors"
         >
           <slot name="form-info" />
         </p>

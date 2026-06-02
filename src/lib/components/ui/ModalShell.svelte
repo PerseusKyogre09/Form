@@ -13,7 +13,7 @@
     if (event.target === event.currentTarget) onClose?.();
   }}
 >
-  <div class={`modal-panel ${maxWidthClass}`.trim()} role="dialog" aria-modal="true" aria-label={title || closeLabel}>
+  <div class={`modal-panel surface-elevated ${maxWidthClass}`.trim()} role="dialog" aria-modal="true" aria-label={title || closeLabel}>
     <div class="flex items-start justify-between gap-4 border-b app-divider px-5 py-4">
       <div class="min-w-0 space-y-1">
         {#if title}

@@ -1,0 +1,1574 @@
+
+> quill@0.0.1 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /home/perseuskyogre/Projects/Form
+Getting Svelte diagnostics...
+
+/home/perseuskyogre/Projects/Form/src/lib/animations.ts:756:8
+Error: Property 'killAll' does not exist on type 'typeof gsap'. 
+export function killAllAnimations() {
+  gsap.killAll();
+}
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:88:7
+Warn: `<div>` with a dragstart or dragend handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+    <div class="flex-shrink-0 pt-1">
+      <div
+        class="text-gray-300 cursor-grab active:cursor-grabbing hover:text-gray-400 transition-colors text-lg"
+        draggable="true"
+        on:dragstart={handleDragStart}
+        on:dragend={handleDragEnd}
+      >
+        ⋮⋮
+      </div>
+    </div>
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:119:9
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+      <div class="space-y-2">
+        <label
+          class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+          >Title</label
+        >
+        <input
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:132:9
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+      <div class="space-y-2">
+        <label
+          class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+          >Description (optional)</label
+        >
+        <textarea
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:145:9
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+      <div class="space-y-2">
+        <label
+          class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+          >Animation Image (optional)</label
+        >
+        <input
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:169:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        <div class="space-y-2">
+          <label
+            class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+            >Animation type</label
+          >
+          <select
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:184:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        <div class="space-y-2">
+          <label
+            class="text-xs font-semibold text-gray-500 uppercase tracking-wide"
+            >Background Color</label
+          >
+          <div class="flex gap-2">
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:4:17
+Error: Module '"../types"' has no exported member 'AnimationElement'. (ts)
+  import { createEventDispatcher } from "svelte";
+  import type { AnimationElement, AnimationType } from "../types";
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:24:7
+Error: Type '"pulse"' is not assignable to type 'AnimationType'. (ts)
+    { value: "slide", label: "Slide Up" },
+    { value: "pulse", label: "Pulse" },
+    { value: "bounce", label: "Bounce In" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:25:7
+Error: Type '"bounce"' is not assignable to type 'AnimationType'. (ts)
+    { value: "pulse", label: "Pulse" },
+    { value: "bounce", label: "Bounce In" },
+    { value: "zoom", label: "Zoom In" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:27:7
+Error: Type '"flip"' is not assignable to type 'AnimationType'. (ts)
+    { value: "zoom", label: "Zoom In" },
+    { value: "flip", label: "Flip In" },
+    { value: "rotate", label: "Rotate In" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:28:7
+Error: Type '"rotate"' is not assignable to type 'AnimationType'. (ts)
+    { value: "flip", label: "Flip In" },
+    { value: "rotate", label: "Rotate In" },
+    { value: "slideLeft", label: "Slide Left" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:31:7
+Error: Type '"wobble"' is not assignable to type 'AnimationType'. (ts)
+    { value: "slideRight", label: "Slide Right" },
+    { value: "wobble", label: "Wobble" },
+    { value: "heartbeat", label: "Heartbeat" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:32:7
+Error: Type '"heartbeat"' is not assignable to type 'AnimationType'. (ts)
+    { value: "wobble", label: "Wobble" },
+    { value: "heartbeat", label: "Heartbeat" },
+    { value: "swing", label: "Swing" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:33:7
+Error: Type '"swing"' is not assignable to type 'AnimationType'. (ts)
+    { value: "heartbeat", label: "Heartbeat" },
+    { value: "swing", label: "Swing" },
+    { value: "tada", label: "Tada" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:34:7
+Error: Type '"tada"' is not assignable to type 'AnimationType'. (ts)
+    { value: "swing", label: "Swing" },
+    { value: "tada", label: "Tada" },
+    { value: "jello", label: "Jello" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:35:7
+Error: Type '"jello"' is not assignable to type 'AnimationType'. (ts)
+    { value: "tada", label: "Tada" },
+    { value: "jello", label: "Jello" },
+    { value: "blink", label: "Blink" },
+
+/home/perseuskyogre/Projects/Form/src/lib/components/AnimationEditor.svelte:36:7
+Error: Type '"blink"' is not assignable to type 'AnimationType'. (ts)
+    { value: "jello", label: "Jello" },
+    { value: "blink", label: "Blink" },
+  ];
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:238:7
+Warn: `<div>` with a dragstart or dragend handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+    >
+      <div
+        class="cursor-grab active:cursor-grabbing text-[color:var(--text-soft)] opacity-60 hover:opacity-100 shrink-0"
+        draggable="true"
+        on:dragstart={(e) => {
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move";
+          }
+          dispatch("dragstart", e);
+        }}
+        on:dragend={(e) => dispatch("dragend", e)}
+      >
+        <span class="fas fa-grip-vertical"></span>
+      </div>
+      <span
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:348:13
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+          <div>
+            <label
+              class="block text-xs font-medium text-[color:var(--text-soft)] mb-1.5"
+              >Font</label
+            >
+            <select
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:366:13
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+          <div>
+            <label
+              class="block text-xs font-medium text-[color:var(--text-soft)] mb-1.5"
+              >Size</label
+            >
+            <select
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:388:13
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+          <div>
+            <label
+              class="block text-xs font-medium text-[color:var(--text-soft)] mb-1.5"
+              >Align</label
+            >
+            <div class="flex gap-1">
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:393:15
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+            <div class="flex gap-1">
+              <button
+                type="button"
+                on:click={() => {
+                  question.textAlign = "left";
+                  updateQuestion();
+                }}
+                class="flex-1 py-1.5 px-2 text-xs border border-[color:var(--border)] rounded-lg transition-colors {question.textAlign ===
+                  'left' || !question.textAlign
+                  ? 'bg-[color:var(--accent)] text-white border-[color:var(--accent)]'
+                  : 'bg-[color:var(--surface)] text-[color:var(--text)] hover:bg-[color:var(--surface-muted)]'}"
+              >
+                <span class="fas fa-align-left"></span>
+              </button>
+              <button
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:406:15
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+              </button>
+              <button
+                type="button"
+                on:click={() => {
+                  question.textAlign = "center";
+                  updateQuestion();
+                }}
+                class="flex-1 py-1.5 px-2 text-xs border border-[color:var(--border)] rounded-lg transition-colors {question.textAlign ===
+                'center'
+                  ? 'bg-[color:var(--accent)] text-white border-[color:var(--accent)]'
+                  : 'bg-[color:var(--surface)] text-[color:var(--text)] hover:bg-[color:var(--surface-muted)]'}"
+              >
+                <span class="fas fa-align-center"></span>
+              </button>
+              <button
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:419:15
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+              </button>
+              <button
+                type="button"
+                on:click={() => {
+                  question.textAlign = "right";
+                  updateQuestion();
+                }}
+                class="flex-1 py-1.5 px-2 text-xs border border-[color:var(--border)] rounded-lg transition-colors {question.textAlign ===
+                'right'
+                  ? 'bg-[color:var(--accent)] text-white border-[color:var(--accent)]'
+                  : 'bg-[color:var(--surface)] text-[color:var(--text)] hover:bg-[color:var(--surface-muted)]'}"
+              >
+                <span class="fas fa-align-right"></span>
+              </button>
+            </div>
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:438:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        <div>
+          <label
+            class="block text-xs font-medium text-[color:var(--text-soft)] mb-1.5"
+          >
+            Question Label <span class="text-[color:var(--text-soft)]"
+              >(optional)</span
+            >
+          </label>
+          <input
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:456:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        <div>
+          <label
+            class="block text-xs font-medium text-[color:var(--text-soft)] mb-1.5"
+          >
+            Helper Text <span class="text-[color:var(--text-soft)]"
+              >(optional)</span
+            >
+          </label>
+          <input
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:475:13
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+          <div>
+            <label
+              class="block text-xs font-medium text-[color:var(--text-soft)] mb-1.5"
+            >
+              Accent Color <span class="text-[color:var(--text-soft)]"
+                >(italic)</span
+              >
+            </label>
+            <div class="flex gap-2">
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:504:13
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+          <div>
+            <label
+              class="block text-xs font-medium text-[color:var(--text-soft)] mb-1.5"
+            >
+              Text Color <span class="text-[color:var(--text-soft)]"
+                >(override)</span
+              >
+            </label>
+            <div class="flex gap-2">
+
+/home/perseuskyogre/Projects/Form/src/lib/components/QuestionEditor.svelte:828:13
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+            </span>
+            <button
+              on:click={() => removeConstraint(constraint.id)}
+              class="text-[color:var(--text-soft)] hover:text-[color:var(--danger)]"
+            >
+              <span class="fas fa-times text-sm"></span>
+            </button>
+          </div>
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormSharingModal.svelte:198:5
+Warn: Elements with the 'dialog' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus (svelte)
+    <!-- Modal Content -->
+    <div
+      class="bg-[color:var(--surface)] w-full max-w-lg max-h-[88dvh] sm:max-h-[90vh] flex flex-col rounded-t-[18px] sm:rounded-[16px] shadow-2xl"
+      onclick={(e) => e.stopPropagation()}
+      role="dialog"
+    >
+      <!-- Header -->
+      <div class="p-5 sm:p-6 border-b border-[color:var(--border)]">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold text-[color:var(--text)]">
+            Share Form
+          </h2>
+          <button
+            onclick={closeModal}
+            class="text-[color:var(--text-soft)] hover:text-[color:var(--text)] transition-colors"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+        <p class="text-xs text-[color:var(--text-soft)] mt-1">
+          Grant access to other registered users
+        </p>
+      </div>
+
+      <!-- Content -->
+      <div class="overflow-y-auto flex-1 p-4 sm:p-6 space-y-6">
+        <!-- Notification -->
+        {#if showMessage}
+          <div
+            class="p-3 rounded-lg text-sm font-medium {messageType === 'success'
+              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+              : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'}"
+          >
+            {message}
+          </div>
+        {/if}
+
+        <!-- Search Section -->
+        <div class="space-y-3">
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
+            >Find & Add Users</label
+          >
+          <div class="space-y-2">
+            <div class="relative">
+              <i
+                class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--text-soft)] text-xs"
+              ></i>
+              <input
+                type="text"
+                placeholder="Search by username or email..."
+                bind:value={searchQuery}
+                oninput={searchUsers}
+                class="w-full pl-9 pr-4 py-2.5 bg-[color:var(--surface-strong)] border border-[color:var(--border)] text-[color:var(--text)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:bg-gray-900 focus:border-transparent transition-all"
+              />
+              {#if loading}
+                <div
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-soft)]"
+                >
+                  <i class="fas fa-spinner animate-spin"></i>
+                </div>
+              {/if}
+            </div>
+
+            <!-- Role Selection -->
+            <div class="flex gap-2">
+              <select
+                bind:value={selectedRole}
+                class="flex-1 min-h-[44px] px-3 py-2 bg-[color:var(--surface-muted)] border border-[color:var(--border)] text-[color:var(--text)] rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="viewer">Viewer (Read-only)</option>
+                <option value="editor">Editor (Can edit)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Search Results -->
+          {#if searchResults.length > 0}
+            <div class="space-y-2">
+              {#each searchResults as user (user.id)}
+                <div
+                  class="flex items-center justify-between gap-3 p-3 bg-[color:var(--surface-muted)] rounded-xl hover:bg-[color:var(--surface-strong)] transition-colors"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div
+                      class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0"
+                    >
+                      {user.username?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                    <div class="min-w-0">
+                      <p
+                        class="text-xs font-semibold text-[color:var(--text)] truncate"
+                      >
+                        {user.username}
+                      </p>
+                      <p class="text-[10px] text-[color:var(--text-soft)] truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onclick={() => addCollaborator(user.id, user.username)}
+                    disabled={adding}
+                    class="min-h-[44px] px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-indigo-600 disabled:opacity-50 flex-shrink-0 transition-colors"
+                  >
+                    {#if adding}
+                      <i class="fas fa-spinner animate-spin"></i>
+                    {:else}
+                      Add
+                    {/if}
+                  </button>
+                </div>
+              {/each}
+            </div>
+          {:else if searchQuery.length >= 2 && loading}
+            <div class="p-4 text-center">
+              <i class="fas fa-spinner animate-spin text-[color:var(--text-soft)] text-lg"></i>
+              <p class="text-xs text-[color:var(--text-soft)] mt-2">Searching...</p>
+            </div>
+          {:else if searchQuery.length >= 2 && !loading}
+            <div class="p-4 text-center">
+              <p class="text-xs text-[color:var(--text-soft)]">
+                No users found. Try searching by username or email.
+              </p>
+            </div>
+          {/if}
+        </div>
+
+        <!-- Collaborators List -->
+        <div
+          class="space-y-3 border-t border-[color:var(--border)] pt-6"
+        >
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
+            >Collaborators ({collaborators.length})</label
+          >
+
+          {#if collaborators.length === 0}
+            <p class="text-xs text-[color:var(--text-soft)] py-4 text-center">
+              No collaborators yet. Start by adding a user above.
+            </p>
+          {:else}
+            <div class="space-y-2">
+              {#each collaborators as collab (collab.id)}
+                <div
+                  class="flex items-center justify-between gap-3 p-3 bg-[color:var(--surface-muted)] rounded-xl"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div
+                      class="w-8 h-8 rounded-full bg-[color:var(--surface-strong)] flex items-center justify-center text-xs font-bold text-[color:var(--text)] border border-[color:var(--border)] flex-shrink-0"
+                    >
+                      {collab.user?.user_metadata?.username
+                        ?.charAt(0)
+                        .toUpperCase() ||
+                        collab.user?.email?.charAt(0).toUpperCase() ||
+                        "U"}
+                    </div>
+                    <div class="min-w-0">
+                      <p
+                        class="text-xs font-semibold text-[color:var(--text)] truncate"
+                      >
+                        {collab.user?.user_metadata?.username ||
+                          collab.user?.email?.split("@")[0] ||
+                          "Collaborator"}
+                      </p>
+                      <p class="text-[10px] text-[color:var(--text-soft)] truncate italic">
+                        Access: {collab.role}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <select
+                      value={collab.role}
+                      onchange={(e) =>
+                        updateRole(
+                          collab.user_id,
+                          e.currentTarget.value as "viewer" | "editor",
+                        )}
+                      class="min-h-[40px] px-2 py-1.5 bg-[color:var(--surface-strong)] border border-[color:var(--border)] text-[color:var(--text)] rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                    </select>
+                    <button
+                      onclick={() =>
+                        removeCollaborator(
+                          collab.user_id,
+                          collab.user?.user_metadata?.username ||
+                            collab.user?.email?.split("@")[0] ||
+                            "User",
+                        )}
+                      class="h-10 w-10 p-1.5 text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10 rounded-lg transition-colors flex items-center justify-center"
+                      title="Remove collaborator"
+                      aria-label="Remove collaborator"
+                    >
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="p-4 border-t border-[color:var(--border)] flex justify-end bg-[color:var(--surface)]"
+      >
+        <button
+          onclick={closeModal}
+          class="min-h-[44px] px-4 py-2 bg-[color:var(--surface-muted)] hover:bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded-lg font-semibold text-sm transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormSharingModal.svelte:198:5
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+    <!-- Modal Content -->
+    <div
+      class="bg-[color:var(--surface)] w-full max-w-lg max-h-[88dvh] sm:max-h-[90vh] flex flex-col rounded-t-[18px] sm:rounded-[16px] shadow-2xl"
+      onclick={(e) => e.stopPropagation()}
+      role="dialog"
+    >
+      <!-- Header -->
+      <div class="p-5 sm:p-6 border-b border-[color:var(--border)]">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold text-[color:var(--text)]">
+            Share Form
+          </h2>
+          <button
+            onclick={closeModal}
+            class="text-[color:var(--text-soft)] hover:text-[color:var(--text)] transition-colors"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+        <p class="text-xs text-[color:var(--text-soft)] mt-1">
+          Grant access to other registered users
+        </p>
+      </div>
+
+      <!-- Content -->
+      <div class="overflow-y-auto flex-1 p-4 sm:p-6 space-y-6">
+        <!-- Notification -->
+        {#if showMessage}
+          <div
+            class="p-3 rounded-lg text-sm font-medium {messageType === 'success'
+              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+              : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'}"
+          >
+            {message}
+          </div>
+        {/if}
+
+        <!-- Search Section -->
+        <div class="space-y-3">
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
+            >Find & Add Users</label
+          >
+          <div class="space-y-2">
+            <div class="relative">
+              <i
+                class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--text-soft)] text-xs"
+              ></i>
+              <input
+                type="text"
+                placeholder="Search by username or email..."
+                bind:value={searchQuery}
+                oninput={searchUsers}
+                class="w-full pl-9 pr-4 py-2.5 bg-[color:var(--surface-strong)] border border-[color:var(--border)] text-[color:var(--text)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:bg-gray-900 focus:border-transparent transition-all"
+              />
+              {#if loading}
+                <div
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-soft)]"
+                >
+                  <i class="fas fa-spinner animate-spin"></i>
+                </div>
+              {/if}
+            </div>
+
+            <!-- Role Selection -->
+            <div class="flex gap-2">
+              <select
+                bind:value={selectedRole}
+                class="flex-1 min-h-[44px] px-3 py-2 bg-[color:var(--surface-muted)] border border-[color:var(--border)] text-[color:var(--text)] rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="viewer">Viewer (Read-only)</option>
+                <option value="editor">Editor (Can edit)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Search Results -->
+          {#if searchResults.length > 0}
+            <div class="space-y-2">
+              {#each searchResults as user (user.id)}
+                <div
+                  class="flex items-center justify-between gap-3 p-3 bg-[color:var(--surface-muted)] rounded-xl hover:bg-[color:var(--surface-strong)] transition-colors"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div
+                      class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0"
+                    >
+                      {user.username?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                    <div class="min-w-0">
+                      <p
+                        class="text-xs font-semibold text-[color:var(--text)] truncate"
+                      >
+                        {user.username}
+                      </p>
+                      <p class="text-[10px] text-[color:var(--text-soft)] truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onclick={() => addCollaborator(user.id, user.username)}
+                    disabled={adding}
+                    class="min-h-[44px] px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-indigo-600 disabled:opacity-50 flex-shrink-0 transition-colors"
+                  >
+                    {#if adding}
+                      <i class="fas fa-spinner animate-spin"></i>
+                    {:else}
+                      Add
+                    {/if}
+                  </button>
+                </div>
+              {/each}
+            </div>
+          {:else if searchQuery.length >= 2 && loading}
+            <div class="p-4 text-center">
+              <i class="fas fa-spinner animate-spin text-[color:var(--text-soft)] text-lg"></i>
+              <p class="text-xs text-[color:var(--text-soft)] mt-2">Searching...</p>
+            </div>
+          {:else if searchQuery.length >= 2 && !loading}
+            <div class="p-4 text-center">
+              <p class="text-xs text-[color:var(--text-soft)]">
+                No users found. Try searching by username or email.
+              </p>
+            </div>
+          {/if}
+        </div>
+
+        <!-- Collaborators List -->
+        <div
+          class="space-y-3 border-t border-[color:var(--border)] pt-6"
+        >
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
+            >Collaborators ({collaborators.length})</label
+          >
+
+          {#if collaborators.length === 0}
+            <p class="text-xs text-[color:var(--text-soft)] py-4 text-center">
+              No collaborators yet. Start by adding a user above.
+            </p>
+          {:else}
+            <div class="space-y-2">
+              {#each collaborators as collab (collab.id)}
+                <div
+                  class="flex items-center justify-between gap-3 p-3 bg-[color:var(--surface-muted)] rounded-xl"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div
+                      class="w-8 h-8 rounded-full bg-[color:var(--surface-strong)] flex items-center justify-center text-xs font-bold text-[color:var(--text)] border border-[color:var(--border)] flex-shrink-0"
+                    >
+                      {collab.user?.user_metadata?.username
+                        ?.charAt(0)
+                        .toUpperCase() ||
+                        collab.user?.email?.charAt(0).toUpperCase() ||
+                        "U"}
+                    </div>
+                    <div class="min-w-0">
+                      <p
+                        class="text-xs font-semibold text-[color:var(--text)] truncate"
+                      >
+                        {collab.user?.user_metadata?.username ||
+                          collab.user?.email?.split("@")[0] ||
+                          "Collaborator"}
+                      </p>
+                      <p class="text-[10px] text-[color:var(--text-soft)] truncate italic">
+                        Access: {collab.role}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <select
+                      value={collab.role}
+                      onchange={(e) =>
+                        updateRole(
+                          collab.user_id,
+                          e.currentTarget.value as "viewer" | "editor",
+                        )}
+                      class="min-h-[40px] px-2 py-1.5 bg-[color:var(--surface-strong)] border border-[color:var(--border)] text-[color:var(--text)] rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                    </select>
+                    <button
+                      onclick={() =>
+                        removeCollaborator(
+                          collab.user_id,
+                          collab.user?.user_metadata?.username ||
+                            collab.user?.email?.split("@")[0] ||
+                            "User",
+                        )}
+                      class="h-10 w-10 p-1.5 text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10 rounded-lg transition-colors flex items-center justify-center"
+                      title="Remove collaborator"
+                      aria-label="Remove collaborator"
+                    >
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="p-4 border-t border-[color:var(--border)] flex justify-end bg-[color:var(--surface)]"
+      >
+        <button
+          onclick={closeModal}
+          class="min-h-[44px] px-4 py-2 bg-[color:var(--surface-muted)] hover:bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded-lg font-semibold text-sm transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormSharingModal.svelte:209:11
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+          </h2>
+          <button
+            onclick={closeModal}
+            class="text-[color:var(--text-soft)] hover:text-[color:var(--text)] transition-colors"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormSharingModal.svelte:236:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        <div class="space-y-3">
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
+            >Find & Add Users</label
+          >
+          <div class="space-y-2">
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormSharingModal.svelte:328:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        >
+          <label class="text-xs font-bold text-[color:var(--text-soft)] uppercase"
+            >Collaborators ({collaborators.length})</label
+          >
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:123:15
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+            <button
+              on:click={startGame}
+              class="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[color:var(--text)] px-4 py-3 text-sm font-semibold text-[color:var(--surface)] transition-colors hover:opacity-90"
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:135:17
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+              <button
+                on:click={handleGameClick}
+                class="flex min-h-[88px] w-full items-center justify-center rounded-xl border border-[color:var(--accent)] bg-[color:var(--accent-soft)] px-4 py-6 text-lg font-semibold text-[color:var(--accent)] transition-transform active:scale-[0.99]"
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:147:11
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+        <button
+          on:click={handleGoHome}
+          class="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[color:var(--text)] px-4 py-3 text-sm font-semibold text-[color:var(--surface)] transition-colors hover:opacity-90"
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:6:7
+Warn: `errorTitle` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+
+  let errorTitle = "Oops!";
+  let errorDescription = "";
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:7:7
+Warn: `errorDescription` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+  let errorTitle = "Oops!";
+  let errorDescription = "";
+  let suggestedAction = "Go back to home";
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:9:7
+Warn: `iconColor` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+  let suggestedAction = "Go back to home";
+  let iconColor = "red";
+  let showGame = false;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:10:7
+Warn: `showGame` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+  let iconColor = "red";
+  let showGame = false;
+  let gameScore = $state(0);
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:284:3
+Warn: Unused CSS selector ".animate-fade-in-delayed"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-fade-in-delayed {
+    animation: fade-in 0.6s ease-out 0.2s both;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:288:3
+Warn: Unused CSS selector ".animate-fade-in-delayed-2"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-fade-in-delayed-2 {
+    animation: fade-in 0.6s ease-out 0.4s both;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:292:3
+Warn: Unused CSS selector ".animate-fade-in-delayed-3"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-fade-in-delayed-3 {
+    animation: fade-in 0.6s ease-out 0.6s both;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:296:3
+Warn: Unused CSS selector ".animate-fade-in-delayed-4"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-fade-in-delayed-4 {
+    animation: fade-in 0.6s ease-out 0.8s both;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:300:3
+Warn: Unused CSS selector ".animate-slide-down"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-slide-down {
+    animation: slide-down 0.6s ease-out 0.1s both;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:304:3
+Warn: Unused CSS selector ".animate-scale-in"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-scale-in {
+    animation: scale-in 0.5s ease-out 0.5s both;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:308:3
+Warn: Unused CSS selector ".animate-bounce-slow"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-bounce-slow {
+    animation: bounce-slow 3s infinite;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:312:3
+Warn: Unused CSS selector ".animate-wiggle"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-wiggle {
+    animation: wiggle 0.5s infinite;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:316:3
+Warn: Unused CSS selector ".animate-spin-slow"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-spin-slow {
+    animation: spin-slow 4s linear infinite;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:320:3
+Warn: Unused CSS selector ".animate-float-1"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-float-1 {
+    animation: float-1 6s ease-in-out infinite;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:324:3
+Warn: Unused CSS selector ".animate-float-2"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-float-2 {
+    animation: float-2 7s ease-in-out infinite;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormErrorScreen.svelte:328:3
+Warn: Unused CSS selector ".animate-float-3"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animate-float-3 {
+    animation: float-3 8s ease-in-out infinite;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/IdleBlockRenderer.svelte:7:14
+Warn: Component has unused export property 'colorPalette'. If it is for external reference only, please consider using `export const colorPalette`
+https://svelte.dev/e/export_let_unused (svelte)
+  export let element: BlockElement;
+  export let colorPalette: any;
+  export let globalTextColor: string = "";
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:3130:25
+Warn: Non-interactive element `<fieldset>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions (svelte)
+                      {:else if currentQuestion.type === "multiple-choice"}
+                        <fieldset
+                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-1 focus:outline-none"
+                          on:keydown={handleSelectionKeyboard}
+                          aria-label="Select one option"
+                        >
+                          {#each currentQuestion.options || [] as option}
+                            <label
+                              class="mock-card flex min-h-[52px] items-center px-4 py-3 md:px-6 md:py-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group shadow-sm hover:shadow-md"
+                              style="background: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? 'var(--form-accent)'
+                                : 'rgba(var(--form-text-primary-rgb), 0.05)'}; border-color: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? 'var(--form-accent)'
+                                : 'rgba(var(--form-text-primary-rgb), 0.1)'}; color: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? '#ffffff'
+                                : currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'};"
+                            >
+                              <div
+                                class="relative flex items-center justify-center flex-shrink-0"
+                              >
+                                <input
+                                  type="radio"
+                                  checked={answers[currentQuestion.id] === option}
+                                  class="w-5 h-5 cursor-pointer opacity-0 absolute"
+                                  style="accent-color: var(--form-accent);"
+                                  on:change={() =>
+                                    handleSingleSelect(
+                                      currentQuestion.id,
+                                      option,
+                                    )}
+                                />
+                                <div
+                                  class="w-5 h-5 border-2 rounded-full transition-colors"
+                                  style="border-color: {answers[
+                                    currentQuestion.id
+                                  ] === option
+                                    ? 'var(--form-accent)'
+                                    : theme?.id === 'ide-dark'
+                                      ? '#a0a0a0'
+                                      : '#9ca3af'}; background: transparent;"
+                                ></div>
+                                {#if answers[currentQuestion.id] === option}
+                                  <div
+                                    class="absolute w-2.5 h-2.5 rounded-full"
+                                    style="background: {theme?.id === 'ide-dark'
+                                      ? '#14b8a6'
+                                      : 'var(--form-accent)'};"
+                                  ></div>
+                                {/if}
+                              </div>
+                              <span
+                                class="ml-4 font-medium transition-colors whitespace-normal break-words text-left"
+                                style="color: {currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
+                                  ? '0 1px 2px rgba(0,0,0,0.3), 0 0 10px rgba(0,0,0,0.1)'
+                                  : 'none'};">{option}</span
+                              >
+                            </label>
+                          {/each}
+                          <p
+                            style="color: var(--form-text-secondary); opacity: 0.6;"
+                            class="hidden text-xs mt-4 md:block"
+                          >
+                            <i class="fas fa-keyboard mr-1"></i>A, B, C... or ↑↓
+                            to select • Enter to continue
+                          </p>
+                        </fieldset>
+                      {:else if currentQuestion.type === "dropdown"}
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:3271:25
+Warn: Non-interactive element `<fieldset>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions (svelte)
+                      {:else if currentQuestion.type === "checkboxes"}
+                        <fieldset
+                          class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 focus:outline-none"
+                          on:keydown={handleSelectionKeyboard}
+                          aria-label="Select multiple options"
+                        >
+                          {#each currentQuestion.options || [] as option}
+                            <label
+                              class="mock-card flex min-h-[52px] items-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
+                              style="background: rgba(var(--form-text-primary-rgb), 0.05); border-color: rgba(var(--form-text-primary-rgb), 0.1);"
+                            >
+                              <div
+                                class="relative flex items-center justify-center flex-shrink-0"
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:group={answers[currentQuestion.id]}
+                                  value={option}
+                                  class="w-5 h-5 cursor-pointer opacity-0 absolute"
+                                  style="accent-color: var(--form-accent);"
+                                  on:change={validateCurrentQuestion}
+                                />
+                                <div
+                                  class="w-5 h-5 border-2 rounded-lg transition-colors flex items-center justify-center"
+                                  style="border-color: {theme?.id === 'ide-dark'
+                                    ? '#a0a0a0'
+                                    : 'rgba(var(--form-text-primary-rgb), 0.3)'};"
+                                >
+                                  {#if answers[currentQuestion.id]?.includes(option)}
+                                    <i
+                                      class="fas fa-check text-xs"
+                                      style="color: var(--form-accent);"
+                                    ></i>
+                                  {/if}
+                                </div>
+                              </div>
+                              <span
+                                class="ml-4 font-medium transition-colors whitespace-normal break-words text-left"
+                                style="color: {currentQuestion?.textColor ||
+                                  globalTextColor ||
+                                  'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
+                                  ? '0 1px 2px rgba(0,0,0,0.3), 0 0 10px rgba(0,0,0,0.1)'
+                                  : 'none'};">{option}</span
+                              >
+                            </label>
+                          {/each}
+                          <p
+                            style="color: var(--form-text-secondary); opacity: 0.6;"
+                            class="hidden text-xs mt-4 md:block"
+                          >
+                            <i class="fas fa-keyboard mr-1"></i>A, B, C... to
+                            toggle • Space to check • Enter to continue
+                          </p>
+                        </fieldset>
+                      {:else if currentQuestion.type === "yes-no"}
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:3325:25
+Warn: Non-interactive element `<fieldset>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions (svelte)
+                      {:else if currentQuestion.type === "yes-no"}
+                        <fieldset
+                          class="grid grid-cols-1 md:grid-cols-2 gap-4 focus:outline-none"
+                          on:keydown={handleSelectionKeyboard}
+                          aria-label="Select Yes or No"
+                        >
+                          {#each ["Yes", "No"] as option}
+                            <label
+                              class="mock-card flex min-h-[56px] items-center justify-center px-4 py-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group"
+                              style="background: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? 'rgba(var(--form-accent-rgb), 0.2)'
+                                : 'rgba(var(--form-text-primary-rgb), 0.05)'}; border-color: {answers[
+                                currentQuestion.id
+                              ] === option
+                                ? 'var(--form-accent)'
+                                : 'rgba(var(--form-text-primary-rgb), 0.1)'};"
+                            >
+                              <input
+                                type="radio"
+                                checked={answers[currentQuestion.id] === option}
+                                class="w-5 h-5 cursor-pointer opacity-0 absolute"
+                                on:change={() =>
+                                  handleSingleSelect(
+                                    currentQuestion.id,
+                                    option,
+                                  )}
+                              />
+                              <span
+                                class="text-lg font-bold transition-colors"
+                                style="color: {answers[currentQuestion.id] ===
+                                option
+                                  ? 'var(--form-accent)'
+                                  : currentQuestion?.textColor ||
+                                    globalTextColor ||
+                                    'var(--form-text-primary)'}; text-shadow: {colorPalette?.isDark
+                                  ? '0 1px 2px rgba(0,0,0,0.3), 0 0 8px rgba(0,0,0,0.1)'
+                                  : 'none'};">{option}</span
+                              >
+                            </label>
+                          {/each}
+                        </fieldset>
+                        <p
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:3376:27
+Warn: Non-interactive element `<fieldset>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions (svelte)
+                        <div class="flex flex-col gap-6">
+                          <fieldset
+                            class="grid grid-cols-5 gap-3 py-2 focus:outline-none"
+                            on:keydown={handleSelectionKeyboard}
+                            aria-label="Rate your experience"
+                          >
+                            {#each [1, 2, 3, 4, 5] as rating}
+                              <button
+                                type="button"
+                                aria-label="Rate {rating} out of 5 stars"
+                                aria-pressed={answers[currentQuestion.id] === rating}
+                                on:click={() =>
+                                  handleRatingSelect(
+                                    currentQuestion.id,
+                                    rating,
+                                  )}
+                                class="min-h-[56px] rounded-xl border transition-all duration-200 cursor-pointer text-2xl md:text-5xl {answers[
+                                  currentQuestion.id
+                                ] >= rating
+                                  ? 'scale-[1.02] shadow-md'
+                                  : 'opacity-70 hover:opacity-100'}"
+                                style="color: {answers[currentQuestion.id] >=
+                                rating
+                                  ? 'var(--form-accent)'
+                                  : currentQuestion?.textColor ||
+                                    globalTextColor ||
+                                    'var(--form-text-primary)'}; border-color: {answers[
+                                  currentQuestion.id
+                                ] >= rating
+                                  ? 'rgba(var(--form-accent-rgb), 0.25)'
+                                  : 'rgba(var(--form-text-primary-rgb), 0.12)'}; background: {answers[
+                                  currentQuestion.id
+                                ] >= rating
+                                  ? 'rgba(var(--form-accent-rgb), 0.12)'
+                                  : 'rgba(var(--form-text-primary-rgb), 0.04)'};"
+                              >
+                                <i class="fas fa-star"></i>
+                              </button>
+                            {/each}
+                          </fieldset>
+                          <p
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:3443:35
+Warn: Screenreaders already announce `<img>` elements as an image
+https://svelte.dev/e/a11y_img_redundant_alt (svelte)
+                                  <!-- Image preview from URL -->
+                                  <img
+                                    src={answers[currentQuestion.id]}
+                                    alt="Uploaded image"
+                                    class="max-w-xs max-h-64 mx-auto rounded-lg"
+                                  />
+                                {/if}
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:3784:3
+Warn: Unused CSS selector ".animation-stage img"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+  .animation-stage img {
+    max-height: 100%;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:4005:5
+Warn: Also define the standard property 'user-select' for compatibility (css)
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+  }
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:4013:5
+Warn: Also define the standard property 'user-select' for compatibility (css)
+  :global(a) {
+    -webkit-user-select: auto;
+  }
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2435:29
+Error: Property 'mobileX' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --w: {typeof asset.width === 'number' && asset.width <= 100 ? `calc(${asset.width} * var(--sticker-scale-base, 8px))` : asset.width};
+            --mob-x: {asset.mobileX !== undefined ? asset.mobileX : asset.x}%;
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2435:59
+Error: Property 'mobileX' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --w: {typeof asset.width === 'number' && asset.width <= 100 ? `calc(${asset.width} * var(--sticker-scale-base, 8px))` : asset.width};
+            --mob-x: {asset.mobileX !== undefined ? asset.mobileX : asset.x}%;
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2436:29
+Error: Property 'mobileY' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-x: {asset.mobileX !== undefined ? asset.mobileX : asset.x}%;
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2436:59
+Error: Property 'mobileY' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-x: {asset.mobileX !== undefined ? asset.mobileX : asset.x}%;
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:37
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:71
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:121
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:155
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:206
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:240
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:312
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/FormPreview.svelte:2437:346
+Error: Property 'mobileWidth' does not exist on type '{ url: string; x?: number | undefined; y?: number | undefined; width?: number | undefined; height?: number | undefined; opacity?: number | undefined; rotate?: number | undefined; }'. (ts)
+            --mob-y: {asset.mobileY !== undefined ? asset.mobileY : asset.y}%;
+            --mob-w: {typeof (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) === 'number' && (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width) <= 100 ? `calc(${(asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)} * var(--sticker-scale-base, 8px))` : (asset.mobileWidth !== undefined ? asset.mobileWidth : asset.width)};
+          "
+
+/home/perseuskyogre/Projects/Form/src/lib/components/TemplateGallery.svelte:52:11
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+          type="button"
+          on:click={() => handleCategoryChange(category.id)}
+          class="btn btn-sm whitespace-nowrap"
+
+/home/perseuskyogre/Projects/Form/src/lib/components/TemplateGallery.svelte:68:9
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+        type="button"
+        on:click={() => onSelect({} as FormTemplate)}
+        class="flex min-h-[220px] flex-col items-start justify-between rounded-[12px] border border-dashed p-5 text-left transition-colors surface-muted hover:border-[color:var(--accent)]"
+
+/home/perseuskyogre/Projects/Form/src/lib/components/TemplateGallery.svelte:86:11
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+          type="button"
+          on:click={() => handleSelectTemplate(template)}
+          class="overflow-hidden rounded-[12px] border text-left shadow-sm transition-transform duration-150 hover:-translate-y-0.5 surface"
+
+/home/perseuskyogre/Projects/Form/src/lib/components/TemplateGallery.svelte:118:17
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                class="text-sm font-medium text-[color:var(--accent)]"
+                on:click={(event) => {
+                  event.stopPropagation();
+                  previewTemplate = template;
+                }}
+                on:keydown={(event) => {
+
+/home/perseuskyogre/Projects/Form/src/lib/components/TemplateGallery.svelte:122:17
+Warn: Using `on:keydown` to listen to the keydown event is deprecated. Use the event attribute `onkeydown` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                }}
+                on:keydown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    previewTemplate = template;
+                  }
+                }}
+              >
+
+/home/perseuskyogre/Projects/Form/src/lib/components/TemplateGallery.svelte:168:57
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+      <div class="flex justify-end gap-2">
+        <button type="button" class="btn btn-secondary" on:click={() => (previewTemplate = null)}>
+          Back
+
+/home/perseuskyogre/Projects/Form/src/lib/components/TemplateGallery.svelte:174:11
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+          class="btn btn-primary"
+          on:click={() => {
+            if (!previewTemplate) return;
+            handleSelectTemplate(previewTemplate);
+            previewTemplate = null;
+          }}
+        >
+
+/home/perseuskyogre/Projects/Form/src/lib/components/ThankYouPageEditor.svelte:275:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        >
+          <label
+            class="block text-sm font-medium text-[color:var(--text)]"
+            >Text Colors</label
+          >
+
+/home/perseuskyogre/Projects/Form/src/lib/components/ThankYouPageEditor.svelte:369:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        >
+          <label
+            class="block text-sm font-medium text-[color:var(--text)]"
+            >Background</label
+          >
+          <div class="flex gap-2">
+
+/home/perseuskyogre/Projects/Form/src/lib/components/ThankYouPageEditor.svelte:493:13
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-[color:var(--text)]"
+              >Custom Buttons</label
+            >
+            <button
+
+/home/perseuskyogre/Projects/Form/src/lib/components/ThankYouPageEditor.svelte:559:11
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+        >
+          <label class="text-sm font-medium text-[color:var(--text)]"
+            >Social Media Links</label
+          >
+          {#each socialPlatforms as platform}
+
+/home/perseuskyogre/Projects/Form/src/lib/components/ThankYouPageEditor.svelte:567:17
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+              <div class="flex items-center justify-between mb-2">
+                <label
+                  class="text-sm font-medium text-[color:var(--text)]"
+                >
+                  <i class={`${platform.icon} mr-2`}></i>
+                  {platform.name}
+                </label>
+                {#if getSocialLink(platform.id)}
+
+/home/perseuskyogre/Projects/Form/src/lib/components/ThankYouPageEditor.svelte:729:5
+Warn: Unknown at rule @apply (css)
+  :global(.bg-surface) {
+    @apply bg-white;
+  }
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:239:13
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+            data-state={activeTab === "personal" ? "active" : "inactive"}
+            on:click={() => (activeTab = "personal")}
+          >
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:247:13
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+            data-state={activeTab === "workspace" ? "active" : "inactive"}
+            on:click={() => (activeTab = "workspace")}
+          >
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:268:124
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+            {#if searchQuery}
+              <button class="absolute right-2 top-1/2 -translate-y-1/2 icon-btn h-8 w-8 border-transparent bg-transparent" on:click={() => (searchQuery = "")} aria-label="Clear search">
+                <i class="fas fa-times text-xs"></i>
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:273:69
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+          </div>
+          <button type="button" class="btn btn-secondary lg:hidden" on:click={openNewFormMenu}>
+            <i class="fas fa-plus text-xs"></i>
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:300:15
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+              type="button"
+              on:click={openNewFormMenu}
+              class="flex min-h-[220px] flex-col items-start justify-between rounded-[12px] border border-dashed p-5 text-left transition-colors surface-muted hover:border-[color:var(--accent)]"
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:322:17
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                class="flex h-full min-h-[220px] cursor-pointer flex-col"
+                on:click={() => navigateToBuilder(form)}
+                on:keydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:323:17
+Warn: Using `on:keydown` to listen to the keydown event is deprecated. Use the event attribute `onkeydown` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                on:click={() => navigateToBuilder(form)}
+                on:keydown={(e) => e.key === "Enter" && navigateToBuilder(form)}
+              >
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:349:25
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                        aria-label="Form options"
+                        on:click={(e) => e.stopPropagation()}
+                      >
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:357:29
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                            type="button"
+                            on:click={(e) => {
+                              e.stopPropagation();
+                              openDuplicateModal(form);
+                            }}
+                            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[color:var(--text)] hover:bg-[color:var(--surface-muted)]"
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:368:29
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                            type="button"
+                            on:click={(e) => {
+                              e.stopPropagation();
+                              deleteForm(form.id, form.title);
+                            }}
+                            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[color:var(--danger)] hover:bg-[color:var(--surface-muted)]"
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:397:23
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                      class="btn btn-primary flex-1"
+                      on:click={(e) => {
+                        e.stopPropagation();
+                        navigateToBuilder(form);
+                      }}
+                    >
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:408:23
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+                      class="icon-btn"
+                      on:click={(e) => {
+                        e.stopPropagation();
+                        openDuplicateModal(form);
+                      }}
+                      aria-label="Duplicate form"
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:430:68
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+            >
+              <button class="btn btn-secondary mt-5" type="button" on:click={() => (searchQuery = "")}>
+                Clear search
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:445:68
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+              {#if activeTab === "personal"}
+                <button type="button" class="btn btn-primary mt-5" on:click={openNewFormMenu}>
+                  <i class="fas fa-plus text-xs"></i>
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:456:84
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+          <div class="mt-6 flex justify-center">
+            <button type="button" class="btn btn-secondary" disabled={loadingMore} on:click={loadMoreForms}>
+              {#if loadingMore}
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:492:13
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+            disabled={duplicating}
+            on:click={() => {
+              showDuplicateModal = false;
+              formToDuplicate = null;
+            }}
+          >
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:499:80
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+          </button>
+          <button type="button" class="btn btn-primary" disabled={duplicating} on:click={() => duplicateForm(false)}>
+            {#if duplicating}
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:547:13
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+            class="btn btn-secondary"
+            on:click={() => {
+              showFormCreatedModal = false;
+              createdFormId = null;
+              createdFormTemplate = null;
+            }}
+          >
+
+/home/perseuskyogre/Projects/Form/src/routes/dashboard/+page.svelte:555:57
+Warn: Using `on:click` to listen to the click event is deprecated. Use the event attribute `onclick` instead
+https://svelte.dev/e/event_directive_deprecated (svelte)
+          </button>
+          <button type="button" class="btn btn-primary" on:click={openFormBuilder}>
+            <i class="fas fa-pen-to-square text-xs"></i>
+
+/home/perseuskyogre/Projects/Form/src/routes/theme-builder/+page.svelte:388:17
+Warn: `this` should be an `{expression}`. Using a string attribute value will cause an error in future versions of Svelte
+https://svelte.dev/e/svelte_element_invalid_this (svelte)
+<!-- Inject fonts & dynamic custom style variables safely scoped to preview viewport -->
+<svelte:element this="style">
+  {`
+
+/home/perseuskyogre/Projects/Form/src/routes/theme-builder/+page.svelte:1234:17
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+              >
+                <button
+                  onclick={() => currentSlide = Math.max(0, currentSlide - 1)}
+                  disabled={currentSlide === 0}
+                  class="mock-btn h-11 w-11 shrink-0 rounded-full border flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-colors active:scale-95"
+                  style="background: rgba(0, 0, 0, 0.04); border-color: {colors.cardBorder}aa; color: {colors.text};"
+                >
+                  <i class="fas fa-arrow-left"></i>
+                </button>
+
+/home/perseuskyogre/Projects/Form/src/routes/theme-builder/+page.svelte:1278:21
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+                  <div class="flex border rounded-[8px] overflow-hidden" style="border-color: {colors.cardBorder}aa; background-color: {colors.cardBg};">
+                    <button
+                      onclick={() => currentSlide = Math.max(0, currentSlide - 1)}
+                      disabled={currentSlide === 0}
+                      class="p-2 border-r hover:bg-slate-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                      style="border-color: {colors.cardBorder}aa;"
+                    >
+                      <i class="fas fa-chevron-up text-[10px]"></i>
+                    </button>
+                    <button
+
+/home/perseuskyogre/Projects/Form/src/routes/theme-builder/+page.svelte:1286:21
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+                    </button>
+                    <button
+                      onclick={() => currentSlide = Math.min(11, currentSlide + 1)}
+                      disabled={currentSlide === 11}
+                      class="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                    >
+                      <i class="fas fa-chevron-down text-[10px]"></i>
+                    </button>
+                  </div>
+
+====================================
+svelte-check found 24 errors and 87 warnings in 11 files

@@ -204,23 +204,23 @@
   <!-- Editor Panel -->
   <div class="flex-1 space-y-6">
     <div
-      class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 custom-shadow p-6 space-y-4"
+      class="surface surface-strong rounded-[12px] border border-[color:var(--border)] p-6 space-y-4"
     >
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+      <h3 class="text-lg font-semibold text-[color:var(--text)]">
         Customize Thank You Page
       </h3>
 
       <!-- Enable/Disable Toggle -->
       <div
-        class="flex items-center justify-between p-4 bg-slate-50 dark:bg-gray-800 rounded-lg border border-slate-100 dark:border-gray-700"
+        class="flex items-center justify-between p-4 surface-muted rounded-[10px] border border-[color:var(--border)]"
       >
         <div>
           <label
             for="enable-custom"
-            class="block text-sm font-medium text-slate-700 dark:text-gray-200"
+            class="block text-sm font-medium text-[color:var(--text)]"
             >Use Custom Thank You Page</label
           >
-          <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">
+          <p class="text-xs muted mt-1">
             When disabled, shows default design
           </p>
         </div>
@@ -229,7 +229,7 @@
           type="checkbox"
           checked={config.enabled}
           onchange={toggleEnabled}
-          class="w-5 h-5 text-primary rounded focus:ring-2 focus:ring-primary"
+          class="w-5 h-5 text-[color:var(--accent)] rounded focus:ring-2 focus:ring-[color:var(--accent)]"
         />
       </div>
 
@@ -238,7 +238,7 @@
         <div class="space-y-2">
           <label
             for="title"
-            class="block text-sm font-medium text-slate-700 dark:text-gray-200"
+            class="block text-sm font-medium text-[color:var(--text)]"
             >Title</label
           >
           <input
@@ -247,7 +247,7 @@
             value={config.title}
             oninput={(e) => updateTitle(e.currentTarget.value)}
             placeholder="Thank You!"
-            class="w-full px-3 py-2 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+            class="w-full px-3 py-2 border border-[color:var(--border)] bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
           />
         </div>
 
@@ -255,7 +255,7 @@
         <div class="space-y-2">
           <label
             for="subtitle"
-            class="block text-sm font-medium text-slate-700 dark:text-gray-200"
+            class="block text-sm font-medium text-[color:var(--text)]"
             >Subtitle</label
           >
           <textarea
@@ -264,16 +264,16 @@
             oninput={(e) => updateSubtitle(e.currentTarget.value)}
             placeholder="Your response has been recorded successfully."
             rows="2"
-            class="w-full px-3 py-2 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+            class="w-full px-3 py-2 border border-[color:var(--border)] bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
           ></textarea>
         </div>
 
         <!-- Text Color Settings -->
         <div
-          class="space-y-3 pt-4 border-t border-slate-200 dark:border-gray-800"
+          class="space-y-3 pt-4 border-t border-[color:var(--border)]"
         >
           <label
-            class="block text-sm font-medium text-slate-700 dark:text-gray-200"
+            class="block text-sm font-medium text-[color:var(--text)]"
             >Text Colors</label
           >
 
@@ -281,7 +281,7 @@
           <div class="space-y-2">
             <label
               for="title-color"
-              class="block text-xs font-medium text-slate-600 dark:text-gray-300"
+              class="block text-xs font-medium text-[color:var(--text-soft)]"
               >Title Color</label
             >
             <div class="flex items-center gap-2">
@@ -290,9 +290,9 @@
                 type="color"
                 value={config.titleColor || "#1f2937"}
                 oninput={(e) => updateTitleColor(e.currentTarget.value)}
-                class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
+                class="w-10 h-10 rounded cursor-pointer border border-[color:var(--border)] bg-[color:var(--surface-strong)] p-0.5"
               />
-              <span class="text-sm text-slate-600 dark:text-gray-400"
+              <span class="text-sm text-[color:var(--text-soft)]"
                 >{config.titleColor || "#1f2937"}</span
               >
             </div>
@@ -302,7 +302,7 @@
           <div class="space-y-2">
             <label
               for="subtitle-color"
-              class="block text-xs font-medium text-slate-600 dark:text-gray-300"
+              class="block text-xs font-medium text-[color:var(--text-soft)]"
               >Subtitle Color</label
             >
             <div class="flex items-center gap-2">
@@ -311,9 +311,9 @@
                 type="color"
                 value={config.subtitleColor || "#6b7280"}
                 oninput={(e) => updateSubtitleColor(e.currentTarget.value)}
-                class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
+                class="w-10 h-10 rounded cursor-pointer border border-[color:var(--border)] bg-[color:var(--surface-strong)] p-0.5"
               />
-              <span class="text-sm text-slate-600 dark:text-gray-400"
+              <span class="text-sm text-[color:var(--text-soft)]"
                 >{config.subtitleColor || "#6b7280"}</span
               >
             </div>
@@ -323,7 +323,7 @@
           <div class="space-y-2">
             <label
               for="text-color"
-              class="block text-xs font-medium text-slate-600 dark:text-gray-300"
+              class="block text-xs font-medium text-[color:var(--text-soft)]"
               >General Text Color</label
             >
             <div class="flex items-center gap-2">
@@ -332,9 +332,9 @@
                 type="color"
                 value={config.textColor || "#d1d5db"}
                 oninput={(e) => updateTextColor(e.currentTarget.value)}
-                class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
+                class="w-10 h-10 rounded cursor-pointer border border-[color:var(--border)] bg-[color:var(--surface-strong)] p-0.5"
               />
-              <span class="text-sm text-slate-600 dark:text-gray-400"
+              <span class="text-sm text-[color:var(--text-soft)]"
                 >{config.textColor || "#d1d5db"}</span
               >
             </div>
@@ -344,7 +344,7 @@
           <div class="space-y-2">
             <label
               for="icon-color"
-              class="block text-xs font-medium text-slate-600 dark:text-gray-300"
+              class="block text-xs font-medium text-[color:var(--text-soft)]"
               >Success Icon Color</label
             >
             <div class="flex items-center gap-2">
@@ -353,9 +353,9 @@
                 type="color"
                 value={config.successIconColor || "#22c55e"}
                 oninput={(e) => updateSuccessIconColor(e.currentTarget.value)}
-                class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
+                class="w-10 h-10 rounded cursor-pointer border border-[color:var(--border)] bg-[color:var(--surface-strong)] p-0.5"
               />
-              <span class="text-sm text-slate-600 dark:text-gray-400"
+              <span class="text-sm text-[color:var(--text-soft)]"
                 >{config.successIconColor || "#22c55e"}</span
               >
             </div>
@@ -364,10 +364,10 @@
 
         <!-- Background Settings -->
         <div
-          class="space-y-2 pt-4 border-t border-slate-200 dark:border-gray-800"
+          class="space-y-2 pt-4 border-t border-[color:var(--border)]"
         >
           <label
-            class="block text-sm font-medium text-slate-700 dark:text-gray-200"
+            class="block text-sm font-medium text-[color:var(--text)]"
             >Background</label
           >
           <div class="flex gap-2">
@@ -376,7 +376,7 @@
               class={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 config.backgroundType === "color"
                   ? "bg-primary text-white"
-                  : "bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-gray-700"
+                  : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)] hover:bg-[color:var(--surface-strong)]"
               }`}
             >
               Color
@@ -386,7 +386,7 @@
               class={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 config.backgroundType === "image"
                   ? "bg-primary text-white"
-                  : "bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-gray-700"
+                  : "bg-[color:var(--surface-muted)] text-[color:var(--text-soft)] hover:bg-[color:var(--surface-strong)]"
               }`}
             >
               Image
@@ -399,15 +399,15 @@
                 type="color"
                 value={config.backgroundColor}
                 oninput={(e) => updateBackgroundColor(e.currentTarget.value)}
-                class="w-10 h-10 rounded cursor-pointer border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 p-0.5"
+                class="w-10 h-10 rounded cursor-pointer border border-[color:var(--border)] bg-[color:var(--surface-strong)] p-0.5"
               />
-              <span class="text-sm text-slate-600 dark:text-gray-400"
+              <span class="text-sm text-[color:var(--text-soft)]"
                 >{config.backgroundColor}</span
               >
             </div>
           {:else if config.backgroundType === "image"}
             <div
-              class="relative w-full h-32 rounded-lg border-2 border-dashed border-slate-300 dark:border-gray-600 bg-slate-50 dark:bg-gray-800 group cursor-pointer hover:border-primary transition-colors overflow-hidden flex items-center justify-center"
+              class="relative w-full h-32 rounded-lg border-2 border-dashed border-[color:var(--border)] bg-[color:var(--surface-muted)] group cursor-pointer hover:border-primary transition-colors overflow-hidden flex items-center justify-center"
             >
               {#if config.backgroundImage}
                 <img
@@ -418,22 +418,22 @@
                 <div class="relative flex flex-col items-center gap-2">
                   <button
                     onclick={removeBackgroundImage}
-                    class="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                    class="p-2 bg-[color:var(--surface-strong)] rounded-lg shadow-sm text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10 transition-colors"
                     aria-label="Remove background image"
                   >
                     <i class="fas fa-trash-alt"></i>
                   </button>
                   <span
-                    class="text-[10px] font-bold text-slate-600 dark:text-gray-200 bg-white/80 dark:bg-gray-800/80 px-2 py-0.5 rounded shadow-sm"
+                    class="text-[10px] font-bold text-[color:var(--text)] bg-[color:var(--surface-strong)]/80 px-2 py-0.5 rounded shadow-sm"
                     >Image Uploaded</span
                   >
                 </div>
               {:else}
                 <i
-                  class="fas fa-cloud-upload-alt text-slate-300 dark:text-gray-600 text-2xl group-hover:text-primary transition-colors"
+                  class="fas fa-cloud-upload-alt text-[color:var(--text-soft)] text-2xl group-hover:text-primary transition-colors"
                 ></i>
                 <span
-                  class="absolute text-[10px] font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-gray-300"
+                  class="absolute text-[10px] font-bold text-[color:var(--text-soft)] group-hover:text-[color:var(--text)]"
                   >Click to upload</span
                 >
               {/if}
@@ -449,14 +449,14 @@
 
         <!-- Icon and Info Toggles -->
         <div
-          class="space-y-2 pt-4 border-t border-slate-200 dark:border-gray-800"
+          class="space-y-2 pt-4 border-t border-[color:var(--border)]"
         >
           <div
-            class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg"
+            class="flex items-center justify-between p-3 bg-[color:var(--surface-muted)] rounded-lg"
           >
             <label
               for="show-icon"
-              class="text-sm font-medium text-slate-700 dark:text-gray-200"
+              class="text-sm font-medium text-[color:var(--text)]"
               >Show Success Icon</label
             >
             <input
@@ -468,11 +468,11 @@
             />
           </div>
           <div
-            class="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800 rounded-lg"
+            class="flex items-center justify-between p-3 bg-[color:var(--surface-muted)] rounded-lg"
           >
             <label
               for="show-info"
-              class="text-sm font-medium text-slate-700 dark:text-gray-200"
+              class="text-sm font-medium text-[color:var(--text)]"
               >Show Form Info</label
             >
             <input
@@ -487,10 +487,10 @@
 
         <!-- Custom Buttons -->
         <div
-          class="space-y-3 pt-4 border-t border-slate-200 dark:border-gray-800"
+          class="space-y-3 pt-4 border-t border-[color:var(--border)]"
         >
           <div class="flex items-center justify-between">
-            <label class="text-sm font-medium text-slate-700 dark:text-gray-200"
+            <label class="text-sm font-medium text-[color:var(--text)]"
               >Custom Buttons</label
             >
             <button
@@ -503,7 +503,7 @@
 
           {#each config.buttons as button (button.id)}
             <div
-              class="p-3 bg-slate-50 dark:bg-gray-800 rounded-lg border border-slate-200 dark:border-gray-700 space-y-2"
+              class="p-3 bg-[color:var(--surface-muted)] rounded-lg border border-[color:var(--border)] space-y-2"
             >
               <div class="grid grid-cols-2 gap-2">
                 <input
@@ -512,7 +512,7 @@
                   oninput={(e) =>
                     updateButton(button.id, "label", e.currentTarget.value)}
                   placeholder="Button Label"
-                  class="px-2 py-1 border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-900 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                  class="px-2 py-1 border border-[color:var(--border)] bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                 />
                 <input
                   type="text"
@@ -520,7 +520,7 @@
                   oninput={(e) =>
                     updateButton(button.id, "url", e.currentTarget.value)}
                   placeholder="https://example.com"
-                  class="px-2 py-1 border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-900 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                  class="px-2 py-1 border border-[color:var(--border)] bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                 />
               </div>
               <div class="flex items-center justify-between">
@@ -535,7 +535,7 @@
                     class={`text-xs px-2 py-1 rounded transition-colors ${
                       button.variant === "primary"
                         ? "bg-primary text-white"
-                        : "bg-slate-200 dark:bg-gray-600 text-slate-700 dark:text-gray-200"
+                        : "bg-[color:var(--surface-strong)] text-[color:var(--text-soft)]"
                     }`}
                   >
                     {button.variant}
@@ -554,18 +554,18 @@
 
         <!-- Social Links -->
         <div
-          class="space-y-3 pt-4 border-t border-slate-200 dark:border-gray-800"
+          class="space-y-3 pt-4 border-t border-[color:var(--border)]"
         >
-          <label class="text-sm font-medium text-slate-700 dark:text-gray-200"
+          <label class="text-sm font-medium text-[color:var(--text)]"
             >Social Media Links</label
           >
           {#each socialPlatforms as platform}
             <div
-              class="p-3 bg-slate-50 dark:bg-gray-800 rounded-lg border border-slate-200 dark:border-gray-700"
+              class="p-3 bg-[color:var(--surface-muted)] rounded-lg border border-[color:var(--border)]"
             >
               <div class="flex items-center justify-between mb-2">
                 <label
-                  class="text-sm font-medium text-slate-700 dark:text-gray-200"
+                  class="text-sm font-medium text-[color:var(--text)]"
                 >
                   <i class={`${platform.icon} mr-2`}></i>
                   {platform.name}
@@ -585,7 +585,7 @@
                 oninput={(e) =>
                   addOrUpdateSocialLink(platform.id, e.currentTarget.value)}
                 placeholder={`https://${platform.id}.com/yourprofile`}
-                class="w-full px-2 py-1 border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-slate-900 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                class="w-full px-2 py-1 border border-[color:var(--border)] bg-[color:var(--surface-strong)] text-[color:var(--text)] rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
               />
             </div>
           {/each}
@@ -615,13 +615,13 @@
   <!-- Preview Panel -->
   <div class="w-full lg:w-80">
     <div
-      class="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-gray-800 custom-shadow p-6 sticky top-6"
+      class="bg-[color:var(--surface)] rounded-xl border border-[color:var(--border)] custom-shadow p-6 sticky top-6"
     >
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+      <h3 class="text-lg font-semibold text-[color:var(--text)] mb-4">
         Preview
       </h3>
       <div
-        class="border border-slate-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800"
+        class="border border-[color:var(--border)] rounded-lg overflow-hidden bg-[color:var(--surface)]"
         style={config.theme === "ide-dark" ? "background-color: #1e1e1e;" : ""}
       >
         {#if config.enabled}
@@ -674,7 +674,7 @@
                       class={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         button.variant === "primary"
                           ? "bg-slate-900 text-white"
-                          : "bg-slate-100 dark:bg-gray-700 text-slate-900 dark:text-white"
+                          : "bg-[color:var(--surface-strong)] text-[color:var(--text)]"
                       }`}
                     >
                       {button.label}
@@ -687,7 +687,7 @@
                 <div class="flex justify-center gap-3 mt-4">
                   {#each config.socialLinks as link}
                     <div
-                      class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-700 flex items-center justify-center text-slate-500 dark:text-gray-400 text-sm"
+                      class="w-8 h-8 rounded-full bg-[color:var(--surface-strong)] flex items-center justify-center text-[color:var(--text-soft)] text-sm"
                     >
                       <i
                         class={socialPlatforms.find(
@@ -711,9 +711,9 @@
           </div>
         {:else}
           <div
-            class="min-h-96 flex items-center justify-center p-4 bg-slate-50 dark:bg-gray-900/50"
+            class="min-h-96 flex items-center justify-center p-4 bg-[color:var(--surface-muted)]"
           >
-            <div class="text-center text-slate-500 dark:text-gray-400">
+            <div class="text-center text-[color:var(--text-soft)]">
               <p class="text-sm">Enable customization to see preview</p>
             </div>
           </div>

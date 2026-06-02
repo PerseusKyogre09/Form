@@ -44,16 +44,3 @@ export const currentForm = writable<Form>({
   backgroundImage: '',
   slug: ''
 });
-
-export const forms = writable<Form[]>([]);
-
-// Load from localStorage
-if (typeof window !== 'undefined') {
-  const saved = localStorage.getItem('forms');
-  if (saved) {
-    forms.set(JSON.parse(saved));
-  }
-  forms.subscribe(value => {
-    localStorage.setItem('forms', JSON.stringify(value));
-  });
-}

@@ -49,7 +49,7 @@ export function formatText(text: string, accentColor: string = 'indigo-600'): st
 /**
  * Strips all formatting and returns plain text
  */
-export function stripFormatting(text: string): string {
+function stripFormatting(text: string): string {
     if (!text) return '';
 
     return text

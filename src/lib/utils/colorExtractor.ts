@@ -31,7 +31,7 @@ interface HSL {
  * Extract dominant colors from an image URL
  * Returns an array of hex colors sorted by frequency
  */
-export async function extractDominantColors(imageUrl: string, numColors: number = 5): Promise<string[]> {
+async function extractDominantColors(imageUrl: string, numColors: number = 5): Promise<string[]> {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -132,7 +132,7 @@ export function calculateLuminance(hexColor: string): number {
     return 0.2126 * transform(rgb.r) + 0.7152 * transform(rgb.g) + 0.0722 * transform(rgb.b);
 }
 
-export function calculateContrastRatio(color1: string, color2: string): number {
+function calculateContrastRatio(color1: string, color2: string): number {
     const lum1 = calculateLuminance(color1);
     const lum2 = calculateLuminance(color2);
     const lighter = Math.max(lum1, lum2);
@@ -143,7 +143,7 @@ export function calculateContrastRatio(color1: string, color2: string): number {
 /**
  * Generate a complete contrast palette based on dominant background colors
  */
-export function generateContrastPalette(dominantColors: string[]): ColorPalette {
+function generateContrastPalette(dominantColors: string[]): ColorPalette {
     if (dominantColors.length === 0) return getDefaultPalette();
 
     const primaryBgColor = dominantColors[0];
